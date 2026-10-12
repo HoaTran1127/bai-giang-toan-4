@@ -1408,10 +1408,10 @@
         (rec.sent
           ? '<div class="p-3.5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-900 font-black text-xs text-center">✅ Đã gửi kết quả về bảng điểm của cô.</div>'
           : '<div class="p-3.5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-950 font-black text-xs text-center">⚠ Bài giảng này chưa được gắn link bảng điểm nên kết quả <b>CHƯA gửi</b> đi được. Em đưa màn hình này cho cô xem nhé.</div>') +
-        '<div class="text-xs font-black uppercase text-slate-600 tracking-wide pt-1">Lời sai của em — xem lại từng câu:</div>' +
         (mistakes
-          ? '<div class="space-y-4">' + mistakes + '</div>'
-          : '<div class="p-5 rounded-3xl bg-emerald-50 border-2 border-emerald-300 text-emerald-900 font-black text-sm text-center">Em không sai câu nào trong 16 câu được chấm. Xuất sắc!</div>') +
+          ? '<div class="text-xs font-black uppercase text-slate-600 tracking-wide pt-1">Lời sai của em — xem lại từng câu:</div>' +
+            '<div class="space-y-4">' + mistakes + '</div>'
+          : '<div class="p-5 rounded-3xl bg-emerald-50 border-2 border-emerald-300 text-emerald-900 font-black text-sm text-center">Em không sai câu nào trong ' + TOTAL_GRADED + ' câu được chấm. Xuất sắc!</div>') +
         '<div class="pt-2 flex flex-wrap items-center justify-center gap-3">' +
           '<a href="#muc-1" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-black text-xs hover:bg-slate-200">Ôn lại Mục 1 → 4</a>' +
           '<button onclick="backToGate()" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-black text-xs hover:bg-indigo-700">Ghi tên bạn khác</button>' +
