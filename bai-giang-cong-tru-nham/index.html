@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phương Pháp Cộng Trừ Nhẩm Qua 10 & Đặt Tính Dấu Chấm Nhớ - Toán Lớp 4</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #f8fafc;
+    }
+    .math-font {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Vở kẻ ô ly toán chuẩn học sinh tiểu học */
+    .grid-math-paper {
+      background-color: #ffffff;
+      background-image: 
+        linear-gradient(to right, rgba(148, 163, 184, 0.2) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(148, 163, 184, 0.2) 1px, transparent 1px);
+      background-size: 26px 26px;
+    }
+    .math-cell {
+      width: 44px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+      position: relative;
+    }
+    /* Dấu chấm nhớ nằm ngay sát chân chữ số trừ */
+    .foot-dot {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      width: 9px;
+      height: 9px;
+      border-radius: 9999px;
+      background-color: #e11d48;
+      box-shadow: 0 0 6px rgba(225, 29, 72, 0.6);
+    }
+  </style>
+</head>
+<body class="p-3 sm:p-6 lg:p-8 text-slate-800">
+
+  <!-- ==================== TIÊU ĐỀ BÀI HỌC ==================== -->
+  <header class="max-w-5xl mx-auto text-center mb-8">
+    <div class="inline-flex items-center gap-2 bg-indigo-100 text-indigo-900 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider mb-2">
+      <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+      Chuyên đề Toán Lớp 4: Cặp Bạn Thân 10 & Đặt Tính Chấm Chân Số Trừ (•)
+    </div>
+    <h1 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
+      CỘNG TRỪ NHẨM SIÊU TỐC & DẤU CHẤM NHỚ (•)
+    </h1>
+    <p class="text-slate-600 text-xs sm:text-sm font-bold mt-2 max-w-2xl mx-auto">
+      Quy chuẩn toán học: Tách số theo mốc tròn 10 – Khắc phục triệt để lỗi quên nhớ bằng kỹ thuật chấm chân số trừ.
+    </p>
+
+    <!-- THANH MENU ĐIỀU HƯỚNG NHANH -->
+    <div class="flex flex-wrap justify-center gap-2 mt-4 text-xs font-black">
+      <a href="#muc-1" class="px-3.5 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition shadow-sm">1. Cặp Bạn Thân 10</a>
+      <a href="#muc-2" class="px-3.5 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition shadow-sm">2. Sơ Đồ Trừ (16 − 8)</a>
+      <a href="#muc-3" class="px-3.5 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition shadow-sm">3. Sơ Đồ Cộng (6 + 8)</a>
+      <a href="#muc-4" class="px-3.5 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition shadow-sm">4. Đặt Tính Chấm Chân (•)</a>
+      <a href="#muc-5" class="px-3.5 py-1.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition shadow-md">5. Luyện Tập 7 Cấp Độ</a>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto space-y-8">
+
+    <!-- ==================== MỤC 1: BẢNG 5 CẶP BẠN THÂN 10 ==================== -->
+    <section id="muc-1" class="bg-white rounded-3xl p-5 sm:p-7 shadow-sm border border-slate-200">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black text-sm">1</span>
+        <div>
+          <h2 class="text-lg sm:text-xl font-black text-slate-900">Bảng 5 Cặp "Bạn Thân 10" (Cơ sở tư duy nhẩm)</h2>
+          <p class="text-xs text-slate-500 font-bold">Hai số có tổng vừa tròn bằng 10 được gọi là cặp bù nhau (bạn thân của nhau).</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center">
+          <div class="text-2xl font-black text-indigo-600 math-font">1 + 9 = 10</div>
+          <span class="text-xs font-bold text-slate-600 mt-1 block">Bạn của 1 là <b>9</b></span>
+        </div>
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center">
+          <div class="text-2xl font-black text-indigo-600 math-font">2 + 8 = 10</div>
+          <span class="text-xs font-bold text-slate-600 mt-1 block">Bạn của 2 là <b>8</b></span>
+        </div>
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center">
+          <div class="text-2xl font-black text-indigo-600 math-font">3 + 7 = 10</div>
+          <span class="text-xs font-bold text-slate-600 mt-1 block">Bạn của 3 là <b>7</b></span>
+        </div>
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center">
+          <div class="text-2xl font-black text-indigo-600 math-font">4 + 6 = 10</div>
+          <span class="text-xs font-bold text-slate-600 mt-1 block">Bạn của 4 là <b>6</b></span>
+        </div>
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center col-span-2 sm:col-span-1">
+          <div class="text-2xl font-black text-indigo-600 math-font">5 + 5 = 10</div>
+          <span class="text-xs font-bold text-slate-600 mt-1 block">Bạn của 5 là <b>5</b></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== MỤC 2: SƠ ĐỒ TOÁN HỌC PHÉP TRỪ QUA 10 ==================== -->
+    <section id="muc-2" class="bg-white rounded-3xl p-5 sm:p-7 shadow-sm border border-slate-200">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm">2</span>
+          <div>
+            <h2 class="text-lg sm:text-xl font-black text-slate-900">Phép Trừ Qua 10: Phân Tích Số Bằng Sơ Đồ Tư Duy</h2>
+            <p class="text-xs text-slate-500 font-bold">Phương pháp: Tách số bị trừ thành 10 và số lẻ ➔ Lấy 10 trừ để lấy Bạn Thân ➔ Cộng số lẻ.</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-500">Ví dụ khác:</span>
+          <div class="flex gap-1.5 text-xs font-bold">
+            <button onclick="updateSubPipeline(16, 8)" id="btn-sub-demo-16-8" class="px-2.5 py-1 rounded-lg bg-blue-600 text-white font-mono">16 − 8</button>
+            <button onclick="updateSubPipeline(15, 7)" id="btn-sub-demo-15-7" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-mono">15 − 7</button>
+            <button onclick="updateSubPipeline(13, 9)" id="btn-sub-demo-13-9" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-mono">13 − 9</button>
+            <button onclick="updateSubPipeline(14, 6)" id="btn-sub-demo-14-6" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-mono">14 − 6</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Bước 1 -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col justify-between">
+          <div>
+            <span class="text-[11px] font-black uppercase text-blue-700 bg-blue-100 px-2 py-0.5 rounded">Bước 1: Phân rã số bị trừ</span>
+            <div class="mt-3 text-center">
+              <div class="text-3xl font-black text-slate-800 math-font" id="sub-card-original">16</div>
+              <div class="flex justify-center items-center my-2 text-slate-400">
+                <svg width="40" height="24" viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 2 L8 22 M20 2 L32 22"/>
+                </svg>
+              </div>
+              <div class="flex justify-center gap-6">
+                <div class="p-2 bg-indigo-50 border border-indigo-200 rounded-xl text-center w-16">
+                  <span class="text-base font-black text-indigo-700 math-font">10</span>
+                  <span class="text-[10px] block text-slate-500 font-bold">Tròn chục</span>
+                </div>
+                <div class="p-2 bg-blue-50 border border-blue-200 rounded-xl text-center w-16">
+                  <span class="text-base font-black text-blue-700 math-font" id="sub-card-tail">6</span>
+                  <span class="text-[10px] block text-slate-500 font-bold">Số lẻ</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-xs text-slate-600 mt-4 font-bold border-t border-slate-200 pt-2" id="sub-text-b1">
+            Vì hàng đơn vị không đủ trừ, ta tách 10 ra để thực hiện phép trừ trước.
+          </p>
+        </div>
+
+        <!-- Bước 2 -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col justify-between">
+          <div>
+            <span class="text-[11px] font-black uppercase text-amber-700 bg-amber-100 px-2 py-0.5 rounded">Bước 2: Tìm Bạn Thân (Trừ 10)</span>
+            <div class="mt-3 text-center space-y-2">
+              <div class="text-xs text-slate-500 font-bold">Lấy 10 trừ đi số trừ:</div>
+              <div class="text-2xl font-black text-slate-800 math-font" id="sub-card-step2-math">10 − 8 = 2</div>
+              <div class="p-2.5 bg-amber-50 border border-amber-300 rounded-xl inline-block mt-2">
+                <span class="text-xs font-black text-amber-900 block">Bạn thân của <span id="sub-card-step2-subnum">8</span> là:</span>
+                <span class="text-3xl font-black text-amber-600 math-font" id="sub-card-step2-buddy">2</span>
+              </div>
+            </div>
+          </div>
+          <p class="text-xs text-slate-600 mt-4 font-bold border-t border-slate-200 pt-2">
+            Mượn 10 đem trừ thì kết quả luôn là <b>Bạn thân</b> của số trừ.
+          </p>
+        </div>
+
+        <!-- Bước 3 -->
+        <div class="bg-emerald-50/60 border border-emerald-200 rounded-2xl p-4 flex flex-col justify-between">
+          <div>
+            <span class="text-[11px] font-black uppercase text-emerald-800 bg-emerald-200 px-2 py-0.5 rounded">Bước 3: Gom kết quả nhẩm</span>
+            <div class="mt-3 text-center space-y-2">
+              <div class="text-xs text-slate-600 font-bold">Lấy Bạn Thân cộng số lẻ:</div>
+              <div class="text-2xl font-black text-emerald-700 math-font" id="sub-card-step3-math">2 + 6 = 8</div>
+              <div class="p-3 bg-white border-2 border-emerald-400 rounded-xl mt-2 shadow-sm">
+                <span class="text-xs text-slate-500 font-bold block">KẾT QUẢ CUỐI CÙNG</span>
+                <span class="text-3xl font-black text-emerald-600 math-font" id="sub-card-step3-final">8</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 border-t border-emerald-200 pt-2 text-xs font-black text-emerald-900">
+            💡 <b>Khẩu quyết nhẩm:</b> Lấy <i>Bạn thân</i> cộng <i>Số lẻ hàng đơn vị</i>.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== MỤC 3: SƠ ĐỒ TOÁN HỌC PHÉP CỘNG QUA 10 ==================== -->
+    <section id="muc-3" class="bg-white rounded-3xl p-5 sm:p-7 shadow-sm border border-slate-200">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm">3</span>
+          <div>
+            <h2 class="text-lg sm:text-xl font-black text-slate-900">Phép Cộng Qua 10: Tách Số Bù Tròn Chục</h2>
+            <p class="text-xs text-slate-500 font-bold">Phương pháp: Tách số nhỏ thành hai phần để bù đủ 10 cho số lớn ➔ Cộng phần còn lại.</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-500">Ví dụ khác:</span>
+          <div class="flex gap-1.5 text-xs font-bold">
+            <button onclick="updateAddPipeline(6, 8)" id="btn-add-demo-6-8" class="px-2.5 py-1 rounded-lg bg-amber-500 text-white font-mono">6 + 8</button>
+            <button onclick="updateAddPipeline(7, 9)" id="btn-add-demo-7-9" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-mono">7 + 9</button>
+            <button onclick="updateAddPipeline(5, 8)" id="btn-add-demo-5-8" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-mono">5 + 8</button>
+            <button onclick="updateAddPipeline(8, 7)" id="btn-add-demo-8-7" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-mono">8 + 7</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Bước 1 -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col justify-between">
+          <div>
+            <span class="text-[11px] font-black uppercase text-amber-800 bg-amber-100 px-2 py-0.5 rounded">Bước 1: Xác định số cần bù</span>
+            <div class="mt-3 text-center space-y-2">
+              <div class="text-xs text-slate-500 font-bold">Số lớn cần thêm bao nhiêu để tròn 10?</div>
+              <div class="text-2xl font-black text-slate-800 math-font" id="add-card-step1-num">Số 8</div>
+              <div class="p-2.5 bg-amber-50 border border-amber-300 rounded-xl inline-block mt-2">
+                <span class="text-xs font-bold text-slate-600 block">Cần bạn thân là:</span>
+                <span class="text-3xl font-black text-amber-600 math-font" id="add-card-step1-buddy">2</span>
+                <span class="text-[10px] text-slate-500 block">(để 8 + 2 = 10)</span>
+              </div>
+            </div>
+          </div>
+          <p class="text-xs text-slate-600 mt-4 font-bold border-t border-slate-200 pt-2">
+            Luôn ưu tiên bù cho số lớn hơn trước để phép tính tròn chục nhanh nhất.
+          </p>
+        </div>
+
+        <!-- Bước 2 -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col justify-between">
+          <div>
+            <span class="text-[11px] font-black uppercase text-blue-700 bg-blue-100 px-2 py-0.5 rounded">Bước 2: Phân nhánh số nhỏ</span>
+            <div class="mt-3 text-center">
+              <div class="text-3xl font-black text-slate-800 math-font" id="add-card-step2-small">6</div>
+              <div class="flex justify-center items-center my-2 text-slate-400">
+                <svg width="40" height="24" viewBox="0 0 40 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 2 L8 22 M20 2 L32 22"/>
+                </svg>
+              </div>
+              <div class="flex justify-center gap-6">
+                <div class="p-2 bg-blue-50 border border-blue-200 rounded-xl text-center w-16">
+                  <span class="text-base font-black text-blue-700 math-font" id="add-card-step2-remain">4</span>
+                  <span class="text-[10px] block text-slate-500 font-bold">Còn lại</span>
+                </div>
+                <div class="p-2 bg-amber-50 border border-amber-300 rounded-xl text-center w-16">
+                  <span class="text-base font-black text-amber-600 math-font" id="add-card-step2-buddy">2</span>
+                  <span class="text-[10px] block text-slate-500 font-bold">Bù sang 8</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-xs text-slate-600 mt-4 font-bold border-t border-slate-200 pt-2" id="add-text-b2">
+            Tách 6 thành 4 và 2.
+          </p>
+        </div>
+
+        <!-- Bước 3 -->
+        <div class="bg-emerald-50/60 border border-emerald-200 rounded-2xl p-4 flex flex-col justify-between">
+          <div>
+            <span class="text-[11px] font-black uppercase text-emerald-800 bg-emerald-200 px-2 py-0.5 rounded">Bước 3: Hợp nhất phép tính</span>
+            <div class="mt-3 text-center space-y-2">
+              <div class="text-xs text-slate-600 font-bold">Tròn 10 cộng phần còn lại:</div>
+              <div class="text-2xl font-black text-emerald-700 math-font" id="add-card-step3-math">10 + 4 = 14</div>
+              <div class="p-3 bg-white border-2 border-emerald-400 rounded-xl mt-2 shadow-sm">
+                <span class="text-xs text-slate-500 font-bold block">KẾT QUẢ CUỐI CÙNG</span>
+                <span class="text-3xl font-black text-emerald-600 math-font" id="add-card-step3-final">14</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 border-t border-emerald-200 pt-2 text-xs font-black text-emerald-900">
+            💡 <b>Khẩu quyết nhẩm:</b> Tách số nhỏ để bù tròn 10 cho số lớn, còn thừa bao nhiêu đem cộng vào.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== MỤC 4: ĐẶT TÍNH CỘT DỌC VỚI DẤU CHẤM NGAY CHÂN SỐ TRỪ ==================== -->
+    <section id="muc-4" class="bg-white rounded-3xl p-5 sm:p-7 shadow-sm border border-slate-200">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center font-black text-sm">4</span>
+          <div>
+            <h2 class="text-lg sm:text-xl font-black text-slate-900">Đặt Tính Cột Dọc: Dấu Chấm Đặt Ngay Sát Chân Số Trừ (•)</h2>
+            <p class="text-xs text-slate-500 font-bold">Quy tắc chuẩn: Mượn 10 ở cột nào ➔ Chấm ngay 1 dấu (•) vào sát chân chữ số của số trừ ở cột kế bên trái (không đánh trên đầu).</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-500">Mẫu mô phỏng:</span>
+          <select id="select-col-problem" onchange="loadColProblem(this.value)" class="p-1.5 rounded-xl border border-slate-300 font-bold text-xs bg-slate-50 outline-none">
+            <option value="53_28">Mẫu 1: 53 − 28 (Có nhớ 1 lần)</option>
+            <option value="432_178">Mẫu 2: 432 − 178 (Có nhớ 2 lần)</option>
+            <option value="1000_347">Mẫu 3: 1 000 − 347 (Trừ dãy số 0)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- BẢNG ĐIỀU KHIỂN & KHUNG ĐẶT TÍNH -->
+      <div class="bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-200">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <span class="text-xs font-black text-slate-700 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-sm" id="step-indicator">
+            Đang tính: Cột Đơn Vị
+          </span>
+          <div class="flex gap-2">
+            <button onclick="prevStep()" id="btn-prev-step" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white border border-slate-300 text-slate-700 hover:bg-slate-100">
+              ◀ Lùi một cột
+            </button>
+            <button onclick="nextStep()" id="btn-next-step" class="px-4 py-1.5 rounded-xl text-xs font-black bg-rose-600 text-white hover:bg-rose-700 shadow">
+              Cột tiếp theo ▶
+            </button>
+            <button onclick="resetStep()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">
+              🔄 Bắt đầu lại
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          <!-- KHUNG VỞ KẺ ĐẶT TÍNH THẲNG HÀNG (ÁP SÁT CHÂN, KHÔNG CÓ DÒNG RỜI NẰM TRÊN ĐẦU) -->
+          <div class="md:col-span-6 flex justify-center">
+            <div class="grid-math-paper p-6 rounded-2xl border-2 border-slate-300 shadow-sm inline-block" id="column-board-render">
+              <!-- Render động bằng JS -->
+            </div>
+          </div>
+
+          <!-- PHÂN TÍCH CHI TIẾT TỪNG BƯỚC -->
+          <div class="md:col-span-6 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div class="text-xs font-black uppercase text-rose-700 bg-rose-50 px-2.5 py-1 rounded-md inline-block" id="col-detail-badge">
+              CỘT ĐƠN VỊ
+            </div>
+            <h4 class="text-base font-black text-slate-900" id="col-detail-title">Tiêu đề bước</h4>
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs sm:text-sm text-slate-700 font-bold" id="col-detail-body">
+              Nội dung phân tích từng bước...
+            </div>
+            <div class="p-2.5 bg-amber-50 border border-amber-300 rounded-xl text-amber-950 font-black text-xs" id="col-detail-rule">
+              Khẩu quyết thực hiện
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== MỤC 5: HỆ THỐNG LUYỆN TẬP 7 CẤP ĐỘ ==================== -->
+    <section id="muc-5" class="bg-white rounded-3xl p-5 sm:p-7 shadow-sm border border-slate-200">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
+        <div>
+          <span class="bg-indigo-100 text-indigo-800 text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase">
+            Học sinh tự thực hành & tự sửa lỗi
+          </span>
+          <h2 class="text-xl sm:text-2xl font-black text-slate-900 mt-1">Luyện Tập 7 Cấp Độ Phân Bậc</h2>
+          <p class="text-xs text-slate-500 font-bold">Học sinh tự tính và nhập đáp án. Nếu sai, hệ thống sẽ mở bảng phân tích ô ly có dấu chấm sát chân (•) chuẩn mực như Mục 4!</p>
+        </div>
+
+        <div class="flex flex-wrap gap-1.5" id="level-tabs">
+          <!-- Render tab bằng JS -->
+        </div>
+      </div>
+
+      <div id="quiz-container" class="space-y-6">
+        <!-- Render bài tập bằng JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    function setText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.innerText = text;
+    }
+    function setHTML(id, html) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    }
+
+    // ============================================================
+    // 1. MODULE SƠ ĐỒ PHÉP TRỪ QUA 10
+    // ============================================================
+    function updateSubPipeline(orig, sub) {
+      ['16-8', '15-7', '13-9', '14-6'].forEach(function(key) {
+        const btn = document.getElementById('btn-sub-demo-' + key);
+        if (btn) {
+          btn.className = (key === (orig + '-' + sub))
+            ? "px-2.5 py-1 rounded-lg bg-blue-600 text-white font-mono"
+            : "px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-mono";
+        }
+      });
+
+      const tail = orig - 10;
+      const buddy = 10 - sub;
+      const finalRes = buddy + tail;
+
+      setText('sub-card-original', orig);
+      setText('sub-card-tail', tail);
+      setText('sub-text-b1', 'Tách số ' + orig + ' thành 10 (tròn chục) và ' + tail + ' (số lẻ đơn vị).');
+
+      setText('sub-card-step2-math', '10 − ' + sub + ' = ' + buddy);
+      setText('sub-card-step2-subnum', sub);
+      setText('sub-card-step2-buddy', buddy);
+
+      setText('sub-card-step3-math', buddy + ' + ' + tail + ' = ' + finalRes);
+      setText('sub-card-step3-final', finalRes);
+    }
+
+    // ============================================================
+    // 2. MODULE SƠ ĐỒ PHÉP CỘNG QUA 10
+    // ============================================================
+    function updateAddPipeline(a, b) {
+      const big = Math.max(a, b);
+      const small = Math.min(a, b);
+
+      ['6-8', '7-9', '5-8', '8-7'].forEach(function(key) {
+        const btn = document.getElementById('btn-add-demo-' + key);
+        if (btn) {
+          btn.className = (key === (a + '-' + b))
+            ? "px-2.5 py-1 rounded-lg bg-amber-500 text-white font-mono"
+            : "px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-mono";
+        }
+      });
+
+      const buddy = 10 - big;
+      const remain = small - buddy;
+      const finalRes = 10 + remain;
+
+      setText('add-card-step1-num', 'Số ' + big);
+      setText('add-card-step1-buddy', buddy);
+
+      setText('add-card-step2-small', small);
+      setText('add-card-step2-remain', remain);
+      setText('add-card-step2-buddy', buddy);
+      setText('add-text-b2', 'Tách số nhỏ ' + small + ' thành ' + remain + ' và ' + buddy + ' để bù sang cho ' + big + '.');
+
+      setText('add-card-step3-math', '10 + ' + remain + ' = ' + finalRes);
+      setText('add-card-step3-final', finalRes);
+    }
+
+    // ============================================================
+    // 3. MODULE ĐẶT TÍNH CỘT DỌC VỚI DẤU CHẤM NGAY CHÂN CHỮ SỐ TRỪ
+    // ============================================================
+    const colProblems = {
+      "53_28": {
+        top: ["5", "3"],
+        bot: ["2", "8"],
+        steps: [
+          {
+            activeCol: 1,
+            dotCols: [0],
+            result: ["", "5"],
+            badge: "CỘT ĐƠN VỊ",
+            title: "Tính: 3 − 8",
+            lines: [
+              "• 3 bé hơn 8, không trừ được: mượn 1 chục (10).",
+              "• <b>Đánh dấu chấm (•) ngay sát chân chữ số 2</b> ở cột chục của số trừ.",
+              "• Bạn thân của 8 là <b>2</b>. Lấy 2 + 3 = <b>5</b> ➔ Viết 5."
+            ],
+            rule: "Khẩu quyết: Mượn ở cột này ➔ Chấm ngay (•) vào sát chân số trừ của cột bên trái."
+          },
+          {
+            activeCol: 0,
+            dotCols: [0],
+            result: ["2", "5"],
+            badge: "CỘT CHỤC",
+            title: "Tính: 5 − 2 (có chấm • ở chân)",
+            lines: [
+              "• Chữ số 2 có dấu chấm (•) ở chân ➔ tự động tăng thêm 1 thành <b>3</b>.",
+              "• Lấy 5 − 3 = <b>2</b> ➔ Viết 2.",
+              "• <b>Kết quả chung: 25</b>."
+            ],
+            rule: "Khẩu quyết: Chữ số có dấu chấm (•) ở chân tự động cộng thêm 1 trước khi trừ."
+          }
+        ]
+      },
+      "432_178": {
+        top: ["4", "3", "2"],
+        bot: ["1", "7", "8"],
+        steps: [
+          {
+            activeCol: 2,
+            dotCols: [1],
+            result: ["", "", "4"],
+            badge: "CỘT ĐƠN VỊ",
+            title: "Tính: 2 − 8",
+            lines: [
+              "• 2 bé hơn 8: Mượn 1 chục, chấm (•) ngay sát chân chữ số 7 ở hàng chục.",
+              "• Bạn thân của 8 là <b>2</b>. Lấy 2 + 2 = <b>4</b> ➔ Viết 4."
+            ],
+            rule: "Khẩu quyết: Lấy Bạn thân cộng số bị trừ."
+          },
+          {
+            activeCol: 1,
+            dotCols: [0, 1],
+            result: ["", "5", "4"],
+            badge: "CỘT CHỤC",
+            title: "Tính: 3 − 7 (có chấm • ở chân)",
+            lines: [
+              "• Số 7 có chấm (•) ở chân thành <b>8</b>.",
+              "• 3 không trừ được 8: Mượn 1 trăm, chấm (•) ngay sát chân số 1 ở hàng trăm.",
+              "• Bạn thân của 8 là <b>2</b>. Lấy 2 + 3 = <b>5</b> ➔ Viết 5."
+            ],
+            rule: "Khẩu quyết: Cứ mượn là chấm (•) vào chân số trừ tiếp theo."
+          },
+          {
+            activeCol: 0,
+            dotCols: [0, 1],
+            result: ["2", "5", "4"],
+            badge: "CỘT TRĂM",
+            title: "Tính: 4 − 1 (có chấm • ở chân)",
+            lines: [
+              "• Số 1 có chấm (•) ở chân thành <b>2</b>.",
+              "• Lấy 4 − 2 = <b>2</b> ➔ Viết 2.",
+              "• <b>Kết quả chung: 254</b>."
+            ],
+            rule: "Khẩu quyết: Chấm sát chân số trừ, không bao giờ quên nhớ hay nhầm lẫn."
+          }
+        ]
+      },
+      "1000_347": {
+        top: ["1", "0", "0", "0"],
+        bot: [" ", "3", "4", "7"],
+        steps: [
+          {
+            activeCol: 3,
+            dotCols: [2],
+            result: ["", "", "", "3"],
+            badge: "CỘT ĐƠN VỊ",
+            title: "Tính: 0 − 7",
+            lines: [
+              "• 0 không trừ được 7: Mượn 1 chục, chấm (•) ngay sát chân số 4.",
+              "• Bạn thân của 7 là <b>3</b>. Lấy 3 + 0 = <b>3</b> ➔ Viết 3."
+            ],
+            rule: "0 trừ một số thì kết quả chính là Bạn thân của số đó."
+          },
+          {
+            activeCol: 2,
+            dotCols: [1, 2],
+            result: ["", "", "5", "3"],
+            badge: "CỘT CHỤC",
+            title: "Tính: 0 − 4 (có chấm • ở chân)",
+            lines: [
+              "• Số 4 có chấm (•) ở chân thành <b>5</b>.",
+              "• 0 không trừ được 5: Mượn 1 trăm, chấm (•) ngay sát chân số 3.",
+              "• Bạn thân của 5 là <b>5</b>. Lấy 5 + 0 = <b>5</b> ➔ Viết 5."
+            ],
+            rule: "Số 0 ở giữa: Mượn rồi lấy Bạn thân cộng vào."
+          },
+          {
+            activeCol: 1,
+            dotCols: [1, 2],
+            result: ["", "6", "5", "3"],
+            badge: "CỘT TRĂM & NGHÌN",
+            title: "Tính: 10 − 4 (có chấm • ở chân)",
+            lines: [
+              "• Số 3 có chấm (•) ở chân thành <b>4</b>.",
+              "• 10 − 4 = <b>6</b> ➔ Viết 6.",
+              "• <b>Kết quả chung: 653</b>."
+            ],
+            rule: "Dấu chấm nằm ngay sát chân số trừ, giải quyết chuỗi số 0 cực kỳ gọn gàng."
+          }
+        ]
+      }
+    };
+
+    let currentProblemKey = "53_28";
+    let currentColStep = 0;
+
+    function loadColProblem(key) {
+      currentProblemKey = key;
+      currentColStep = 0;
+      renderColumnBoard();
+    }
+
+    function nextStep() {
+      const prob = colProblems[currentProblemKey];
+      if (currentColStep < prob.steps.length - 1) {
+        currentColStep++;
+        renderColumnBoard();
+      }
+    }
+
+    function prevStep() {
+      if (currentColStep > 0) {
+        currentColStep--;
+        renderColumnBoard();
+      }
+    }
+
+    function resetStep() {
+      currentColStep = 0;
+      renderColumnBoard();
+    }
+
+    function renderColumnBoard() {
+      const prob = colProblems[currentProblemKey];
+      const step = prob.steps[currentColStep];
+
+      setText('step-indicator', 'Bước ' + (currentColStep + 1) + ' / ' + prob.steps.length + ': ' + step.badge);
+      setText('col-detail-badge', step.badge);
+      setText('col-detail-title', step.title);
+      setText('col-detail-rule', '💡 ' + step.rule);
+
+      const bodyEl = document.getElementById('col-detail-body');
+      if (bodyEl) {
+        bodyEl.innerHTML = step.lines.map(function(line) { return '<div>' + line + '</div>'; }).join('');
+      }
+
+      const boardEl = document.getElementById('column-board-render');
+      const topArr = prob.top;
+      const botArr = prob.bot;
+
+      let colsHtml = '';
+      for (let i = 0; i < topArr.length; i++) {
+        const isActive = (i === step.activeCol);
+        const hasDot = step.dotCols.includes(i);
+        const resVal = step.result[i] || '';
+
+        // Dấu chấm đỏ đặt ngay sát góc chân của chữ số trừ, không có dòng lơ lửng trên đầu
+        const footDotHtml = hasDot ? '<span class="foot-dot animate-pulse" title="Dấu chấm nhớ ở chân"></span>' : '';
+
+        colsHtml += '<div class="flex flex-col items-center px-0.5 ' + (isActive ? 'bg-indigo-50/80 rounded-lg ring-2 ring-indigo-400' : '') + '">' +
+          '<div class="math-cell math-font text-slate-900">' + topArr[i] + '</div>' +
+          '<div class="math-cell math-font text-slate-800">' +
+            '<span>' + botArr[i] + '</span>' +
+            footDotHtml +
+          '</div>' +
+          '<div class="w-full h-0.5 my-1"></div>' +
+          '<div class="math-cell math-font ' + (resVal ? 'text-indigo-700' : 'text-slate-300') + '">' + (resVal !== '' ? resVal : '&nbsp;') + '</div>' +
+        '</div>';
+      }
+
+      // Gạch ngang liền một dải, vẽ phủ lên toàn bộ các cột (không đứt khúc theo từng ô)
+      const ruleLine = '<div class="absolute left-0 right-0 top-[96px] h-0.5 bg-slate-900"></div>';
+
+      boardEl.innerHTML = '<div class="flex items-center">' +
+        '<div class="flex flex-col items-center mr-1">' +
+          '<div class="math-cell"></div>' +
+          '<div class="math-cell math-font text-rose-600">−</div>' +
+          '<div class="w-full h-0.5 my-1"></div>' +
+          '<div class="math-cell"></div>' +
+        '</div>' +
+        '<div class="relative flex">' + colsHtml + ruleLine + '</div>' +
+      '</div>';
+    }
+
+    // ============================================================
+    // BỘ PHÂN TÍCH TỰ ĐỘNG ĐẶT TÍNH CÓ DẤU CHẤM SÁT CHÂN SỐ TRỪ
+    // Tái hiện chính xác mô hình Mục 4 khi học sinh tính sai
+    // ============================================================
+    const colNames = ["Đơn vị", "Chục", "Trăm", "Nghìn", "Chục nghìn", "Trăm nghìn", "Triệu"];
+
+    function buildSubtractionDiagnostic(topStr, botStr) {
+      const cleanTop = topStr.replace(/\s+/g, '');
+      const cleanBot = botStr.replace(/\s+/g, '');
+      const maxLen = Math.max(cleanTop.length, cleanBot.length);
+
+      const topArr = cleanTop.padStart(maxLen, '0').split('');
+      const botArr = cleanBot.padStart(maxLen, '0').split('');
+
+      // Mảng lưu cờ có dấu chấm ở chân số trừ
+      const dotFlags = new Array(maxLen).fill(false);
+      const stepLogs = [];
+      const resArr = new Array(maxLen).fill('');
+
+      let hasBorrowToCarry = false;
+      // Số cột kết quả thực sự có chữ số: chữ số 0 đứng đầu không viết (chuẩn đặt tính)
+      const realLen = String(Number(cleanTop) - Number(cleanBot)).length;
+      const leadZeroCols = maxLen - realLen;
+      const paddedCols = maxLen - cleanBot.length;
+
+      // Duyệt từ cột đơn vị (phải nhất) sang trái
+      for (let i = maxLen - 1; i >= 0; i--) {
+        const tDigit = parseInt(topArr[i], 10);
+        let bDigit = parseInt(botArr[i], 10);
+        const colTitle = "Cột " + (colNames[maxLen - 1 - i] || ("Hàng " + (maxLen - i)));
+        const isPadded = i < paddedCols;
+
+        const hadDot = hasBorrowToCarry;
+        if (hadDot) {
+          dotFlags[i] = true;
+        }
+
+        const bEff = bDigit + (hadDot ? 1 : 0);
+        let colRes = 0;
+        let stepText = "";
+        const dotExplain = !hadDot ? "" : (isPadded
+          ? "Hàng này số trừ <b>không có chữ số</b> ➔ chấm (•) rơi vào ô trống, coi như <b>1</b>. "
+          : ("Số " + bDigit + " có chấm (•) ở chân thành <b>" + bEff + "</b>. "));
+
+        if (tDigit < bEff) {
+          // Cần mượn 10: rải dấu chấm ngay vào chân số trừ ở cột bên trái (i - 1)
+          hasBorrowToCarry = true;
+          const buddy = 10 - bEff;
+          colRes = buddy + tDigit;
+          resArr[i] = colRes.toString();
+
+          stepText = "<b>" + colTitle + ":</b> " + dotExplain +
+            tDigit + " không trừ được " + bEff + " ➔ <b>Mượn 10 (Chấm • ngay sát chân số trừ cột bên trái)</b>. " +
+            "Bạn thân của " + bEff + " là <b>" + buddy + "</b>. Lấy " + buddy + " + " + tDigit + " = <b>" + colRes + "</b> (Viết " + colRes + ").";
+        } else {
+          // Đủ trừ: không mượn
+          hasBorrowToCarry = false;
+          colRes = tDigit - bEff;
+          const isLeadZero = (i < leadZeroCols);
+          resArr[i] = isLeadZero ? '' : colRes.toString();
+
+          stepText = "<b>" + colTitle + ":</b> " + dotExplain +
+            "Lấy " + tDigit + " − " + bEff + " = <b>" + colRes + "</b> " +
+            (isLeadZero ? "(chữ số 0 đứng đầu nên <b>không viết</b>)." : "(Viết " + colRes + ").");
+        }
+
+        stepLogs.unshift(stepText);
+      }
+
+      // Xây dựng bảng ô ly đặt tính hoàn chỉnh với dấu chấm đỏ sát chân
+      let colsHtml = '';
+      for (let i = 0; i < maxLen; i++) {
+        const isPadded = i < paddedCols;
+        const topShow = (i < (maxLen - cleanTop.length)) ? '&nbsp;' : topArr[i];
+        const hasDot = dotFlags[i];
+        // Ô trống của số trừ: hiện chữ 0 mờ để dấu chấm có chỗ bám
+        const botShow = isPadded ? (hasDot ? '<span class="text-slate-300">0</span>' : '&nbsp;') : botArr[i];
+        const resShow = resArr[i];
+
+        const footDotHtml = hasDot ? '<span class="foot-dot animate-pulse"></span>' : '';
+
+        colsHtml += '<div class="flex flex-col items-center px-0.5">' +
+          '<div class="math-cell math-font text-slate-900">' + topShow + '</div>' +
+          '<div class="math-cell math-font text-slate-800">' +
+            '<span>' + botShow + '</span>' +
+            footDotHtml +
+          '</div>' +
+          '<div class="w-full h-0.5 my-1"></div>' +
+          '<div class="math-cell math-font text-indigo-700 font-black">' + (resShow !== '' ? resShow : '&nbsp;') + '</div>' +
+        '</div>';
+      }
+
+      const ruleLine = '<div class="absolute left-0 right-0 top-[96px] h-0.5 bg-slate-900"></div>';
+
+      const boardHtml = '<div class="flex items-center justify-center p-3 sm:p-4 bg-white rounded-2xl border-2 border-slate-300 shadow-sm">' +
+        '<div class="flex flex-col items-center mr-1">' +
+          '<div class="math-cell"></div>' +
+          '<div class="math-cell math-font text-rose-600">−</div>' +
+          '<div class="w-full h-0.5 my-1"></div>' +
+          '<div class="math-cell"></div>' +
+        '</div>' +
+        '<div class="relative flex">' + colsHtml + ruleLine + '</div>' +
+      '</div>';
+
+      return {
+        boardHtml: boardHtml,
+        stepLogs: stepLogs
+      };
+    }
+
+    // ============================================================
+    // DỮ LIỆU BÀI TẬP 7 CẤP ĐỘ MỞ RỘNG (ĐẦY ĐỦ CÁC DẠNG LỚP 4)
+    // ============================================================
+    const levelData = {
+      1: {
+        title: "Level 1: Phản xạ Cặp Bạn Thân 10",
+        hint: "Xác định nhanh số còn thiếu để tổng bằng 10.",
+        questions: [
+          { q: "8 + ? = 10", ans: 2, expText: "Số bù với 8 là <b>2</b> (8 + 2 = 10)." },
+          { q: "7 + ? = 10", ans: 3, expText: "Số bù với 7 là <b>3</b> (7 + 3 = 10)." },
+          { q: "9 + ? = 10", ans: 1, expText: "Số bù với 9 là <b>1</b> (9 + 1 = 10)." },
+          { q: "6 + ? = 10", ans: 4, expText: "Số bù với 6 là <b>4</b> (6 + 4 = 10)." }
+        ]
+      },
+      2: {
+        title: "Level 2: Trừ Nhẩm Qua 10",
+        hint: "Khẩu quyết: Lấy Bạn thân của số trừ cộng với số lẻ ở hàng đơn vị.",
+        questions: [
+          { q: "14 − 8 = ?", ans: 6, expText: "Bạn của 8 là 2. Lấy 2 + 4 = <b>6</b>." },
+          { q: "13 − 7 = ?", ans: 6, expText: "Bạn của 7 là 3. Lấy 3 + 3 = <b>6</b>." },
+          { q: "15 − 9 = ?", ans: 6, expText: "Bạn của 9 là 1. Lấy 1 + 5 = <b>6</b>." },
+          { q: "12 − 8 = ?", ans: 4, expText: "Bạn của 8 là 2. Lấy 2 + 2 = <b>4</b>." },
+          { q: "16 − 9 = ?", ans: 7, expText: "Bạn của 9 là 1. Lấy 1 + 6 = <b>7</b>." },
+          { q: "11 − 7 = ?", ans: 4, expText: "Bạn của 7 là 3. Lấy 3 + 1 = <b>4</b>." }
+        ]
+      },
+      3: {
+        title: "Level 3: Cộng Nhẩm Bù Tròn 10",
+        hint: "Khẩu quyết: Tách số nhỏ bù cho số lớn đủ 10, rồi cộng phần thừa.",
+        questions: [
+          { q: "7 + 8 = ?", ans: 15, expText: "8 cần 2. Tách 7 = 5 + 2. Lấy 10 + 5 = <b>15</b>." },
+          { q: "5 + 9 = ?", ans: 14, expText: "9 cần 1. Tách 5 = 4 + 1. Lấy 10 + 4 = <b>14</b>." },
+          { q: "6 + 7 = ?", ans: 13, expText: "7 cần 3. Tách 6 = 3 + 3. Lấy 10 + 3 = <b>13</b>." },
+          { q: "8 + 9 = ?", ans: 17, expText: "9 cần 1. Tách 8 = 7 + 1. Lấy 10 + 7 = <b>17</b>." }
+        ]
+      },
+      4: {
+        title: "Level 4: Đặt Tính 2 - 3 Chữ Số Có Nhớ",
+        hint: "Mượn 10 ở cột nào thì chấm (•) ngay sát chân số trừ của cột kế tiếp bên trái.",
+        questions: [
+          { type: "column", top: "64", bot: "37", ans: 27 },
+          { type: "column", top: "524", bot: "267", ans: 257 },
+          { type: "column", top: "743", bot: "485", ans: 258 }
+        ]
+      },
+      5: {
+        title: "Level 5: Đa Chữ Số Có Nhớ Liên Hoàn (5 - 6 Chữ Số)",
+        hint: "Duy trì chuỗi dấu chấm (•) ở chân số trừ từ phải sang trái, không bỏ sót bất kỳ lần nhớ nào.",
+        questions: [
+          { type: "column", top: "72314", bot: "38658", ans: 33656 },
+          { type: "column", top: "83521", bot: "47865", ans: 35656 },
+          { type: "column", top: "61204", bot: "27489", ans: 33715 },
+          { type: "column", top: "452163", bot: "187594", ans: 264569 }
+        ]
+      },
+      6: {
+        title: "Level 6: Phép Trừ Dãy Số 0 (Tròn Nghìn / Chục Nghìn / Trăm Nghìn)",
+        hint: "Trừ vào số 0 đều mượn 10 ➔ Rải dấu chấm (•) ở chân liên tục và lấy Bạn thân của số trừ.",
+        questions: [
+          { type: "column", top: "10000", bot: "4327", ans: 5673 },
+          { type: "column", top: "50000", bot: "23684", ans: 26316 },
+          { type: "column", top: "80000", bot: "35614", ans: 44386 },
+          { type: "column", top: "100000", bot: "46275", ans: 53725 }
+        ]
+      },
+      7: {
+        title: "Level 7: Tính Nhanh Bằng Cách Thuận Tiện Nhất",
+        hint: "Ghép các cặp số có đuôi bạn thân (1-9, 2-8, 3-7, 4-6, 5-5) hoặc kỹ thuật cộng trừ bù số gần tròn.",
+        questions: [
+          {
+            type: "text",
+            q: "247 + 386 + 753 + 614 = ?",
+            ans: 2000,
+            expText: "<b>Phân tích cách tính thuận tiện:</b><br/>• Nhóm cặp có đuôi bạn thân (7 và 3, 6 và 4):<br/>= (247 + 753) + (386 + 614)<br/>= 1 000 + 1 000 = <b>2 000</b>."
+          },
+          {
+            type: "text",
+            q: "135 + 278 + 865 + 722 = ?",
+            ans: 2000,
+            expText: "<b>Phân tích cách tính thuận tiện:</b><br/>• Nhóm đuôi bạn thân (5 và 5, 8 và 2):<br/>= (135 + 865) + (278 + 722)<br/>= 1 000 + 1 000 = <b>2 000</b>."
+          },
+          {
+            type: "text",
+            q: "358 + 497 + 642 = ?",
+            ans: 1497,
+            expText: "<b>Phân tích cách tính thuận tiện:</b><br/>• Nhóm 358 với 642 (đuôi 8 và 2 bù 10):<br/>= (358 + 642) + 497<br/>= 1 000 + 497 = <b>1 497</b>."
+          },
+          {
+            type: "text",
+            q: "2468 + 998 = ?",
+            ans: 3466,
+            expText: "<b>Kỹ thuật cộng bù số gần tròn 1000:</b><br/>• 998 = 1 000 − 2<br/>➔ 2 468 + 998 = 2 468 + 1 000 − 2<br/>= 3 468 − 2 = <b>3 466</b>."
+          },
+          {
+            type: "text",
+            q: "5834 − 996 = ?",
+            ans: 4838,
+            expText: "<b>Kỹ thuật trừ bù số gần tròn 1000:</b><br/>• Trừ 1 000 rồi bù lại 4:<br/>➔ 5 834 − 1 000 + 4<br/>= 4 834 + 4 = <b>4 838</b>."
+          }
+        ]
+      }
+    };
+
+    let activeLevelIndex = 1;
+
+    function renderLevelTabs() {
+      const container = document.getElementById('level-tabs');
+      container.innerHTML = '';
+      for (let i = 1; i <= 7; i++) {
+        const btn = document.createElement('button');
+        btn.className = (i === activeLevelIndex)
+          ? "px-3 py-1.5 rounded-xl text-xs font-black bg-indigo-600 text-white shadow-sm"
+          : "px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200";
+        btn.innerText = 'Cấp độ ' + i;
+        btn.onclick = (function(levelIdx) {
+          return function() {
+            activeLevelIndex = levelIdx;
+            renderLevelTabs();
+            renderQuizList();
+          };
+        })(i);
+        container.appendChild(btn);
+      }
+    }
+
+    function renderQuizList() {
+      const container = document.getElementById('quiz-container');
+      const lvl = levelData[activeLevelIndex];
+
+      let questionsHtml = '';
+      lvl.questions.forEach(function(q, idx) {
+        const qKey = 'lvl-' + activeLevelIndex + '-' + idx;
+
+        if (q.type === 'column') {
+          const cleanTop = q.top.replace(/\s+/g, '');
+          const cleanBot = q.bot.replace(/\s+/g, '');
+          const maxLen = Math.max(cleanTop.length, cleanBot.length);
+
+          const topArr = cleanTop.padStart(maxLen, ' ').split('');
+          const botArr = cleanBot.padStart(maxLen, ' ').split('');
+
+          let cols = '';
+          for (let i = 0; i < maxLen; i++) {
+            cols += '<div class="flex flex-col items-center px-0.5">' +
+              '<span class="math-cell math-font text-slate-900">' + topArr[i] + '</span>' +
+              '<span class="math-cell math-font text-slate-800">' + botArr[i] + '</span>' +
+            '</div>';
+          }
+
+          questionsHtml += '<div class="bg-slate-50 border border-slate-200 rounded-3xl p-5 space-y-4 shadow-sm">' +
+            '<div class="flex items-center justify-between">' +
+              '<span class="text-xs font-black text-indigo-700 uppercase bg-indigo-50 px-3 py-1 rounded-lg">Bài ' + activeLevelIndex + '.' + (idx + 1) + ': Đặt tính rồi tính</span>' +
+              '<span class="text-[11px] font-bold text-slate-400">Tự tính ra nháp rồi nhập đáp án</span>' +
+            '</div>' +
+            '<div class="flex justify-center my-2">' +
+              '<div class="inline-flex items-center p-3 bg-white border border-slate-300 rounded-2xl shadow-sm">' +
+                '<div class="flex flex-col items-center mr-1">' +
+                  '<span class="math-cell"></span>' +
+                  '<span class="math-cell math-font text-rose-600">−</span>' +
+                '</div>' +
+                '<div class="relative flex">' +
+                  cols +
+                  '<div class="absolute left-0 right-0 h-0.5 bg-slate-900 bottom-0"></div>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="flex gap-2 max-w-sm mx-auto">' +
+              '<input type="number" id="input-' + qKey + '" placeholder="Nhập kết quả..." class="w-full text-center border-2 border-slate-300 rounded-xl font-bold py-2 focus:border-indigo-600 outline-none math-font text-base">' +
+              '<button onclick="evaluateAnswer(' + activeLevelIndex + ', ' + idx + ')" class="px-5 py-2 bg-indigo-600 text-white font-black text-xs rounded-xl hover:bg-indigo-700 shadow-sm shrink-0">Kiểm tra</button>' +
+            '</div>' +
+            '<div id="feedback-' + qKey + '" class="hidden"></div>' +
+          '</div>';
+        } else {
+          questionsHtml += '<div class="bg-slate-50 border border-slate-200 rounded-3xl p-5 space-y-4 shadow-sm">' +
+            '<div class="flex items-center justify-between">' +
+              '<span class="text-xs font-black text-indigo-700 uppercase bg-indigo-50 px-3 py-1 rounded-lg">Bài ' + activeLevelIndex + '.' + (idx + 1) + '</span>' +
+              '<span class="text-[11px] font-bold text-slate-400">Tính nhẩm / Tính thuận tiện</span>' +
+            '</div>' +
+            '<div class="text-lg sm:text-xl font-black text-slate-900 text-center math-font my-2">' + q.q + '</div>' +
+            '<div class="flex gap-2 max-w-sm mx-auto">' +
+              '<input type="number" id="input-' + qKey + '" placeholder="Nhập kết quả..." class="w-full text-center border-2 border-slate-300 rounded-xl font-bold py-2 focus:border-indigo-600 outline-none math-font text-base">' +
+              '<button onclick="evaluateAnswer(' + activeLevelIndex + ', ' + idx + ')" class="px-5 py-2 bg-indigo-600 text-white font-black text-xs rounded-xl hover:bg-indigo-700 shadow-sm shrink-0">Kiểm tra</button>' +
+            '</div>' +
+            '<div id="feedback-' + qKey + '" class="hidden"></div>' +
+          '</div>';
+        }
+      });
+
+      container.innerHTML = '<div class="bg-indigo-50 border-l-4 border-indigo-600 p-3.5 rounded-r-2xl text-xs sm:text-sm font-bold text-indigo-950 mb-4 shadow-sm">' +
+        '📌 <b>' + lvl.title + ':</b> ' + lvl.hint +
+      '</div>' +
+      '<div class="grid grid-cols-1 ' + (activeLevelIndex <= 2 ? 'sm:grid-cols-2' : '') + ' gap-5">' +
+        questionsHtml +
+      '</div>';
+    }
+
+    // ============================================================
+    // KIỂM TRA ĐÁP ÁN & HIỂN THỊ CHẨN ĐOÁN CỘT DỌC CHUẨN MỤC 4
+    // ============================================================
+    function evaluateAnswer(levelIdx, questionIdx) {
+      const q = levelData[levelIdx].questions[questionIdx];
+      const qKey = 'lvl-' + levelIdx + '-' + questionIdx;
+      const inputEl = document.getElementById('input-' + qKey);
+      const feedbackEl = document.getElementById('feedback-' + qKey);
+      const val = parseInt(inputEl.value, 10);
+
+      feedbackEl.classList.remove('hidden');
+
+      if (isNaN(val)) {
+        feedbackEl.className = "p-3 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 font-bold text-xs text-center max-w-md mx-auto";
+        feedbackEl.innerText = "Em hãy điền số kết quả vào ô trống trước khi bấm Kiểm tra nhé!";
+        return;
+      }
+
+      if (val === q.ans) {
+        // HỌC SINH TÍNH ĐÚNG
+        feedbackEl.className = "p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-400 text-emerald-950 max-w-xl mx-auto shadow-sm";
+        feedbackEl.innerHTML = '<div class="flex items-center gap-2 font-black text-sm text-emerald-800">' +
+          '<span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs">✓</span>' +
+          'XUẤT SẮC! ĐÁP SỐ CHÍNH XÁC: ' + q.ans +
+        '</div>' +
+        '<div class="mt-2 text-xs font-bold text-emerald-800">' +
+          (q.type === 'column' 
+            ? 'Em đã áp dụng rất tốt phương pháp mượn nhớ và các cặp Bạn Thân 10.' 
+            : q.expText) +
+        '</div>';
+      } else {
+        // HỌC SINH TÍNH SAI -> HIỂN THỊ LOGIC CHẨN ĐOÁN NHƯ MỤC 4 VỚI DẤU CHẤM NGAY CHÂN
+        feedbackEl.className = "p-4 sm:p-5 rounded-3xl bg-rose-50 border-2 border-rose-300 text-slate-800 max-w-2xl mx-auto shadow-md";
+
+        if (q.type === 'column') {
+          const diag = buildSubtractionDiagnostic(q.top, q.bot);
+
+          feedbackEl.innerHTML = '<div class="flex items-start gap-2 font-black text-sm text-rose-700 pb-3 border-b border-rose-200">' +
+            '<span class="shrink-0 w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs">✕</span>' +
+            '<span>Chưa chính xác. Đáp số của em: ' + val + ' — Đáp số đúng: <span class="text-indigo-700 font-black">' + q.ans + '</span></span>' +
+          '</div>' +
+          '<div class="mt-3 text-xs font-black uppercase text-slate-600 tracking-wide text-center">' +
+            '🔍 Xem lại bảng đặt tính với dấu chấm (•) ngay sát chân số trừ:' +
+          '</div>' +
+          '<div class="my-3 flex justify-center">' +
+            diag.boardHtml +
+          '</div>' +
+          '<div class="bg-white p-3 sm:p-4 rounded-2xl border border-rose-200 space-y-2 text-xs font-bold text-slate-700">' +
+            '<div class="text-[11px] font-black uppercase text-rose-800 mb-1">Các bước nhẩm chi tiết từng cột:</div>' +
+            diag.stepLogs.map(function(s) { return '<div class="pl-2 border-l-2 border-rose-400">' + s + '</div>'; }).join('') +
+          '</div>' +
+          '<div class="mt-3 p-2.5 bg-amber-50 border border-amber-300 rounded-xl text-amber-950 font-black text-xs text-center">' +
+            '💡 Khẩu quyết: Cứ mượn ở cột này ➔ Chấm ngay (•) vào sát chân số trừ của cột bên trái. Thấy chân số có chấm ➔ Tự tăng thêm 1!' +
+          '</div>';
+        } else {
+          feedbackEl.innerHTML = '<div class="flex items-start gap-2 font-black text-sm text-rose-700 pb-2 border-b border-rose-200">' +
+            '<span class="shrink-0 w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs">✕</span>' +
+            '<span>Chưa chính xác. Đáp số của em: ' + val + ' — Đáp số đúng: <span class="text-indigo-700 font-black">' + q.ans + '</span></span>' +
+          '</div>' +
+          '<div class="mt-3 bg-white p-3.5 rounded-2xl border border-rose-200 text-xs sm:text-sm text-slate-700 leading-relaxed font-bold">' +
+            q.expText +
+          '</div>' +
+          '<div class="mt-3 text-[11px] font-black text-indigo-700 text-center">' +
+            '👉 Em hãy đọc kỹ hướng dẫn phân tích ở trên rồi tính lại nhé!' +
+          '</div>';
+        }
+      }
+    }
+
+    // ============================================================
+    // KHỞI CHẠY HỆ THỐNG
+    // ============================================================
+    window.addEventListener('DOMContentLoaded', function() {
+      updateSubPipeline(16, 8);
+      updateAddPipeline(6, 8);
+      renderColumnBoard();
+      renderLevelTabs();
+      renderQuizList();
+    });
+  </script>
+</body>
+</html>
