@@ -41,21 +41,36 @@ Mỗi bài là **một file HTML độc lập**, mở bằng cách double-click,
 - Không còn khoá máy: tin vào **thầy nhận được kết quả**. Trang chỉ báo "✅ Đã gửi" khi đã bắn request đi, chứ file tĩnh **không đọc được phản hồi** của Google nên không thể xác nhận chắc chắn.
 - Muốn một bạn làm lại: thầy **xoá dòng của bạn đó** trên Sheet (hoặc ghi chú đã kiểm tra). Học sinh tải lại trang là làm lại được — đây là giới hạn cố hữu của file tĩnh không có server.
 
-## Cài nơi nhận kết quả (một lần, ~3 phút)
+## Nơi nhận kết quả (đã cài xong 12/10/2026)
 
-1. Tạo Google Form (bằng tài khoản Google của thầy) với **8 câu Short answer**, đúng thứ tự và tên:
-   `ten` · `ngay` · `dung` · `tong` · `sao` · `phanTram` · `loiSai` · `dapAnCuaEm`
-2. Form → **Send** → biểu tượng link → copy URL dạng `https://docs.google.com/forms/d/e/XXXX/viewform`, đổi đuôi thành `/formResponse`.
-3. Mở form ở chế độ nhập, F12, tìm `name="entry.123456789"` của từng câu theo đúng thứ tự trên.
-4. Sửa 2 chỗ trong `bai-giang-toan-4/bai-giang-cong-tru-nham/index.html` (sửa ngay trên GitHub bằng nút pencil cũng được):
+Form và Sheet đang sống, thuộc tài khoản `minhtien07118904@gmail.com`:
 
-```js
-const FORM_ENDPOINT = 'https://docs.google.com/forms/d/e/XXXX/formResponse';
-const ENTRY = { ten:'entry.NNN', ngay:'entry.NNN', dung:'entry.NNN', tong:'entry.NNN',
-                sao:'entry.NNN', phanTram:'entry.NNN', loiSai:'entry.NNN', dapAnCuaEm:'entry.NNN' };
-```
+| Thành phần | Địa chỉ |
+|---|---|
+| Bảng điểm (Google Sheet) | `Bảng điểm Cộng trừ nhẩm qua 10 — lớp 4 (Câu trả lời)` — mở từ tab **Câu trả lời** của form, nút "Xem trong Trang tính" |
+| Form nhận bài | `https://docs.google.com/forms/d/e/1FAIpQLSec0WtGr1znhnYgEFJio5BM0iMpqSVr7EOLb9VSxff6QeMy_g/viewform` |
+| Endpoint bài giảng POST về | chính link trên, đổi `/viewform` → `/formResponse` |
 
-Chỉ cần đổi `FORM_ENDPOINT` (bắt đầu bằng `http`) là nút gửi bật sáng; để nguyên chuỗi `DÁN_LINK_FORM_VAO_DAY` thì trang vẫn làm được và chỉ báo "chưa gửi".
+8 cột trong Sheet, đúng thứ tự, kèm `entry.*` đã gắn trong `index.html`:
+
+| Cột | entry | Kiểu |
+|---|---|---|
+| Tên em | `entry.2005620554` | trả lời ngắn |
+| Ngày làm bài | `entry.509135542` | trả lời ngắn |
+| Số câu đúng | `entry.2028471663` | trả lời ngắn |
+| Tổng số câu được chấm | `entry.275147971` | trả lời ngắn |
+| Số sao | `entry.1045781291` | trả lời ngắn |
+| Lời sai của em | `entry.1065046570` | đoạn |
+| Tỉ lệ % | `entry.1166974658` | trả lời ngắn |
+| Đáp án em đã ghi | `entry.839337160` | đoạn |
+
+**Ba chế độ cài đặt phải giữ nguyên**, nếu không học sinh nộp sẽ âm thầm mất:
+
+- **Thu thập địa chỉ email = Không thu thập.**
+- **Giới hạn ở 1 lần trả lời = TẮT.** Bật lên là Google chặn người chưa đăng nhập, POST trả 401 và Sheet không có dòng nào.
+- Câu hỏi **không được đổi thành Trắc nghiệm / Hộp kiểm / Xếp hạng** (form chỉ nhận dạng văn bản), và **không bật xác thực phản hồi** kiểu Email/Số — từng có câu "Số sao" mang xác thực email làm bài bị từ chối.
+
+Muốn thêm bài mới thì **nhân bản form này**, rồi mở `/viewform` để lấy `entry.*` mới (mỗi lần thêm/xoá câu, id sẽ đổi).
 
 ## Mở bằng link (không cần tải file)
 
@@ -72,6 +87,8 @@ Sửa trực tiếp trên GitHub: vào file → nút bút chì → sửa → **C
 Toàn bộ đáp số được dò tự động trong trình duyệt: 11 bài đặt tính (bảng chẩn đoán khớp đáp số lưu trong file và khớp kết quả thật), 4 mẫu trừ nhẩm, 4 mẫu cộng nhẩm, 5 bài tính nhanh cấp độ 7 — cả 16 câu được chấm đều khớp phép tính độc lập.
 
 Luồng Mục 5 đã chạy thật trong trình duyệt (bản 12/10/2026): tên sai bị chặn; alias "giang" → Trà Giang; ghi nhận đủ 16/16; bấm lại câu đã chấm không đổi điểm; câu để trống không mất lượt; 15/16 → 3★; báo cáo không còn ô nhập; không tràn ngang; console sạch (chỉ còn cảnh báo Tailwind CDN). **POST được kiểm chứng bằng máy chủ giả**: request gửi đi chứa đủ `_charset_=UTF-8` + 8 field `entry.*`, dấu tiếng Việt (`Trà Giang`, `−`) nguyên vẹn.
+
+**Đã bắn thật vào Google Form** (12/10/2026): một POST ẩn danh từ `curl` (không cookie, không đăng nhập) trả về 200 và Sheet nhận đúng 1 dòng — "Câu trả lời 1" — với cả 8 ô khớp cột: `KIEM THU curl` · `12/10/2026, 24:10` · `14` · `16` · `2` · `Bai L.5.1: 72314-38658 em ghi 33657, dung 33656` · `88%` · `Bai L.4.1=27 (D) | Bai L.5.1=33657 (S)`. **Xoá dòng "KIỂM THỬ" này trước khi cho học sinh làm.**
 
 ## Hạn chế đã biết
 

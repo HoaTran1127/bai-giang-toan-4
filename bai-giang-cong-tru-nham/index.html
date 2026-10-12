@@ -902,7 +902,7 @@
     let activeLevelIndex = 1;
 
     // ============================================================
-    // QUY ĐỊNH LUYỆN TẬP: CHẤM CẤP 4·5·6·7, MỖI BẠN MỘT LẦN, GỬI KẾT QUẢ VỀ CÓ
+    // QUY ĐỊNH LUYỆN TẬP: CHẤM CẤP 4·5·6·7, MỖI BẠN MỘT LẦN, GỬI KẾT QUẢ VỀ THẦY
     // ============================================================
     const GRADED_LEVELS = [4, 5, 6, 7];
     const ROSTER = [
@@ -912,18 +912,19 @@
     ];
 
     // --- NƠI NHẬN KẾT QUẢ: Google Form → Google Sheet ---
-    // Lấy "Gửi" (paper plane) → Copy link, dán vào FORM_ENDPOINT ở dạng .../formResponse
-    // Rồi mở Form ở chế độ xem câu hỏi, F12, tìm name="entry.123456789" của từng câu để điền ENTRY.
-    const FORM_ENDPOINT = 'DÁN_LINK_FORM_VAO_DAY';
+    // Form: "Bảng điểm Cộng trừ nhẩm qua 10 — lớp 4" (tài khoản minhtien07118904@gmail.com)
+    // Câu trả lời tự chảy vào Sheet "Bảng điểm Cộng trừ nhẩm qua 10 — lớp 4 (Câu trả lời)".
+    // entry.* lấy từ HTML công khai của /viewform, đã đối chiếu với tiêu đề từng câu.
+    const FORM_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSec0WtGr1znhnYgEFJio5BM0iMpqSVr7EOLb9VSxff6QeMy_g/formResponse';
     const ENTRY = {
-      ten: 'entry.1',
-      ngay: 'entry.2',
-      dung: 'entry.3',
-      tong: 'entry.4',
-      sao: 'entry.5',
-      phanTram: 'entry.6',
-      loiSai: 'entry.7',
-      dapAnCuaEm: 'entry.8'
+      ten: 'entry.2005620554',        // Tên em
+      ngay: 'entry.509135542',        // Ngày làm bài
+      dung: 'entry.2028471663',       // Số câu đúng
+      tong: 'entry.275147971',        // Tổng số câu được chấm
+      sao: 'entry.1045781291',        // Số sao
+      loiSai: 'entry.1065046570',     // Lời sai của em
+      phanTram: 'entry.1166974658',   // Tỉ lệ %
+      dapAnCuaEm: 'entry.839337160'   // Đáp án em đã ghi
     };
     const SEND_READY = FORM_ENDPOINT.indexOf('http') === 0;
 
@@ -1343,7 +1344,7 @@
     }
 
     // ============================================================
-    // NỘP BÀI — TÍNH ĐIỂM, QUY RA SAO, GỬI VỀ BẢNG ĐIỂM CỦA CÓ
+    // NỘP BÀI — TÍNH ĐIỂM, QUY RA SAO, GỬI VỀ BẢNG ĐIỂM CỦA THẦY
     // ============================================================
     function submitPractice() {
       if (submitted) return;
