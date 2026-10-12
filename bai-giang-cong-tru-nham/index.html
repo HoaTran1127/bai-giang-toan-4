@@ -359,8 +359,7 @@
         <h2 class="text-xl sm:text-2xl font-black text-slate-900 mt-1">Luyện Tập 7 Cấp Độ Phân Bậc</h2>
         <p class="text-xs text-slate-500 font-bold">
           Chỉ chấm điểm Cấp độ 4 · 5 · 6 · 7 — tổng cộng <span id="graded-total">?</span> câu.
-          Điểm quy ra sao, nhiều nhất <b>3 sao</b>. Nộp bài xong là khoá, chỉ còn xem lời sai và điểm —
-          <b>tắt máy mở lại vẫn không làm lại được</b>.
+          Điểm quy ra sao, nhiều nhất <b>3 sao</b>. Mỗi bạn chỉ làm <b>1 lần</b>, nộp xong là kết quả gửi về bảng điểm của cô.
         </p>
       </div>
 
@@ -382,7 +381,6 @@
         </div>
 
         <div id="gate-error" class="hidden p-3 rounded-2xl bg-rose-50 border border-rose-300 text-rose-900 font-bold text-xs text-center"></div>
-        <div id="gate-nolock" class="hidden p-3 rounded-2xl bg-rose-100 border-2 border-rose-400 text-rose-950 font-bold text-xs text-center"></div>
         <div id="gate-done" class="hidden p-3 rounded-2xl bg-white border border-indigo-200 text-indigo-900 font-bold text-[11px] text-center space-y-1"></div>
       </div>
 
@@ -904,17 +902,33 @@
     let activeLevelIndex = 1;
 
     // ============================================================
-    // QUY ĐỊNH LUYỆN TẬP: CHẤM CẤP 4·5·6·7, MỖI BẠN MỘT LẦN, KHOÁ VĨNH VIỄN
+    // QUY ĐỊNH LUYỆN TẬP: CHẤM CẤP 4·5·6·7, MỖI BẠN MỘT LẦN, GỬI KẾT QUẢ VỀ CÓ
     // ============================================================
     const GRADED_LEVELS = [4, 5, 6, 7];
-    const STORE_KEY = 'bg4-luyen-tap-v1';
     const ROSTER = [
       { key: 'mai', label: 'Mai', alias: ['mai'] },
       { key: 'gia-linh', label: 'Gia Linh', alias: ['gia linh', 'linh'] },
       { key: 'tra-giang', label: 'Trà Giang', alias: ['tra giang', 'giang'] }
     ];
 
+    // --- NƠI NHẬN KẾT QUẢ: Google Form → Google Sheet ---
+    // Lấy "Gửi" (paper plane) → Copy link, dán vào FORM_ENDPOINT ở dạng .../formResponse
+    // Rồi mở Form ở chế độ xem câu hỏi, F12, tìm name="entry.123456789" của từng câu để điền ENTRY.
+    const FORM_ENDPOINT = 'DÁN_LINK_FORM_VAO_DAY';
+    const ENTRY = {
+      ten: 'entry.1',
+      ngay: 'entry.2',
+      dung: 'entry.3',
+      tong: 'entry.4',
+      sao: 'entry.5',
+      phanTram: 'entry.6',
+      loiSai: 'entry.7',
+      dapAnCuaEm: 'entry.8'
+    };
+    const SEND_READY = FORM_ENDPOINT.indexOf('http') === 0;
+
     let runState = null; // { key, label, attempts: { 'lvl-4-0': {val, ok} } }
+    let submitted = false;
 
     function gradedKeys() {
       const keys = [];
@@ -960,143 +974,97 @@
       return null;
     }
 
-    function loadStore() {
-      try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}') || {}; }
-      catch (e) { return {}; }
-    }
-    function saveStore(store) {
-      try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); return true; }
-      catch (e) { return false; }
-    }
+    // ---------- GỬI KẾT QUẢ VỀ Google FORM ----------
+    // Gửi kiểu form ẩn + iframe: chạy được cả khi mở file trực tiếp (file://), không dính CORS.
+    function sendResult(payload) {
+      if (!SEND_READY) return false;
+      const frameName = 'bg4-post-frame';
+      let frame = document.getElementById(frameName);
+      if (!frame) {
+        frame = document.createElement('iframe');
+        frame.name = frameName;
+        frame.id = frameName;
+        frame.className = 'hidden';
+        document.body.appendChild(frame);
+      }
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = FORM_ENDPOINT;
+      form.target = frameName;
+      form.acceptCharset = 'UTF-8';
+      form.className = 'hidden';
 
-    // Khoá cứng cần 2 nơi lưu: localStorage + IndexedDB. Mất cả hai thì KHÔNG cho làm bài.
-    const LS_OK = (function () {
-      try {
-        const probe = STORE_KEY + '::probe';
-        localStorage.setItem(probe, '1');
-        localStorage.removeItem(probe);
-        return true;
-      } catch (e) { return false; }
-    })();
-    const IDB_OK = (function () { try { return typeof indexedDB !== 'undefined'; } catch (e) { return false; } })();
-    const CAN_PERSIST = LS_OK || IDB_OK;
+      // _charset_ báo cho Google biết body gửi sang là UTF-8, không thì tiếng Việt vỡ dấu.
+      const charset = document.createElement('input');
+      charset.type = 'hidden';
+      charset.name = '_charset_';
+      charset.value = 'utf-8';
+      form.appendChild(charset);
 
-    function idbOpen() {
-      return new Promise(function (res, rej) {
-        let rq;
-        try { rq = indexedDB.open('bg4-khoaluyen', 1); }
-        catch (e) { rej(e); return; }
-        rq.onupgradeneeded = function () {
-          if (!rq.result.objectStoreNames.contains('records')) rq.result.createObjectStore('records');
-        };
-        rq.onsuccess = function () { res(rq.result); };
-        rq.onerror = function () { rej(rq.error); };
+      Object.keys(ENTRY).forEach(function (field) {
+        const inp = document.createElement('input');
+        inp.type = 'hidden';
+        inp.name = ENTRY[field];
+        inp.value = String(payload[field] == null ? '' : payload[field]);
+        form.appendChild(inp);
       });
-    }
-    function idbWrite(kidKey, rec) {
-      if (!IDB_OK) return Promise.resolve(false);
-      return idbOpen().then(function (db) {
-        return new Promise(function (res) {
-          const tx = db.transaction('records', 'readwrite');
-          tx.objectStore('records').put(rec, kidKey);
-          tx.oncomplete = function () { db.close(); res(true); };
-          tx.onerror = function () { db.close(); res(false); };
-        });
-      }).catch(function () { return false; });
-    }
-    function idbReadAll() {
-      if (!IDB_OK) return Promise.resolve({});
-      return idbOpen().then(function (db) {
-        return new Promise(function (res) {
-          try {
-            const tx = db.transaction('records', 'readonly');
-            const st = tx.objectStore('records');
-            const keys = st.getAllKeys();
-            const vals = st.getAll();
-            tx.oncomplete = function () {
-              const kv = {};
-              if (keys.result) keys.result.forEach(function (k, i) { kv[k] = vals.result[i]; });
-              db.close();
-              res(kv);
-            };
-            tx.onerror = function () { db.close(); res({}); };
-          } catch (e) { res({}); }
-        });
-      }).catch(function () { return {}; });
+      const sendBtn = document.createElement('input');
+      sendBtn.type = 'submit';
+      form.appendChild(sendBtn);
+      document.body.appendChild(form);
+      form.submit();
+      form.remove();
+      return true;
     }
 
-    // Bản đã nộp ở bất kỳ nơi nào cũng được coi là đã khoá — nơi còn lại chép bổ sung.
-    let mergedStore = null;
-    let locksReady = false;
+    function deBang(q) {
+      return q.type === 'column'
+        ? q.top.replace(/\s+/g, '') + ' − ' + q.bot.replace(/\s+/g, '')
+        : q.q.replace(/\s*\?\s*$/, '');
+    }
 
-    function snapshotStore() { return locksReady && mergedStore ? mergedStore : loadStore(); }
-
-    function mergeLocks() {
-      return idbReadAll().then(function (idb) {
-        const store = loadStore();
-        let changed = false;
-        Object.keys(idb).forEach(function (k) {
-          if (idb[k] && idb[k].submitted && !(store[k] && store[k].submitted)) {
-            store[k] = idb[k];
-            changed = true;
-          }
+    function mistakeLines(attempts) {
+      const lines = [];
+      GRADED_LEVELS.forEach(function (lvlIdx) {
+        levelData[lvlIdx].questions.forEach(function (q, idx) {
+          const a = attempts['lvl-' + lvlIdx + '-' + idx];
+          if (!a || a.ok) return;
+          lines.push('Bai ' + lvlIdx + '.' + (idx + 1) + ': ' + deBang(q) + ' em ghi ' + a.val + ', dung ' + q.ans);
         });
-        if (changed) saveStore(store);
-        Object.keys(store).forEach(function (k) {
-          if (store[k] && store[k].submitted && !(idb[k] && idb[k].submitted)) idbWrite(k, store[k]);
-        });
-        return store;
       });
+      return lines;
     }
 
-    function writeDraft() {
-      if (!runState) return;
-      const store = loadStore();
-      const rec = store[runState.key];
-      if (rec && rec.submitted) return;
-      store[runState.key] = { label: runState.label, submitted: false, attempts: runState.attempts };
-      if (!saveStore(store)) idbWrite(runState.key, store[runState.key]);
+    function answerLines(attempts) {
+      const lines = [];
+      GRADED_LEVELS.forEach(function (lvlIdx) {
+        levelData[lvlIdx].questions.forEach(function (q, idx) {
+          const a = attempts['lvl-' + lvlIdx + '-' + idx];
+          lines.push('Bai ' + lvlIdx + '.' + (idx + 1) + ' = ' + (a ? a.val : 'bo trong') + (a && a.ok ? ' (D)' : ' (S)'));
+        });
+      });
+      return lines;
     }
 
     // ---------- CỔNG GHI TÊN ----------
     function renderGate() {
-      const store = snapshotStore();
       document.getElementById('graded-total').innerText = String(TOTAL_GRADED);
 
       let chips = '';
       ROSTER.forEach(function (kid) {
-        const rec = store[kid.key];
-        const done = rec && rec.submitted;
         chips += '<button onclick="pickName(\'' + kid.label + '\')" class="px-4 py-2 rounded-xl font-black text-xs shadow-sm ' +
-          (done ? 'bg-slate-100 text-slate-400' : 'bg-white text-indigo-700 border border-indigo-300 hover:bg-indigo-100') +
-          '">' + kid.label + (done ? ' · đã có điểm' : '') + '</button>';
+          'bg-white text-indigo-700 border border-indigo-300 hover:bg-indigo-100">' + kid.label + '</button>';
       });
       document.getElementById('roster-chips').innerHTML = chips;
 
-      const lockBox = document.getElementById('gate-nolock');
-      if (!CAN_PERSIST) {
-        lockBox.classList.remove('hidden');
-        lockBox.innerHTML = 'Máy này đang chặn bộ nhớ trình duyệt nên bài làm <b>không thể bị khoá</b> sau khi tắt máy. ' +
-          'Em nhờ thầy/cô mở cho phép lưu dữ liệu (hoặc dùng máy khác) rồi làm lại.';
-        document.getElementById('name-input').disabled = true;
-      } else {
-        lockBox.classList.add('hidden');
-        document.getElementById('name-input').disabled = false;
-      }
-
-      const listed = ROSTER.filter(function (kid) { return store[kid.key] && store[kid.key].submitted; });
       const box = document.getElementById('gate-done');
-      if (listed.length) {
+      if (!SEND_READY) {
         box.classList.remove('hidden');
-        box.innerHTML = '<div class="font-black uppercase text-[10px] text-slate-500">Các bạn đã làm xong (đã khoá)</div>' +
-          listed.map(function (kid) {
-            const r = store[kid.key];
-            return '<div>' + r.label + ': ' + r.correct + '/' + r.total + ' câu đúng — ' + r.stars + ' sao</div>';
-          }).join('') +
-          '<div class="text-[10px] font-black text-slate-500 pt-1">Tắt máy mở lại vẫn khoá — mỗi bạn chỉ được làm 1 lần.</div>' +
-          '<div class="text-[10px] text-slate-400">Bấm tên bạn đã làm để xem lại lời sai và điểm.</div>';
+        box.innerHTML = '<div class="text-rose-700">⚠ Máy này chưa được điền link bảng điểm, nên kết quả <b>sẽ không gửi về cô được</b>. ' +
+          'Em vẫn làm bình thường và đọc điểm trên màn hình.</div>';
       } else {
-        box.classList.add('hidden');
+        box.classList.remove('hidden');
+        box.innerHTML = 'Làm xong bấm Nộp — kết quả của em sẽ tự gửi về bảng điểm của cô.';
       }
     }
 
@@ -1112,14 +1080,6 @@
     }
 
     function startPractice() {
-      if (!CAN_PERSIST) {
-        gateError('Máy này đang chặn bộ nhớ nên không giữ được khoá "chỉ làm 1 lần". Em nhờ thầy/cô cho phép trang này lưu dữ liệu rồi mới làm.');
-        return;
-      }
-      if (!locksReady) {
-        gateError('Em đợi khoảng 1 giây cho trang kiểm tra xong điểm đã khoá, rồi bấm lại nhé.');
-        return;
-      }
       const kid = findRoster(document.getElementById('name-input').value);
       if (!kid) {
         gateError('Em chưa gõ đúng tên lớp mình. Em hãy chọn hoặc gõ một trong ba bạn: Mai, Gia Linh, Trà Giang.');
@@ -1127,15 +1087,9 @@
       }
       document.getElementById('gate-error').classList.add('hidden');
 
-      const rec = mergedStore[kid.key];
-      if (rec && rec.submitted) {
-        showReport(kid, rec);
-        return;
-      }
-
-      runState = { key: kid.key, label: kid.label, attempts: (rec && rec.attempts) || {} };
+      runState = { key: kid.key, label: kid.label, attempts: {} };
       activeLevelIndex = 1;
-      submitError = '';
+      submitted = false;
       document.getElementById('name-gate').classList.add('hidden');
       document.getElementById('report-wrap').classList.add('hidden');
       document.getElementById('practice-wrap').classList.remove('hidden');
@@ -1183,22 +1137,26 @@
       if (!el || !runState) return;
       el.innerText = 'Đã ghi nhận ' + recordedCount() + '/' + TOTAL_GRADED + ' câu được chấm';
     }
-    let submitError = '';
     function updateSubmitBar() {
       const bar = document.getElementById('submit-bar');
       if (!bar || !runState) return;
       const left = TOTAL_GRADED - recordedCount();
       updateProgressLine();
-      bar.innerHTML = (submitError ? '<div class="p-3.5 rounded-2xl bg-rose-100 border-2 border-rose-400 text-rose-950 font-bold text-xs text-center">' + submitError + '</div>' : '') +
-        (left > 0
-          ? '<div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 font-bold text-xs text-center">' +
-              'Em còn <b>' + left + '</b> câu ở Cấp độ 4 · 5 · 6 · 7 chưa bấm Kiểm tra. Mỗi câu chỉ được ghi nhận <b>1 lần</b>.' +
-            '</div>'
-          : '<div class="p-4 rounded-2xl bg-indigo-50 border-2 border-indigo-300 space-y-3 text-center">' +
-              '<div class="text-xs font-black text-indigo-900">Đã ghi nhận đủ ' + TOTAL_GRADED + '/' + TOTAL_GRADED + ' câu được chấm.</div>' +
-              '<button onclick="submitPractice()" class="px-6 py-3 bg-emerald-600 text-white font-black text-sm rounded-2xl hover:bg-emerald-700 shadow-sm">Nộp bài — tính điểm ra sao</button>' +
-              '<div class="text-[10px] font-bold text-rose-600 uppercase">Nộp xong là khoá luyện tập — tắt máy mở lại vẫn không làm lại được.</div>' +
-            '</div>');
+      if (submitted) {
+        bar.innerHTML = '<div class="p-3.5 rounded-2xl bg-slate-100 border border-slate-300 text-slate-600 font-bold text-xs text-center">' +
+          'Em đã nộp bài này rồi — muốn làm lại thì nhờ cô xoá dòng của em trên bảng điểm.' +
+        '</div>';
+        return;
+      }
+      bar.innerHTML = left > 0
+        ? '<div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 font-bold text-xs text-center">' +
+            'Em còn <b>' + left + '</b> câu ở Cấp độ 4 · 5 · 6 · 7 chưa bấm Kiểm tra. Mỗi câu chỉ được ghi nhận <b>1 lần</b>.' +
+          '</div>'
+        : '<div class="p-4 rounded-2xl bg-indigo-50 border-2 border-indigo-300 space-y-3 text-center">' +
+            '<div class="text-xs font-black text-indigo-900">Đã ghi nhận đủ ' + TOTAL_GRADED + '/' + TOTAL_GRADED + ' câu được chấm.</div>' +
+            '<button onclick="submitPractice()" class="px-6 py-3 bg-emerald-600 text-white font-black text-sm rounded-2xl hover:bg-emerald-700 shadow-sm">Nộp bài — gửi kết quả về cô</button>' +
+            '<div class="text-[10px] font-bold text-slate-500 uppercase">Mỗi bạn chỉ làm 1 lần, nộp xong là gửi về bảng điểm.</div>' +
+          '</div>';
     }
 
     function answerRowHtml(qKey, lvlIdx, idx, graded) {
@@ -1374,7 +1332,6 @@
       if (graded) {
         if (runState.attempts[qKey]) return; // đã ghi nhận lần trước, không chấm lại
         runState.attempts[qKey] = { val: val, ok: val === q.ans };
-        writeDraft();
         renderQuizList();
         return;
       }
@@ -1384,37 +1341,28 @@
     }
 
     // ============================================================
-    // NỘP BÀI — TÍNH ĐIỂM, QUY RA SAO, KHOÁ VĨNH VIỄN
+    // NỘP BÀI — TÍNH ĐIỂM, QUY RA SAO, GỬI VỀ BẢNG ĐIỂM CỦA CÓ
     // ============================================================
     function submitPractice() {
+      if (submitted) return;
       const keys = gradedKeys();
       const kid = { key: runState.key, label: runState.label };
       const correct = keys.filter(function (k) { return runState.attempts[k].ok; }).length;
+      const lines = mistakeLines(runState.attempts);
       const rec = {
-        label: kid.label,
-        submitted: true,
-        attempts: runState.attempts,
-        correct: correct,
-        total: keys.length,
-        stars: starsFor(correct, keys.length),
-        date: new Date().toISOString().slice(0, 10)
+        ten: kid.label,
+        ngay: new Date().toLocaleString('vi-VN'),
+        dung: correct,
+        tong: keys.length,
+        sao: starsFor(correct, keys.length),
+        phanTram: Math.round(correct / keys.length * 100) + '%',
+        loiSai: lines.length ? lines.join(' | ') : 'Khong sai cau nao',
+        dapAnCuaEm: answerLines(runState.attempts).join(' | ')
       };
 
-      const store = Object.assign({}, snapshotStore());
-      store[kid.key] = rec;
-      const lsOk = saveStore(store);
-      submitError = '';
-
-      // Khoá phải nằm ở cả 2 nơi; cả hai đều hỏng thì chưa được tính là nộp.
-      idbWrite(kid.key, rec).then(function (idbOk) {
-        if (!lsOk && !idbOk) {
-          submitError = 'Máy không lưu được kết quả nên bài chưa được nộp. Em bấm Nộp lại lần nữa nhé.';
-          updateSubmitBar();
-          return;
-        }
-        mergedStore = store;
-        showReport(kid, rec);
-      });
+      submitted = true;
+      const sent = sendResult(rec);
+      showReport(kid, { label: kid.label, correct: correct, total: keys.length, stars: rec.sao, ngay: rec.ngay, attempts: runState.attempts, sent: sent, lines: lines });
     }
 
     function questionTitleHtml(q, lvlIdx, idx) {
@@ -1449,12 +1397,15 @@
       wrap.innerHTML =
         '<div class="bg-gradient-to-b from-indigo-50 to-white border-2 border-indigo-200 rounded-3xl p-6 text-center space-y-2">' +
           '<div class="text-[11px] font-black uppercase tracking-wide text-indigo-700">Kết quả luyện tập của ' + rec.label + '</div>' +
-          '<div class="text-sm font-bold text-slate-500">Ngày làm: ' + (rec.date || '—') + '</div>' +
+          '<div class="text-sm font-bold text-slate-500">Nộp lúc: ' + (rec.ngay || '—') + '</div>' +
           '<div class="text-3xl sm:text-4xl font-black text-slate-900 math-font">' + rec.correct + ' / ' + rec.total + ' câu đúng</div>' +
           starsHtml(rec.stars) +
           '<div class="text-xs font-black text-slate-600">' + rec.stars + ' sao trên tối đa 3 sao</div>' +
-          '<div class="pt-2 inline-block px-4 py-1.5 rounded-full bg-rose-600 text-white text-[11px] font-black uppercase">Đã khoá — tắt máy mở lại vẫn không làm lại được</div>' +
+          '<div class="pt-2 inline-block px-4 py-1.5 rounded-full bg-slate-700 text-white text-[11px] font-black uppercase">Đã nộp — mỗi bạn chỉ làm 1 lần</div>' +
         '</div>' +
+        (rec.sent
+          ? '<div class="p-3.5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-900 font-black text-xs text-center">✅ Đã gửi kết quả về bảng điểm của cô.</div>'
+          : '<div class="p-3.5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-950 font-black text-xs text-center">⚠ Máy này chưa được điền link bảng điểm nên kết quả <b>CHƯA gửi</b> đi được. Em đưa màn hình này cho cô xem nhé.</div>') +
         '<div class="text-xs font-black uppercase text-slate-600 tracking-wide pt-1">Lời sai của em — xem lại từng câu:</div>' +
         (mistakes
           ? '<div class="space-y-4">' + mistakes + '</div>'
@@ -1463,8 +1414,6 @@
           '<a href="#muc-1" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-black text-xs hover:bg-slate-200">Ôn lại Mục 1 → 4</a>' +
           '<button onclick="backToGate()" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-black text-xs hover:bg-indigo-700">Ghi tên bạn khác</button>' +
         '</div>';
-
-      renderGate();
     }
 
     // ============================================================
@@ -1474,13 +1423,7 @@
       updateSubPipeline(16, 8);
       updateAddPipeline(6, 8);
       renderColumnBoard();
-      renderGate(); // hiện khung ngay, chưa cho bắt đầu khi chưa đọc xong khoá
-      if (!CAN_PERSIST) { mergedStore = {}; locksReady = true; renderGate(); return; }
-      mergeLocks().then(function (store) {
-        mergedStore = store;
-        locksReady = true;
-        renderGate();
-      });
+      renderGate();
     });
   </script>
 </body>
