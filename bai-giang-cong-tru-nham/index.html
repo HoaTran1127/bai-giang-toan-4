@@ -359,7 +359,7 @@
         <h2 class="text-xl sm:text-2xl font-black text-slate-900 mt-1">Luyện Tập 7 Cấp Độ Phân Bậc</h2>
         <p class="text-xs text-slate-500 font-bold">
           Chỉ chấm điểm Cấp độ 4 · 5 · 6 · 7 — tổng cộng <span id="graded-total">?</span> câu.
-          Điểm quy ra sao, nhiều nhất <b>3 sao</b>. Mỗi bạn chỉ làm <b>1 lần</b>, nộp xong là kết quả gửi về bảng điểm của cô.
+          Điểm quy ra sao, nhiều nhất <b>3 sao</b>. Mỗi bạn chỉ làm <b>1 lần</b>, nộp xong là kết quả gửi về bảng điểm của thầy.
         </p>
       </div>
 
@@ -1062,11 +1062,11 @@
       const box = document.getElementById('gate-done');
       if (!SEND_READY) {
         box.classList.remove('hidden');
-        box.innerHTML = '<div class="text-rose-700">⚠ Cô chưa gắn link bảng điểm vào bài giảng này, nên kết quả <b>sẽ không gửi về cô được</b>. ' +
+        box.innerHTML = '<div class="text-rose-700">⚠ Thầy chưa gắn link bảng điểm vào bài giảng này, nên kết quả <b>sẽ không gửi về thầy được</b>. ' +
           'Em vẫn làm bình thường và đọc điểm trên màn hình.</div>';
       } else {
         box.classList.remove('hidden');
-        box.innerHTML = 'Làm xong bấm Nộp — kết quả của em sẽ tự gửi về bảng điểm của cô.';
+        box.innerHTML = 'Làm xong bấm Nộp — kết quả của em sẽ tự gửi về bảng điểm của thầy.';
       }
     }
 
@@ -1146,7 +1146,7 @@
       updateProgressLine();
       if (submitted) {
         bar.innerHTML = '<div class="p-3.5 rounded-2xl bg-slate-100 border border-slate-300 text-slate-600 font-bold text-xs text-center">' +
-          'Em đã nộp bài này rồi — muốn làm lại thì nhờ cô xoá dòng của em trên bảng điểm.' +
+          'Em đã nộp bài này rồi — muốn làm lại thì nhờ thầy xoá dòng của em trên bảng điểm.' +
         '</div>';
         return;
       }
@@ -1156,7 +1156,7 @@
           '</div>'
         : '<div class="p-4 rounded-2xl bg-indigo-50 border-2 border-indigo-300 space-y-3 text-center">' +
             '<div class="text-xs font-black text-indigo-900">Đã ghi nhận đủ ' + TOTAL_GRADED + '/' + TOTAL_GRADED + ' câu được chấm.</div>' +
-            '<button onclick="submitPractice()" class="px-6 py-3 bg-emerald-600 text-white font-black text-sm rounded-2xl hover:bg-emerald-700 shadow-sm">Nộp bài — gửi kết quả về cô</button>' +
+            '<button onclick="submitPractice()" class="px-6 py-3 bg-emerald-600 text-white font-black text-sm rounded-2xl hover:bg-emerald-700 shadow-sm">Nộp bài — gửi kết quả về thầy</button>' +
             '<div class="text-[10px] font-bold text-slate-500 uppercase">Mỗi bạn chỉ làm 1 lần, nộp xong là gửi về bảng điểm.</div>' +
           '</div>';
     }
@@ -1406,8 +1406,8 @@
           '<div class="pt-2 inline-block px-4 py-1.5 rounded-full bg-slate-700 text-white text-[11px] font-black uppercase">Đã nộp — mỗi bạn chỉ làm 1 lần</div>' +
         '</div>' +
         (rec.sent
-          ? '<div class="p-3.5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-900 font-black text-xs text-center">✅ Đã gửi kết quả về bảng điểm của cô.</div>'
-          : '<div class="p-3.5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-950 font-black text-xs text-center">⚠ Bài giảng này chưa được gắn link bảng điểm nên kết quả <b>CHƯA gửi</b> đi được. Em đưa màn hình này cho cô xem nhé.</div>') +
+          ? '<div class="p-3.5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-900 font-black text-xs text-center">✅ Đã gửi kết quả về bảng điểm của thầy.</div>'
+          : '<div class="p-3.5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-950 font-black text-xs text-center">⚠ Bài giảng này chưa được gắn link bảng điểm nên kết quả <b>CHƯA gửi</b> đi được. Em đưa màn hình này cho thầy xem nhé.</div>') +
         (mistakes
           ? '<div class="text-xs font-black uppercase text-slate-600 tracking-wide pt-1">Lời sai của em — xem lại từng câu:</div>' +
             '<div class="space-y-4">' + mistakes + '</div>'
