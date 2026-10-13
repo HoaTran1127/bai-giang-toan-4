@@ -896,6 +896,16 @@
             expText: "<b>Kỹ thuật trừ bù số gần tròn 1000:</b><br/>• Trừ 1 000 rồi bù lại 4:<br/>➔ 5 834 − 1 000 + 4<br/>= 4 834 + 4 = <b>4 838</b>."
           }
         ]
+      },
+      8: {
+        title: "Level 8: Luyện Cộng Cột Dọc Có Nhớ",
+        hint: "Cộng từ phải sang trái, nhớ 1 vào cột liền kề khi tổng từ 10 trở lên.",
+        questions: [
+          { type: "column", op: "+", top: "487", bot: "369", ans: 856 },
+          { type: "column", op: "+", top: "2458", bot: "3764", ans: 6222 },
+          { type: "column", op: "+", top: "58326", bot: "24987", ans: 83313 },
+          { type: "column", op: "+", top: "40675", bot: "5988", ans: 46663 }
+        ]
       }
     };
 
@@ -912,8 +922,7 @@
     ];
 
     // --- NƠI NHẬN KẾT QUẢ: Google Form → Google Sheet ---
-    // Form: "Bảng điểm Cộng trừ nhẩm qua 10 — lớp 4" (tài khoản minhtien07118904@gmail.com)
-    // Câu trả lời tự chảy vào Sheet "Bảng điểm Cộng trừ nhẩm qua 10 — lớp 4 (Câu trả lời)".
+    // Cấu hình form chấm điểm (endpoint + entry) được đặt tại đây.
     // entry.* lấy từ HTML công khai của /viewform, đã đối chiếu với tiêu đề từng câu.
     const FORM_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSec0WtGr1znhnYgEFJio5BM0iMpqSVr7EOLb9VSxff6QeMy_g/formResponse';
     const ENTRY = {
@@ -1022,7 +1031,7 @@
 
     function deBang(q) {
       return q.type === 'column'
-        ? q.top.replace(/\s+/g, '') + ' − ' + q.bot.replace(/\s+/g, '')
+        ? q.top.replace(/\s+/g, '') + ' ' + (q.op === '+' ? '+' : '−') + ' ' + q.bot.replace(/\s+/g, '')
         : q.q.replace(/\s*\?\s*$/, '');
     }
 
@@ -1113,7 +1122,9 @@
     function renderLevelTabs() {
       const container = document.getElementById('level-tabs');
       container.innerHTML = '';
-      for (let i = 1; i <= 7; i++) {
+      const levelIndexes = Object.keys(levelData).map(function (k) { return Number(k); }).sort(function (a, b) { return a - b; });
+      for (let x = 0; x < levelIndexes.length; x++) {
+        const i = levelIndexes[x];
         const graded = isGradedLevel(i);
         const btn = document.createElement('button');
         btn.className = (i === activeLevelIndex)
@@ -1218,7 +1229,7 @@
               '<div class="inline-flex items-center p-3 bg-white border border-slate-300 rounded-2xl shadow-sm">' +
                 '<div class="flex flex-col items-center mr-1">' +
                   '<span class="math-cell"></span>' +
-                  '<span class="math-cell math-font text-rose-600">−</span>' +
+                  '<span class="math-cell math-font text-rose-600">' + (q.op === '+' ? '+' : '−') + '</span>' +
                 '</div>' +
                 '<div class="relative flex">' +
                   cols +
