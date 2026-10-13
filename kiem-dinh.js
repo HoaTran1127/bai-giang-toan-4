@@ -12,18 +12,19 @@ const html = fs.readFileSync(FILE, 'utf8');
 
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
 if (scripts.length !== 1) throw new Error('expected 1 inline script, got ' + scripts.length);
-const src = scripts[0] + '\n;globalThis.__X = {levelData, colProblems, colNames, buildSubtractionDiagnostic, ROSTER, GRADED_LEVELS, normalizeName, findRoster, starsFor, gradedKeys, isGradedLevel, TOTAL_GRADED, deBang, mistakeLines, answerLines, ENTRY, FORM_ENDPOINT, SEND_READY};';
+const src = scripts[0] + '\n;globalThis.__X = {levelData, colProblems, colNames, buildSubtractionDiagnostic, ROSTER, GRADED_LEVELS, normalizeName, findRoster, starsFor, gradedKeys, isGradedLevel, TOTAL_GRADED, deBang, mistakeLines, answerLines, ENTRY, FORM_ENDPOINT, SEND_READY, ngayLamBai, draftStore, captureDrafts, clearDrafts, answerRowHtml, pressEnter};';
 
 function el() {
   return {
     innerText: '', innerHTML: '', className: '', value: '', id: '', name: '', type: '',
     classList: { add() {}, remove() {}, contains() { return false; } },
-    appendChild() {}, remove() {},
+    appendChild() {}, remove() {}, querySelectorAll() { return []; },
   };
 }
+const STUB = {}; // id -> element giả, cho phép test từng hàm theo DOM dựng sẵn
 const sandbox = {
   console, Math, JSON, String, Number, Object, Array, parseInt, parseFloat, isNaN, Date, RegExp, Error, Set,
-  document: { getElementById: () => el(), createElement: el, body: { appendChild() {} } },
+  document: { getElementById: id => STUB[id] || el(), createElement: el, body: { appendChild() {} } },
   window: { addEventListener() {} },
 };
 vm.createContext(sandbox);
@@ -273,11 +274,14 @@ notes.push('loiSai -> ' + ml.join(' | '));
 check('loiSai phai co 2 dong', ml.length === 2);
 ml.forEach(l => {
   check('loiSai de dinh dau "=" roi ("' + l + '")', !/=\s*em ghi/.test(l));
-  check('loiSai thieu dap an dung: ' + l, /, dung \d+$/.test(l));
+  check('loiSai thieu dap an dung: ' + l, /, dap an dung \d+$/.test(deacc(l)));
+  check('loiSai phai co ten bai dang "Bai 4.1": ' + l, /^Bai [4567]\.\d+: /.test(deacc(l)));
 });
 const al = X.answerLines(attempts);
 check('dapAnCuaEm du 16 dong', al.length === 16);
-check('dapAnCuaEm co danh bai', al.every(s => /^Bai [4567]\.\d+ = /.test(s)));
+check('dapAnCuaEm co danh bai', al.every(s => /^Bai [4567]\.\d+ = /.test(deacc(s))));
+check('dapAnCuaEm ghi ro dung/sai bang tieng Viet', al.every(s => /\((dung|sai)\)$/.test(deacc(s))));
+check('dapAnCuaEm khong con chu cai D/S tron', !al.some(s => / \([DS]\)$/.test(s)));
 notes.push('dapAnCuaEm 2 dong dau -> ' + al.slice(0, 2).join(' | '));
 const keysNeeded = ['ten', 'ngay', 'dung', 'tong', 'sao', 'phanTram', 'loiSai', 'dapAnCuaEm'];
 check('8 khoa payload = 8 khoa ENTRY', keysNeeded.slice().sort().join() === Object.keys(X.ENTRY).slice().sort().join(), Object.keys(X.ENTRY).join());
@@ -286,6 +290,59 @@ check('entry.* khong trung lap', new Set(Object.values(X.ENTRY)).size === 8);
 check('moi field dang ky entry.<so>', Object.values(X.ENTRY).every(v => /^entry\.\d+$/.test(v)));
 // chu trong source khong duoc con placeholder
 check('van dang con cho placeholder form', !/DAN_LINK_FORM_VAO_DAY|forms\/d\/e\/XXXX/.test(html));
+
+// ============ 8b. GIU BAO CAU DA GO + NGAY THANG ============
+// Tinh huong that: be go 4 o cap 4, bam Kiem tra cau 1 -> renderQuizList() dung lại
+// entire danh sách. Nếu không có kho nháp thì 3 ô còn mất sạch.
+for (const k of ['lvl-4-0', 'lvl-4-1', 'lvl-4-2']) delete X.draftStore[k];
+const o1 = el(), o2 = el(), o3 = el();
+o1.id = 'input-lvl-4-0'; o1.value = '23';
+o2.id = 'input-lvl-4-1'; o2.value = '257';
+o3.id = 'input-lvl-4-2'; o3.value = '';
+const khung = el();
+khung.querySelectorAll = () => [o1, o2, o3];
+STUB['quiz-container'] = khung;
+X.captureDrafts();
+check('captureDrafts luu so da go cua cau 1', X.draftStore['lvl-4-0'] === '23', JSON.stringify(X.draftStore));
+check('captureDrafts luu so da go cua cau 2', X.draftStore['lvl-4-1'] === '257');
+check('captureDrafts khong luu o trong', !('lvl-4-2' in X.draftStore));
+const rowHtml = X.answerRowHtml('lvl-4-0', 4, 0, false);
+check('o tra loi phai duoc phat lai so be da go', /value="23"/.test(rowHtml), rowHtml.slice(0, 220));
+check('o tra loi phai co Enter bam vao', /onkeydown="pressEnter\(event, 4, 0\)"/.test(rowHtml));
+const rowHtmlRong = X.answerRowHtml('lvl-4-2', 4, 2, false);
+check('o chua go khong bi gan gia tri lang can', /value=""/.test(rowHtmlRong), rowHtmlRong.slice(0, 220));
+check('renderQuizList go captureDrafts truoc khi dung lai danh sach',
+  /function renderQuizList\(\)\s*\{\s*captureDrafts\(\)/.test(src));
+check('evaluateAnswer xoa nhap cua cau da ghi nhan', /delete draftStore\[qKey\]/.test(src));
+check('startPractice lam sach kho nhap khi sang ban khac', /function startPractice\(\)[\s\S]{0,400}?clearDrafts\(\)/.test(src));
+check('backToGate cung lam sach khi quay lai cong ten', /function backToGate\(\)[\s\S]{0,160}?clearDrafts\(\)/.test(src));
+
+// Ro nhap giua hai ban (tai that trong trinh duyet): Mai go 123 roi quay lai cong,
+// Gia Linh mo len phai khong con thay 123.
+X.draftStore['lvl-1-0'] = '123';
+khung.innerHTML = '<input id="input-lvl-1-0" value="123">';
+X.clearDrafts();
+check('clearDrafts xoa het kho nhap', Object.keys(X.draftStore).length === 0, JSON.stringify(X.draftStore));
+check('clearDrafts xoa ca o dang hien tren man hinh', khung.innerHTML === '', khung.innerHTML);
+check('keo phan hoi vao tam mat sau khi ghi nhan (khong trjot focus sang o khac)',
+  /keoVaoTamai\('feedback-' \+ qKey\)/.test(src) && !/focusOtTraLoi/.test(src));
+
+// gia tri nhap vao o bi loc ky tu la (o la type=number nhung van khong nen noi chu)
+const oRac = el(); oRac.id = 'input-lvl-4-1'; oRac.value = '"><img src=x>';
+khung.querySelectorAll = () => [oRac];
+X.captureDrafts();
+check('captureDrafts loc ky tu lac va khong luu chuoi rong', !('lvl-4-1' in X.draftStore), JSON.stringify(X.draftStore));
+const oSo = el(); oSo.id = 'input-lvl-4-1'; oSo.value = '257';
+khung.querySelectorAll = () => [oSo];
+X.captureDrafts();
+check('captureDrafts van luu so hop le sau khi loc', X.draftStore['lvl-4-1'] === '257');
+
+// ngay thang: must be fixed dd/MM/yyyy HH:mm, not browser-locale dependent
+const d = new Date(2026, 9, 13, 8, 5);
+check('ngayLamBai ra dd/MM/yyyy HH:mm', X.ngayLamBai(d) === '13/10/2026 08:05', X.ngayLamBai(d));
+check('payload ngay van dung toLocaleString (ph thuoc ngon ngu trinh duyet)', !/toLocaleString/.test(src));
+check('loiSai van dung chu thieu dau', !/'Khong sai cau nao'|'bo trong'|'Bai '/.test(src));
+notes.push('ngayLamBai mau -> ' + X.ngayLamBai(d));
 
 // ============ 9. NAM NOI HTML <-> JS ============
 const subIds = [...html.matchAll(/id="btn-sub-demo-([\d-]+)"/g)].map(m => m[1]);

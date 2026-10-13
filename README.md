@@ -94,16 +94,23 @@ Sửa trực tiếp trên GitHub: vào file → nút bút chì → sửa → **C
 - **Thang sao**: 14/16 → 3★, 13 → 2★, 10 → 2★, 9 → 1★, 5 → 1★, 4 → 0★, 16 → 3★ (không bao giờ vượt 3).
 - **Cổng tên**: nhận `Mai/mai/ MAI `, `gialinh/Gia Linh/Linh`, `Trà Giang/tra giang/giang`; chặn `An`, `Trang`, `Mai Linh`, `Linh Giang`, tên rỗng.
 - **8 field gửi về Sheet**: khớp tên miền `entry.*`, không trùng id, endpoint đúng dạng `formResponse`.
+- **Ô trả lời**: số em đã gõ nhưng chưa bấm Kiểm tra phải được **lưu lại** khi trang dựng lại danh sách (và khi đổi cấp độ), ô chưa gõ thì không được gắn giá trị lạ; mỗi ô có nhánh `Enter`; giá trị lưu bị lọc còn chữ số; đổi sang bạn khác thì màn hình **sạch hoàn toàn**.
+- **Cột "Ngày làm bài"**: luôn ra dạng `dd/MM/yyyy HH:mm` (không phụ thuộc ngôn ngữ trình duyệt của từng máy).
 
-### Ba lỗi đã tìm ra và sửa (12/10/2026)
+### Sáu lỗi đã tìm ra và sửa (12–13/10/2026)
 
 1. **Mẫu 3 (1 000 − 347) ở Mục 4 vẽ thiếu dấu chấm ở cột nghìn.** Ba bước trước đều chấm đúng quy tắc, nhưng bước cuối mượn 1 nghìn thì không có dấu chấm nào — trong khi bảng chẩn đoán (học sinh sai sẽ thấy) lại chấm vào ô trống cột nghìn. Hai chỗ dạy không giống nhau. Nay Mẫu 3 hiện chữ 0 mờ + dấu chấm ở ô trống và có thêm dòng "Cột nghìn: 1 − 1 = 0 ➔ chữ số 0 đứng đầu không viết".
 2. **Bảng chẩn đoán xếp lời giải ngược.** Nó in ra từ cột cao nhất xuống cột đơn vị, tức **ngược** với thứ tự trẻ thực hiện. Nay in theo thứ tự nhẩm: Cột Đơn vị trước, lần lượt sang trái (11/11 bài).
-3. **Dòng "Lời sai" gửi về Sheet bị dính dấu `=` thừa**, ví dụ `Bai 7.5: 5834 − 996 = em ghi 4800`. Nay sạch: `Bai 7.5: 5834 − 996 em ghi 4800, dung 4838`.
+3. **Dòng "Lời sai" gửi về Sheet bị dính dấu `=` thừa**, ví dụ `Bai 7.5: 5834 − 996 = em ghi 4800`. Nay sạch: `Bài 7.5: 5834 − 996 — em ghi 4800, đáp án đúng 4838`.
+4. **Mất đáp án trẻ đã gõ (13/10).** Mỗi lần bấm *Kiểm tra* ở câu được chấm, trang dựng lại cả danh sách 16 câu — **mọi ô khác bị xoá sạch số đang gõ dở**. Trẻ thường gõ liền 3–4 ô rồi bấm kiểm tra từng cái, nên cứ bấm câu đầu là mấy câu sau mất trắng. Nay có kho nháp: số chưa nộp được giữ khi dựng lại và khi đổi cấp độ, nộp xong thì nháp câu đó bị bỏ.
+5. **Nháp rò giữa hai bạn (13/10).** Sau lỗi 4, một bạn quay lại cổng ghi tên rồi gọi bạn khác vào làm — **màn hình vẫn hiện số bạn trước vừa gõ dở**, và bạn mới rất dễ bấm *Kiểm tra* luôn vào số đó (mỗi câu chỉ được ghi nhận 1 lần, nên đây là mất điểm thật). Nay `clearDrafts()` xoá cả kho nháp lẫn ô trên màn hình ở cả hai đầu: lúc ghi tên mới và lúc quay lại cổng.
+6. **Enter không dùng được + cột ngày giờ loạn (13/10).** Chỉ có ô ghi tên bắt được Enter, nên trẻ gõ số rồi bấm Enter thì không xảy ra gì. Nay mọi ô trả lời đều có nhánh `Enter` (phím khác vẫn bỏ qua). Cột "Ngày làm bài" trước sinh bởi `toLocaleString('vi-VN')` — Chrome trả `12:34:54 13/10/2026` (giờ trước ngày) và thứ tự đổi theo máy; nay tự ghép `13/10/2026 12:34`.
 
-### Luồng Mục 5 chạy thật trong trình duyệt (bản 12/10/2026)
+### Luồng Mục 5 chạy thật trong trình duyệt (12–13/10/2026)
 
 Tên sai ("An") bị chặn; alias `giang` → Trà Giang, `gialinh` → Gia Linh; làm đủ 16/16 bằng nút *Kiểm tra* thật; câu đã ghi nhận thì ô nhập biến mất và gọi lại hàm chấm cũng không đổi (vẫn 23/Sai); cấp ôn 1 bấm Kiểm tra lại bao nhiêu lần cũng được và **không** ghi vào attempts; 13/16 → 81% → 2★; báo cáo có đúng 3 khối lời sai, không còn ô nhập; không tràn ngang; console sạch (chỉ còn cảnh báo Tailwind CDN).
+
+Bản 13/10 chạy lại toàn bộ vòng làm bài và đo thêm: gõ 3 ô ở Cấp độ 4 → bấm *Kiểm tra* ô đầu → **2 ô còn vẫn giữ 257 và 999** (trước đây mất trắng); bấm Enter ở ô thứ hai ghi nhận luôn (phím `x` thì không); đổi sang Cấp độ 5 rồi quay lại Cấp độ 4, ô gõ dở vẫn còn; quay lại cổng tên rồi cho **Gia Linh** vào làm → màn hình sạch, `Đã ghi nhận 0/16`. Nộp bài thật: payload 8 field nguyên vẹn, `Ngày làm bài = 13/10/2026 12:38`, `Lời sai = "Bài 7.5: 5834 − 996 — em ghi 4800, đáp án đúng 4838"`, `Đáp án = "Bài 4.1 = 27 (đúng) | ... "` (tiếng Việt có dấu đầy đủ, dấu `-` trong `64 − 37` không vỡ). **Chặn `form.submit()` trước khi nộp nên không có request nào tới Google** — iframe vẫn `about:blank`, `performance` chỉ ghi mỗi font CDN, **Sheet của thầy không thêm dòng nào**.
 
 Payload nộp bài được **bắt ngay tại trang** (thay `HTMLFormElement.prototype.submit`) nên không có request nào thật gửi đi — iframe vẫn là `about:blank`, Sheet không nhận rác. Payload gồm `_charset_=utf-8` + 8 `entry.*` với tên đúng: `Mai` · `23:48:54 12/10/2026` · `13` · `16` · `2` · lời sai 3 dòng · `81%` · đáp án 16 dòng.
 

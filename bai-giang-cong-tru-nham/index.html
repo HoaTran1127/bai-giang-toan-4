@@ -936,6 +936,28 @@
     let runState = null; // { key, label, attempts: { 'lvl-4-0': {val, ok} } }
     let submitted = false;
 
+    // Nháp: giữ số em đã gõ nhưng chưa bấm Kiểm tra, vì mỗi lần vẽ lại danh sách
+    // (ghi nhận 1 câu / đổi cấp độ) DOM của các ô khác bị dựng lại từ đầu.
+    const draftStore = {};
+
+    function captureDrafts() {
+      const container = document.getElementById('quiz-container');
+      if (!container) return;
+      container.querySelectorAll('input[id^="input-"]').forEach(function (el) {
+        const k = el.id.slice(6);
+        const giaTri = String(el.value).replace(/[^\d.\-]/g, '').slice(0, 12);
+        if (giaTri === '') delete draftStore[k]; else draftStore[k] = giaTri;
+      });
+    }
+
+    // Đổi người làm là phải xoá sạch: cả kho nháp lẫn ô đang hiển thị trên màn hình,
+    // nếu không bạn sau sẽ thấy số bạn trước vừa gõ dở.
+    function clearDrafts() {
+      Object.keys(draftStore).forEach(function (k) { delete draftStore[k]; });
+      const container = document.getElementById('quiz-container');
+      if (container) container.innerHTML = '';
+    }
+
     function gradedKeys() {
       const keys = [];
       GRADED_LEVELS.forEach(function (lvlIdx) {
@@ -952,6 +974,14 @@
       if (pct >= 0.60) return 2;
       if (pct >= 0.30) return 1;
       return 0;
+    }
+
+    // Bảng điểm cần ngày giờ theo một dạng cố định dd/MM/yyyy HH:mm; gọi hàm định
+    // dạng có sẵn của trình duyệt thì thứ tự ngày/giờ thay đổi theo từng máy.
+    function ngayLamBai(d) {
+      function hai(n) { return (n < 10 ? '0' : '') + n; }
+      return hai(d.getDate()) + '/' + hai(d.getMonth() + 1) + '/' + d.getFullYear() +
+        ' ' + hai(d.getHours()) + ':' + hai(d.getMinutes());
     }
     function starsHtml(count) {
       let s = '';
@@ -1037,7 +1067,7 @@
         levelData[lvlIdx].questions.forEach(function (q, idx) {
           const a = attempts['lvl-' + lvlIdx + '-' + idx];
           if (!a || a.ok) return;
-          lines.push('Bai ' + lvlIdx + '.' + (idx + 1) + ': ' + deBang(q) + ' em ghi ' + a.val + ', dung ' + q.ans);
+          lines.push('Bài ' + lvlIdx + '.' + (idx + 1) + ': ' + deBang(q) + ' — em ghi ' + a.val + ', đáp án đúng ' + q.ans);
         });
       });
       return lines;
@@ -1048,7 +1078,7 @@
       GRADED_LEVELS.forEach(function (lvlIdx) {
         levelData[lvlIdx].questions.forEach(function (q, idx) {
           const a = attempts['lvl-' + lvlIdx + '-' + idx];
-          lines.push('Bai ' + lvlIdx + '.' + (idx + 1) + ' = ' + (a ? a.val : 'bo trong') + (a && a.ok ? ' (D)' : ' (S)'));
+          lines.push('Bài ' + lvlIdx + '.' + (idx + 1) + ' = ' + (a ? a.val : 'bỏ trống') + (a && a.ok ? ' (đúng)' : ' (sai)'));
         });
       });
       return lines;
@@ -1096,6 +1126,7 @@
       document.getElementById('gate-error').classList.add('hidden');
 
       runState = { key: kid.key, label: kid.label, attempts: {} };
+      clearDrafts();
       activeLevelIndex = 1;
       submitted = false;
       document.getElementById('name-gate').classList.add('hidden');
@@ -1108,6 +1139,7 @@
 
     function backToGate() {
       runState = null;
+      clearDrafts();
       document.getElementById('practice-wrap').classList.add('hidden');
       document.getElementById('report-wrap').classList.add('hidden');
       document.getElementById('name-gate').classList.remove('hidden');
@@ -1182,7 +1214,10 @@
         ? 'Câu này được chấm — chỉ được ghi nhận MỘT lần'
         : 'Cấp ôn luyện, không tính điểm';
       return '<div class="flex gap-2 max-w-sm mx-auto">' +
-        '<input type="number" id="input-' + qKey + '" placeholder="Nhập kết quả..." class="w-full text-center border-2 border-slate-300 rounded-xl font-bold py-2 focus:border-indigo-600 outline-none math-font text-base">' +
+        '<input type="number" id="input-' + qKey + '"' +
+          ' onkeydown="pressEnter(event, ' + lvlIdx + ', ' + idx + ')"' +
+          ' value="' + (draftStore[qKey] || '') + '"' +
+          ' placeholder="Nhập kết quả..." class="w-full text-center border-2 border-slate-300 rounded-xl font-bold py-2 focus:border-indigo-600 outline-none math-font text-base">' +
         '<button onclick="evaluateAnswer(' + lvlIdx + ', ' + idx + ')" class="px-5 py-2 bg-indigo-600 text-white font-black text-xs rounded-xl hover:bg-indigo-700 shadow-sm shrink-0">Kiểm tra</button>' +
       '</div>' +
       '<div class="text-[10px] font-bold text-slate-400 text-center uppercase">' + hint + '</div>' +
@@ -1190,6 +1225,7 @@
     }
 
     function renderQuizList() {
+      captureDrafts();
       const container = document.getElementById('quiz-container');
       const lvl = levelData[activeLevelIndex];
       const graded = isGradedLevel(activeLevelIndex);
@@ -1340,12 +1376,29 @@
       if (graded) {
         if (runState.attempts[qKey]) return; // đã ghi nhận lần trước, không chấm lại
         runState.attempts[qKey] = { val: val, ok: val === q.ans };
+        delete draftStore[qKey];
         renderQuizList();
+        // Vẽ lại làm DOM dịch chuyển: phải kéo đúng câu vừa ghi nhận vào tầm mắt,
+        // nếu nhảy sang ô trống khác thì em không nhìn thấy ✓/✕ của mình.
+        keoVaoTamai('feedback-' + qKey);
         return;
       }
 
       feedbackEl.classList.remove('hidden');
       feedbackEl.innerHTML = (val === q.ans) ? correctFeedbackHtml(q) : wrongFeedbackHtml(q, val);
+    }
+
+    // Trẻ gõ số rồi quen bấm Enter thay vì rời chuột sang nút Kiểm tra.
+    function pressEnter(event, levelIdx, questionIdx) {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      evaluateAnswer(levelIdx, questionIdx);
+    }
+
+    // Cuộn vừa đủ để em thấy ngay phản hồi ✓/✕ của câu mình vừa nộp.
+    function keoVaoTamai(id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ block: 'nearest' });
     }
 
     // ============================================================
@@ -1359,12 +1412,12 @@
       const lines = mistakeLines(runState.attempts);
       const rec = {
         ten: kid.label,
-        ngay: new Date().toLocaleString('vi-VN'),
+        ngay: ngayLamBai(new Date()),
         dung: correct,
         tong: keys.length,
         sao: starsFor(correct, keys.length),
         phanTram: Math.round(correct / keys.length * 100) + '%',
-        loiSai: lines.length ? lines.join(' | ') : 'Khong sai cau nao',
+        loiSai: lines.length ? lines.join(' | ') : 'Không sai câu nào',
         dapAnCuaEm: answerLines(runState.attempts).join(' | ')
       };
 
