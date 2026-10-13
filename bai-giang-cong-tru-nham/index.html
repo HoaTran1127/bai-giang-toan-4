@@ -590,16 +590,18 @@
           },
           {
             activeCol: 1,
-            dotCols: [1, 2],
+            dotCols: [0, 1, 2],
             result: ["", "6", "5", "3"],
             badge: "CỘT TRĂM & NGHÌN",
             title: "Tính: 10 − 4 (có chấm • ở chân)",
             lines: [
               "• Số 3 có chấm (•) ở chân thành <b>4</b>.",
+              "• 0 không trừ được 4: Mượn 1 nghìn, chấm (•) rơi vào <b>ô trống</b> ở cột nghìn ➔ coi như <b>1</b> (chữ 0 mờ hiện ra để dấu chấm có chỗ bám).",
               "• 10 − 4 = <b>6</b> ➔ Viết 6.",
+              "• Cột nghìn: 1 − 1 = <b>0</b> ➔ chữ số 0 đứng đầu <b>không viết</b>.",
               "• <b>Kết quả chung: 653</b>."
             ],
-            rule: "Dấu chấm nằm ngay sát chân số trừ, giải quyết chuỗi số 0 cực kỳ gọn gàng."
+            rule: "Chấm rơi vào ô trống ➔ coi số trừ hàng đó là 1. Đây là cách chuỗi số 0 được xử lý gọn gàng."
           }
         ]
       }
@@ -657,6 +659,8 @@
         const isActive = (i === step.activeCol);
         const hasDot = step.dotCols.includes(i);
         const resVal = step.result[i] || '';
+        // Số trừ ít chữ số hơn -> ô trống; vẫn hiện chữ 0 mờ để dấu chấm có chỗ bám (giống bảng chẩn đoán)
+        const isBlankBot = String(botArr[i]).trim() === '';
 
         // Dấu chấm đỏ đặt ngay sát góc chân của chữ số trừ, không có dòng lơ lửng trên đầu
         const footDotHtml = hasDot ? '<span class="foot-dot animate-pulse" title="Dấu chấm nhớ ở chân"></span>' : '';
@@ -664,7 +668,7 @@
         colsHtml += '<div class="flex flex-col items-center px-0.5 ' + (isActive ? 'bg-indigo-50/80 rounded-lg ring-2 ring-indigo-400' : '') + '">' +
           '<div class="math-cell math-font text-slate-900">' + topArr[i] + '</div>' +
           '<div class="math-cell math-font text-slate-800">' +
-            '<span>' + botArr[i] + '</span>' +
+            '<span>' + (isBlankBot && hasDot ? '<span class="text-slate-300">0</span>' : botArr[i]) + '</span>' +
             footDotHtml +
           '</div>' +
           '<div class="w-full h-0.5 my-1"></div>' +
@@ -752,7 +756,8 @@
             (isLeadZero ? "(chữ số 0 đứng đầu nên <b>không viết</b>)." : "(Viết " + colRes + ").");
         }
 
-        stepLogs.unshift(stepText);
+        // Log xếp theo đúng thứ tự nhẩm: cột đơn vị trước, lần lượt sang trái
+        stepLogs.push(stepText);
       }
 
       // Xây dựng bảng ô ly đặt tính hoàn chỉnh với dấu chấm đỏ sát chân
@@ -1023,7 +1028,7 @@
     function deBang(q) {
       return q.type === 'column'
         ? q.top.replace(/\s+/g, '') + ' − ' + q.bot.replace(/\s+/g, '')
-        : q.q.replace(/\s*\?\s*$/, '');
+        : q.q.replace(/\s*\?\s*$/, '').replace(/[\s=]+$/, '');
     }
 
     function mistakeLines(attempts) {
