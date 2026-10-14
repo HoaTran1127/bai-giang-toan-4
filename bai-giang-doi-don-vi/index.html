@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thang 10 và Thang 100 — Đổi đơn vị đo lường, Toán lớp 4–5</title>
+<style>
+  :root {
+    --bg-cream: #FBF3E4;
+    --ink: #2E2A24;
+    --blue: #1B4F8A;
+    --teal: #14868C;
+    --orange: #EF8A2B;
+    --red: #C31E1E;
+    --green: #1E8449;
+    --purple: #7A4E9E;
+    --white: #FFFFFF;
+    --line: #E2D9C8;
+    --soft: #F4EAD4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    background: var(--bg-cream); color: var(--ink);
+    font-size: 17px; line-height: 1.5; padding-bottom: 90px;
+  }
+  .math { font-family: "JetBrains Mono", "Consolas", monospace; }
+
+  .sticky-nav {
+    position: sticky; top: 0; z-index: 100; background: var(--bg-cream);
+    border-bottom: 2px solid var(--line); padding: 10px 14px;
+    display: flex; gap: 8px; overflow-x: auto; white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(46,42,36,.06);
+  }
+  .nav-chip {
+    display: inline-block; text-decoration: none; color: var(--ink); background: var(--white);
+    border: 2px solid var(--line); padding: 8px 14px; border-radius: 999px; font-weight: 800;
+    font-size: 15px; min-height: 44px; line-height: 26px; cursor: pointer; flex-shrink: 0;
+  }
+  .nav-chip:hover, .nav-chip:focus { background: var(--blue); color: #fff; border-color: var(--blue); outline: none; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 28px; }
+  .head-box { text-align: center; padding: 14px 8px 4px; }
+  .kicker {
+    display: inline-block; background: var(--orange); color: #fff; font-weight: 900; padding: 4px 14px;
+    border-radius: 999px; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 10px;
+  }
+  .title { font-size: 30px; font-weight: 900; color: var(--blue); line-height: 1.2; }
+  .subtitle { font-size: 17px; font-weight: 700; color: var(--ink); margin-top: 6px; }
+  .card {
+    background: var(--white); border: 2px solid var(--line); border-radius: 20px; padding: 22px;
+    box-shadow: 0 4px 12px rgba(46,42,36,.05);
+  }
+  .card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--line); }
+  .num {
+    width: 42px; height: 42px; border-radius: 12px; background: var(--blue); color: #fff; font-weight: 900; font-size: 21px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .num.teal { background: var(--teal); } .num.orange { background: var(--orange); }
+  .num.red { background: var(--red); } .num.purple { background: var(--purple); } .num.green { background: var(--green); }
+  .h2 { font-size: 22px; font-weight: 900; color: var(--blue); }
+  .h2.teal { color: var(--teal); } .h2.red { color: var(--red); } .h2.purple { color: var(--purple); }
+  .hint { font-size: 15px; font-weight: 700; color: #7A6E5C; margin-top: 2px; }
+  .h3 { font-size: 18px; font-weight: 900; color: var(--blue); margin: 16px 0 8px; }
+  .viewport {
+    background: var(--bg-cream); border: 2px solid var(--line); border-radius: 16px; padding: 16px; margin: 14px 0;
+    overflow-x: auto;
+  }
+  .punch {
+    display: block; width: fit-content; margin: 14px auto 0; background: var(--orange); color: #fff;
+    font-weight: 900; font-size: 17px; padding: 6px 16px; border-radius: 10px; text-align: center;
+  }
+  .note {
+    margin-top: 12px; background: #F1F5F9; border-left: 5px solid var(--purple); padding: 10px 14px; border-radius: 0 10px 10px 0;
+    font-size: 15px; font-weight: 700;
+  }
+  .tag5 { background: var(--purple); color: #fff; font-size: 12px; font-weight: 900; padding: 2px 8px; border-radius: 5px; margin-right: 8px; }
+
+  /* ---------- mind map ---------- */
+  .mm-scroll { overflow-x: auto; }
+  .mm-svg { min-width: 760px; width: 100%; height: auto; display: block; }
+  .mm-node { cursor: pointer; }
+  .mm-node rect { transition: transform .15s ease, filter .15s ease; transform-box: fill-box; transform-origin: center; }
+  .mm-node:hover rect, .mm-node:focus rect { filter: brightness(1.12); transform: scale(1.03); }
+  .mm-node:focus { outline: none; }
+  .mm-link { stroke: #C9BBA0; stroke-width: 3; stroke-dasharray: 8 6; fill: none; animation: mmflow 2.4s linear infinite; }
+  @keyframes mmflow { to { stroke-dashoffset: -28; } }
+  .mm-legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px; }
+  .mm-legend span { background: var(--soft); border: 2px solid var(--line); border-radius: 999px; padding: 5px 12px; font-size: 14px; font-weight: 800; }
+
+  /* ---------- thang đo ---------- */
+  .ladders { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 860px) { .ladders { grid-template-columns: repeat(3, 1fr); } }
+  .ladder-col { background: var(--bg-cream); border: 2px solid var(--line); border-radius: 16px; padding: 14px; }
+  .ladder-col h4 { font-size: 16px; font-weight: 900; text-align: center; margin-bottom: 10px; }
+  .rung {
+    display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 6px 10px;
+    background: #fff; border: 3px solid var(--blue); border-radius: 12px; font-weight: 900; font-size: 18px;
+    color: var(--blue); cursor: pointer; transition: transform .15s ease;
+  }
+  .rung small { font-weight: 800; font-size: 12px; color: #8B7F6A; }
+  .rung:hover { transform: scale(1.03); }
+  .rung.sel { background: #FEF3C7; border-color: var(--orange); transform: scale(1.05); }
+  .rung.rare { border-style: dashed; opacity: .75; }
+  .rung-arrow { text-align: center; font-size: 12px; font-weight: 900; color: var(--orange); padding: 1px 0; }
+  .ladder-col.area .rung { border-color: var(--red); color: var(--red); }
+  .ladder-col.area .rung-arrow { color: var(--red); }
+  .ladder-col.mass .rung { border-color: var(--teal); color: var(--teal); }
+  .ladder-out {
+    margin-top: 12px; padding: 12px; background: #FFF7ED; border: 2px dashed var(--orange); border-radius: 12px;
+    text-align: center; font-weight: 800; min-height: 62px; font-size: 15px;
+  }
+  .conv { margin-top: 16px; background: var(--bg-cream); border: 2px solid var(--line); border-radius: 16px; padding: 16px; }
+  .conv h4 { font-size: 17px; font-weight: 900; margin-bottom: 10px; }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .row input, .row select {
+    min-height: 44px; border: 2px solid var(--blue); border-radius: 10px; padding: 6px 10px; font-weight: 800;
+    font-size: 16px; background: #fff; color: var(--ink);
+  }
+  .row input { width: 110px; text-align: center; }
+  .btn { min-height: 44px; padding: 8px 16px; border: 2px solid var(--line); border-radius: 10px; background: #fff;
+    font-weight: 900; font-size: 16px; cursor: pointer; color: var(--ink); }
+  .btn.pri { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .btn.warm { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .btn:hover { filter: brightness(1.06); } .btn:active { transform: scale(.97); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  #conv-out { margin-top: 10px; font-weight: 900; color: var(--blue); font-size: 17px; min-height: 26px; }
+
+  /* ---------- dự đoán / demo ---------- */
+  .predict { background: #FFF7ED; border: 2px dashed var(--orange); border-radius: 14px; padding: 16px; margin-bottom: 14px; text-align: center; }
+  .predict .q { font-size: 19px; font-weight: 900; margin-bottom: 12px; }
+  .btns { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+  .choice { min-height: 44px; padding: 8px 16px; background: #fff; border: 2px solid var(--orange); border-radius: 10px;
+    font-weight: 900; font-size: 17px; cursor: pointer; }
+  .choice:hover, .choice:focus { background: var(--orange); color: #fff; outline: none; }
+  .demo-bar { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .demo { min-height: 44px; padding: 8px 14px; background: #fff; border: 2px solid var(--line); border-radius: 10px;
+    font-weight: 800; font-size: 16px; cursor: pointer; }
+  .demo.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+  .steps3 { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 800px) { .steps3 { grid-template-columns: repeat(3, 1fr); } }
+  .step-col { background: var(--bg-cream); border: 2px solid var(--line); border-radius: 14px; padding: 14px; }
+  .sb { display: inline-block; font-size: 13px; font-weight: 900; text-transform: uppercase; padding: 3px 10px; border-radius: 8px; margin-bottom: 8px; }
+  .sb.b { color: var(--blue); background: #DCE9F7; } .sb.o { color: #B45309; background: #FDE8CB; } .sb.g { color: var(--green); background: #D8F0E1; }
+  .step-col .body { text-align: center; padding: 6px 0; }
+  .step-col .foot { font-size: 14px; color: #6B6152; margin-top: 10px; font-weight: 800; border-top: 2px solid var(--line); padding-top: 8px; }
+  .bignum { font-size: 28px; font-weight: 900; color: var(--blue); }
+  .mini { display: inline-block; padding: 8px 14px; border-radius: 12px; border: 2px solid var(--blue); background: #fff; margin: 4px; min-width: 74px; }
+  .mini .v { font-size: 20px; font-weight: 900; display: block; color: var(--blue); }
+  .mini .k { font-size: 12px; font-weight: 800; display: block; color: #7A6E5C; }
+  .ans-line { margin-top: 12px; text-align: center; font-size: 20px; font-weight: 900; color: var(--green); }
+
+  /* ---------- lưới vuông ---------- */
+  .grid-wrap { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: center; }
+  .grid-100 { display: grid; grid-template-columns: repeat(10, 22px); grid-template-rows: repeat(10, 22px); gap: 2px;
+    background: #C9BBA0; padding: 3px; border: 3px solid var(--red); border-radius: 8px; }
+  .cell { background: #EDE7DA; border-radius: 2px; transition: background .25s ease, transform .25s ease; }
+  .cell.on { background: var(--orange); transform: scale(1.06); }
+  .cell.rowdone { background: #F8C07A; }
+  .grid-side { max-width: 260px; }
+  .grid-side .t { font-size: 16px; font-weight: 900; color: var(--ink); }
+  .grid-side .n { font-size: 24px; font-weight: 900; color: var(--red); }
+  .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 460px; margin: 0 auto; }
+  .cmp .c { padding: 14px; border-radius: 14px; text-align: center; border: 3px solid; background: #fff; }
+  .cmp .c.len { border-color: var(--blue); } .cmp .c.area { border-color: var(--red); }
+  .cmp .k { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+  .cmp .len .k { color: var(--blue); } .cmp .area .k { color: var(--red); }
+  .cmp .v { font-size: 21px; font-weight: 900; margin: 4px 0; }
+  .cmp .d { font-size: 13px; font-weight: 800; color: #7A6E5C; }
+  .stepper-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .step-ind { font-weight: 900; background: var(--soft); border: 2px solid var(--line); border-radius: 10px; padding: 6px 14px; }
+
+  /* ---------- bảng từng bước ---------- */
+  .calc { display: grid; grid-template-columns: 1fr; gap: 18px; }
+  @media (min-width: 860px) { .calc { grid-template-columns: 1.1fr .9fr; } }
+  .table-step { width: 100%; border-collapse: collapse; background: #fff; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .table-step th, .table-step td { border: 1px solid var(--line); padding: 10px 8px; text-align: center; font-size: 16px; font-weight: 800; }
+  .table-step th { background: var(--soft); }
+  .focus { background: #FEF3C7 !important; outline: 3px solid var(--orange); color: var(--blue); font-weight: 900; }
+  .dim { opacity: .38; }
+  .right-pane { background: var(--bg-cream); border: 2px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+  .tag { align-self: flex-start; background: var(--purple); color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 900; }
+  .mathline { font-size: 24px; font-weight: 900; color: var(--blue); }
+  .ruleline { font-size: 16px; font-weight: 900; color: var(--orange); border-top: 2px dashed var(--line); padding-top: 10px; }
+  .burst { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+  .block { width: 92px; height: 76px; background: var(--red); color: #fff; border: 3px solid #7A1414; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 17px; text-align: center; }
+  .basket { border: 3px dashed var(--orange); background: #FFF7ED; border-radius: 12px; padding: 10px 16px; text-align: center; }
+  .basket .lbl { font-weight: 800; font-size: 14px; display: block; }
+  .basket .val { font-weight: 900; font-size: 22px; color: var(--blue); }
+  .split { display: grid; grid-template-columns: repeat(10, 8px); grid-template-rows: repeat(10, 8px); gap: 1px; }
+  .split i { background: var(--orange); border-radius: 1px; display: block; }
+
+  /* ---------- ngoài hệ 10 ---------- */
+  .outgrid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 800px) { .outgrid { grid-template-columns: 1fr 1fr; } }
+  .pill { display: inline-block; background: var(--purple); color: #fff; font-weight: 900; font-size: 14px; padding: 3px 10px; border-radius: 8px; }
+
+  /* ---------- luyện tập ---------- */
+  .gate { background: var(--soft); border: 2px solid var(--line); border-radius: 18px; padding: 20px; text-align: center; }
+  .gate .em { font-size: 30px; }
+  .gate h3 { font-size: 20px; font-weight: 900; color: var(--blue); margin: 4px 0; }
+  .gate .sub { font-size: 14px; font-weight: 800; color: #7A6E5C; margin-bottom: 12px; }
+  .chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .chip { min-height: 44px; padding: 8px 16px; border-radius: 12px; border: 2px solid var(--line); background: #fff; font-weight: 900; font-size: 16px; cursor: pointer; }
+  .chip:hover { border-color: var(--blue); color: var(--blue); }
+  .gate-row { display: flex; gap: 8px; max-width: 380px; margin: 0 auto; }
+  .gate-row input { flex: 1; min-height: 44px; border: 2px solid var(--line); border-radius: 12px; padding: 8px 12px; font-weight: 800; text-align: center; font-size: 16px; }
+  .gate-row input:focus { border-color: var(--blue); outline: none; }
+  #gate-error { color: var(--red); font-size: 14px; margin-top: 8px; font-weight: 900; min-height: 18px; }
+  .lv-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
+  .lv { min-height: 44px; padding: 8px 14px; background: #fff; border: 2px solid var(--line); border-radius: 10px;
+    font-weight: 900; font-size: 15px; cursor: pointer; white-space: nowrap; }
+  .lv.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .lv.graded.active { background: var(--green); border-color: var(--green); }
+  .qcard { background: #FFFDF9; border: 2px solid var(--line); border-left-width: 6px; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .qcard.ok { border-left-color: var(--green); background: #F3FBF6; }
+  .qcard.bad { border-left-color: var(--red); background: #FDF2F2; }
+  .qrow { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .qprompt { font-size: 19px; font-weight: 800; }
+  .qinput { display: flex; align-items: center; gap: 8px; }
+  .qinput input { min-height: 44px; width: 130px; padding: 6px 10px; font-size: 18px; font-weight: 900; text-align: center;
+    border: 2px solid var(--line); border-radius: 10px; color: var(--blue); }
+  .qinput input:focus { outline: none; border-color: var(--blue); }
+  .qinput input:disabled { background: var(--soft); }
+  .okmsg { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: #E8F5E9; border: 2px solid var(--green);
+    color: var(--green); font-weight: 800; display: flex; align-items: flex-start; gap: 8px; }
+  .diag { margin-top: 12px; background: #FDEDEC; border: 2px solid var(--red); border-radius: 14px; padding: 14px; }
+  .diag .t { font-size: 17px; font-weight: 900; color: var(--red); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .catline { margin-bottom: 8px; font-weight: 900; color: var(--purple); font-size: 15px; }
+  .hidden { display: none; }
+  .report { padding: 18px; background: #F3FBF6; border: 3px solid var(--green); border-radius: 16px; }
+  .report h3 { font-size: 22px; font-weight: 900; color: var(--green); margin-bottom: 8px; }
+  .report ul { margin-left: 20px; font-size: 15px; font-weight: 700; }
+  .stars { font-size: 28px; color: var(--orange); letter-spacing: 2px; }
+  #send-status { font-size: 14px; margin-top: 10px; color: #6B6152; font-weight: 900; }
+  .lvl-head { font-size: 15px; font-weight: 800; color: #6B6152; margin-bottom: 12px; }
+  .lvl-head b { color: var(--blue); }
+  .footer { text-align: center; font-size: 14px; font-weight: 800; color: #8C8270; margin-top: 8px; }
+  .selftest { background: var(--red); color: #fff; padding: 20px; border-radius: 16px; font-weight: 900; border: 4px solid #fff; }
+</style>
+</head>
+<body>
+
+<nav class="sticky-nav" aria-label="Điều hướng bài học">
+  <a href="#muc-1" class="nav-chip">1. Bản đồ bài học</a>
+  <a href="#muc-2" class="nav-chip">2. Thang đo</a>
+  <a href="#muc-3" class="nav-chip">3. Hệ 10 · Ếch nhảy</a>
+  <a href="#muc-4" class="nav-chip">4. Vuông trong vuông</a>
+  <a href="#muc-5" class="nav-chip">5. Tính từng bước</a>
+  <a href="#muc-6" class="nav-chip">6. Ngoài hệ 10</a>
+  <a href="#muc-7" class="nav-chip">7. Luyện tập</a>
+</nav>
+
+<div class="wrap">
+
+  <header class="head-box">
+    <span class="kicker">Toán lớp 4–5 · Chuyên đề đo lường</span>
+    <h1 class="title">THANG 10 VÀ THANG 100</h1>
+    <p class="subtitle">Đếm bậc rồi nhân — thấy chữ "vuông" là nhân 100.</p>
+  </header>
+
+  <div id="self-test-alert" class="selftest hidden"></div>
+
+  <!-- ================= MỤC 1: SƠ ĐỒ TƯ DUY ================= -->
+  <section id="muc-1" class="card">
+    <div class="card-head">
+      <span class="num purple">1</span>
+      <div>
+        <h2 class="h2 purple">BẢN ĐỒ TƯ DUY CỦA BÀI</h2>
+        <p class="hint">Bấm vào một nhánh để nhảy tới phần học đó.</p>
+      </div>
+    </div>
+
+    <div class="mm-scroll">
+      <svg class="mm-svg" viewBox="0 0 960 640" role="img" aria-label="Sơ đồ tư duy đổi đơn vị đo: độ dài, khối lượng, diện tích, thời gian và 3 bước làm">
+        <path class="mm-link" d="M390,285 Q320,180 300,98"/>
+        <path class="mm-link" d="M570,285 Q640,180 660,98"/>
+        <path class="mm-link" d="M390,345 Q320,420 300,472"/>
+        <path class="mm-link" d="M570,345 Q640,420 660,472"/>
+        <path class="mm-link" d="M480,362 L480,392"/>
+
+        <g class="mm-node" data-jump="#muc-2" tabindex="0" role="button" aria-label="Nhánh độ dài">
+          <rect x="30" y="40" width="270" height="58" rx="18" fill="#1B4F8A"/>
+          <text x="60" y="78" font-size="30">📏</text>
+          <text x="100" y="66" fill="#fff" font-size="19" font-weight="900">ĐỘ DÀI</text>
+          <text x="100" y="88" fill="#DCE9F7" font-size="19" font-weight="900">mỗi bậc ×10</text>
+        </g>
+        <g class="mm-node" data-jump="#muc-3" tabindex="0" role="button" aria-label="Nhánh cách đổi độ dài">
+          <rect x="30" y="112" width="270" height="40" rx="12" fill="#DCE9F7" stroke="#1B4F8A" stroke-width="2"/>
+          <text x="165" y="138" text-anchor="middle" fill="#1B4F8A" font-size="16" font-weight="900">km hm dam m dm cm mm</text>
+        </g>
+        <g class="mm-node" data-jump="#muc-3" tabindex="0" role="button" aria-label="Nhánh xuống nhân lên chia">
+          <rect x="30" y="160" width="270" height="40" rx="12" fill="#DCE9F7" stroke="#1B4F8A" stroke-width="2"/>
+          <text x="165" y="186" text-anchor="middle" fill="#1B4F8A" font-size="16" font-weight="900">xuống ×10 · lên ÷10</text>
+        </g>
+
+        <g class="mm-node" data-jump="#muc-2" tabindex="0" role="button" aria-label="Nhánh khối lượng">
+          <rect x="660" y="40" width="270" height="58" rx="18" fill="#14868C"/>
+          <text x="690" y="78" font-size="30">⚖️</text>
+          <text x="735" y="66" fill="#fff" font-size="19" font-weight="900">KHỐI LƯỢNG</text>
+          <text x="735" y="88" fill="#CFEFEE" font-size="19" font-weight="900">mỗi bậc ×10</text>
+        </g>
+        <g class="mm-node" data-jump="#muc-2" tabindex="0" role="button" aria-label="Nhánh bảng khối lượng">
+          <rect x="660" y="112" width="270" height="40" rx="12" fill="#D8F0EF" stroke="#14868C" stroke-width="2"/>
+          <text x="795" y="138" text-anchor="middle" fill="#0E5F63" font-size="16" font-weight="900">tấn tạ yến kg hg dag g</text>
+        </g>
+        <g class="mm-node" data-jump="#muc-3" tabindex="0" role="button" aria-label="Nhánh kg sang gam">
+          <rect x="660" y="160" width="270" height="40" rx="12" fill="#D8F0EF" stroke="#14868C" stroke-width="2"/>
+          <text x="795" y="186" text-anchor="middle" fill="#0E5F63" font-size="16" font-weight="900">kg → g: 3 bậc, ×1 000</text>
+        </g>
+
+        <g class="mm-node" data-jump="#muc-4" tabindex="0" role="button" aria-label="Nhánh diện tích">
+          <rect x="30" y="472" width="270" height="58" rx="18" fill="#C31E1E"/>
+          <text x="60" y="510" font-size="30">⬜</text>
+          <text x="100" y="498" fill="#fff" font-size="19" font-weight="900">DIỆN TÍCH</text>
+          <text x="100" y="520" fill="#FBD9D9" font-size="19" font-weight="900">mỗi bậc ×100</text>
+        </g>
+        <g class="mm-node" data-jump="#muc-4" tabindex="0" role="button" aria-label="Nhánh vuông 10 trên 10">
+          <rect x="30" y="544" width="270" height="40" rx="12" fill="#FBE3E3" stroke="#C31E1E" stroke-width="2"/>
+          <text x="165" y="570" text-anchor="middle" fill="#8C1616" font-size="16" font-weight="900">10 hàng × 10 cột = 100 ô</text>
+        </g>
+        <g class="mm-node" data-jump="#muc-4" tabindex="0" role="button" aria-label="Nhánh thấy vuông thì nhân 100">
+          <rect x="30" y="592" width="270" height="40" rx="12" fill="#FBE3E3" stroke="#C31E1E" stroke-width="2"/>
+          <text x="165" y="618" text-anchor="middle" fill="#8C1616" font-size="16" font-weight="900">thấy dấu ² → ×100</text>
+        </g>
+
+        <g class="mm-node" data-jump="#muc-6" tabindex="0" role="button" aria-label="Nhánh thời gian">
+          <rect x="660" y="472" width="270" height="58" rx="18" fill="#7A4E9E"/>
+          <text x="690" y="510" font-size="30">⏰</text>
+          <text x="735" y="498" fill="#fff" font-size="19" font-weight="900">THỜI GIAN</text>
+          <text x="735" y="520" fill="#E8DAF3" font-size="19" font-weight="900">KHÔNG ×10</text>
+        </g>
+        <g class="mm-node" data-jump="#muc-6" tabindex="0" role="button" aria-label="Nhánh giờ phút">
+          <rect x="660" y="544" width="270" height="40" rx="12" fill="#EFE3F7" stroke="#7A4E9E" stroke-width="2"/>
+          <text x="795" y="570" text-anchor="middle" fill="#5A2E7C" font-size="16" font-weight="900">1 giờ = 60 phút</text>
+        </g>
+        <g class="mm-node" data-jump="#muc-6" tabindex="0" role="button" aria-label="Nhánh ngày giờ">
+          <rect x="660" y="592" width="270" height="40" rx="12" fill="#EFE3F7" stroke="#7A4E9E" stroke-width="2"/>
+          <text x="795" y="618" text-anchor="middle" fill="#5A2E7C" font-size="16" font-weight="900">1 ngày = 24 giờ</text>
+        </g>
+
+        <g class="mm-node" data-jump="#muc-5" tabindex="0" role="button" aria-label="Nhánh ba bước làm">
+          <rect x="300" y="392" width="360" height="62" rx="18" fill="#1E8449"/>
+          <text x="480" y="418" text-anchor="middle" fill="#fff" font-size="18" font-weight="900">3 BƯỚC: đếm bậc → ×/÷ → cộng</text>
+          <text x="480" y="440" text-anchor="middle" fill="#D8F0E1" font-size="15" font-weight="800">áp dụng mọi loại đơn vị</text>
+        </g>
+
+        <g>
+          <rect x="378" y="262" width="204" height="96" rx="24" fill="#2E2A24"/>
+          <text x="480" y="304" text-anchor="middle" fill="#fff" font-size="24" font-weight="900">ĐỔI ĐƠN VỊ</text>
+          <text x="480" y="334" text-anchor="middle" fill="#F4EAD4" font-size="20" font-weight="900">ĐO LƯỜNG</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="mm-legend">
+      <span>📏 dài: 10</span><span>⬜ vuông: 10 × 10</span><span>⏰ giờ: 60</span><span>🐸 nhảy bậc = ×10</span>
+    </div>
+  </section>
+
+  <!-- ================= MỤC 2: THANG ĐO TƯƠNG TÁC ================= -->
+  <section id="muc-2" class="card">
+    <div class="card-head">
+      <span class="num">2</span>
+      <div>
+        <h2 class="h2">BA THANG ĐO — BẤM 2 BẬC ĐỂ XEM HỆ SỐ</h2>
+        <p class="hint">Độ dài và khối lượng đi cạnh nhau ×10. Diện tích đi cạnh nhau ×100.</p>
+      </div>
+    </div>
+
+    <div class="ladders">
+      <div class="ladder-col len">
+        <h4 style="color:var(--blue)">📏 ĐỘ DÀI</h4>
+        <div id="ladder-len"></div>
+        <div class="ladder-out" id="out-len">👆 Bấm 2 bậc để xem hệ số.</div>
+      </div>
+      <div class="ladder-col mass">
+        <h4 style="color:var(--teal)">⚖️ KHỐI LƯỢNG</h4>
+        <div id="ladder-mass"></div>
+        <div class="ladder-out" id="out-mass">👆 Bấm 2 bậc để xem hệ số.</div>
+      </div>
+      <div class="ladder-col area">
+        <h4 style="color:var(--red)">⬜ DIỆN TÍCH</h4>
+        <div id="ladder-area"></div>
+        <div class="ladder-out" id="out-area">👆 Bấm 2 bậc để xem hệ số.</div>
+      </div>
+    </div>
+
+    <div class="conv">
+      <h4>🧮 Máy đổi nhanh — kiểm tra đáp số của em</h4>
+      <div class="row">
+        <input type="number" id="cv-num" value="3" step="any" aria-label="Số cần đổi">
+        <select id="cv-group" aria-label="Chọn loại đơn vị">
+          <option value="len">Độ dài</option>
+          <option value="mass">Khối lượng</option>
+          <option value="area">Diện tích</option>
+        </select>
+        <select id="cv-from" aria-label="Đơn vị đi từ"></select>
+        <span style="font-weight:900">→</span>
+        <select id="cv-to" aria-label="Đơn vị đến"></select>
+        <button class="btn pri" id="cv-go">Đổi</button>
+      </div>
+      <div id="conv-out" class="math"></div>
+    </div>
+
+    <div class="note"><span class="tag5">Nhánh lớp 5</span>1 ha = 10 000 m² · 1 km² = 100 ha = 1 000 000 m² (bấm Diện tích ở máy đổi nhanh)</div>
+  </section>
+
+  <!-- ================= MỤC 3: HỆ 10 ================= -->
+  <section id="muc-3" class="card">
+    <div class="card-head">
+      <span class="num teal">3</span>
+      <div>
+        <h2 class="h2 teal">ĐI XUỐNG · ĐI LÊN (HỆ 10)</h2>
+        <p class="hint">Ếch nhảy xuống bậc thấp → số to lên. Nhảy lên bậc cao → số co lại.</p>
+      </div>
+    </div>
+
+    <div class="predict" id="pred-3">
+      <div class="q">Dự đoán: Bao xi măng 50 kg đổi ra yến thì số to lên hay co lại?</div>
+      <div class="btns">
+        <button class="choice" data-p="3" data-v="more">To lên (thêm 0)</button>
+        <button class="choice" data-p="3" data-v="less">Co lại (bớt 0)</button>
+      </div>
+    </div>
+
+    <div class="viewport" style="background:#FFF7ED;border-color:#F8C07A">
+      <p style="text-align:center;font-weight:900;color:#B45309;margin-bottom:8px">🐸 3 km = 3 000 m — mỗi cú nhảy ×10</p>
+      <svg viewBox="0 0 920 430" style="width:100%;max-width:900px;height:auto;display:block;margin:0 auto" font-family="system-ui, sans-serif" role="img" aria-label="Ếch nhảy 3 bậc từ km xuống m, mỗi bậc nhân 10">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#f97316"/>
+          </marker>
+        </defs>
+        <g fill="none" stroke="#fb923c" stroke-width="5" stroke-dasharray="12 8" stroke-linecap="round">
+          <path d="M155,300 Q210,140 265,300" marker-end="url(#arr)"/>
+          <path d="M395,300 Q450,140 505,300" marker-end="url(#arr)"/>
+          <path d="M635,300 Q690,140 745,300" marker-end="url(#arr)"/>
+        </g>
+        <g font-weight="900" font-size="24" text-anchor="middle">
+          <rect x="178" y="160" width="64" height="38" rx="19" fill="#C31E1E"/><text x="210" y="187" fill="#fff">×10</text>
+          <rect x="418" y="160" width="64" height="38" rx="19" fill="#C31E1E"/><text x="450" y="187" fill="#fff">×10</text>
+          <rect x="658" y="160" width="64" height="38" rx="19" fill="#C31E1E"/><text x="690" y="187" fill="#fff">×10</text>
+        </g>
+        <g font-weight="900" text-anchor="middle">
+          <rect x="25" y="300" width="130" height="60" rx="16" fill="#1B4F8A"/>
+          <text x="90" y="330" fill="#fff" font-size="28">km</text><text x="90" y="350" fill="#DCE9F7" font-size="13">ki-lô-mét</text>
+          <rect x="265" y="300" width="130" height="60" rx="16" fill="#2563EB"/>
+          <text x="330" y="330" fill="#fff" font-size="28">hm</text><text x="330" y="350" fill="#DBEAFE" font-size="13">héc-tô-mét</text>
+          <rect x="505" y="300" width="130" height="60" rx="16" fill="#14868C"/>
+          <text x="570" y="330" fill="#fff" font-size="28">dam</text><text x="570" y="350" fill="#CFEFEE" font-size="13">đề-ca-mét</text>
+          <rect x="745" y="300" width="130" height="60" rx="16" fill="#EF8A2B"/>
+          <text x="810" y="330" fill="#fff" font-size="28">m</text><text x="810" y="350" fill="#FDE8CB" font-size="13">mét</text>
+        </g>
+        <g font-size="14" font-weight="800" fill="#7A6E5C" text-anchor="middle">
+          <text x="210" y="392">bậc 1</text><text x="450" y="392">bậc 2</text><text x="690" y="392">bậc 3</text>
+        </g>
+        <text font-size="42" text-anchor="middle">
+          <animateMotion dur="7s" repeatCount="indefinite" path="M155,288 Q210,128 265,288 L395,288 Q450,128 505,288 L635,288 Q690,128 745,288"/>
+          🐸
+        </text>
+        <g text-anchor="middle">
+          <rect x="230" y="20" width="460" height="54" rx="16" fill="#fff" stroke="#EF8A2B" stroke-width="3"/>
+          <text x="460" y="53" font-size="21" font-weight="900" fill="#1B4F8A">3 km = 3 × 10 × 10 × 10 = 3 000 m</text>
+        </g>
+      </svg>
+    </div>
+
+    <span class="punch" id="p-3">Lên thì bớt, xuống thì thêm.</span>
+
+    <div class="demo-bar" aria-label="Chọn ví dụ hệ 10" id="tabs-3">
+      <button class="demo active" data-i="0">50 kg = … yến</button>
+      <button class="demo" data-i="1">4 m = … dm</button>
+      <button class="demo" data-i="2">300 kg = … tạ</button>
+      <button class="demo" data-i="3">6 cm = … mm</button>
+    </div>
+    <div id="body-3"></div>
+  </section>
+
+  <!-- ================= MỤC 4: VUÔNG TRONG VUÔNG ================= -->
+  <section id="muc-4" class="card" style="border-color:#F5B5B5">
+    <div class="card-head">
+      <span class="num red">4</span>
+      <div>
+        <h2 class="h2 red">VUÔNG TRONG VUÔNG (HỆ 100)</h2>
+        <p class="hint">Lỗi hay gặp nhất: đổi diện tích mà nhân 10. Bấm từng bước để thấy sự thật.</p>
+      </div>
+    </div>
+
+    <div class="predict" id="pred-4">
+      <div class="q">Dự đoán: 1 dm² chứa được bao nhiêu hình vuông 1 cm²?</div>
+      <div class="btns">
+        <button class="choice" data-p="4" data-v="10">10 ô (như độ dài)</button>
+        <button class="choice" data-p="4" data-v="100">100 ô (10 hàng × 10 cột)</button>
+      </div>
+    </div>
+
+    <div class="stepper-bar">
+      <span class="step-ind" id="grid-ind">Bước 1/3</span>
+      <button class="btn" id="grid-prev">◀ Lùi</button>
+      <button class="btn warm" id="grid-next">Bước tiếp ▶</button>
+      <button class="btn" id="grid-reset">🔄 Làm lại</button>
+    </div>
+
+    <div class="viewport">
+      <div id="grid-stage" style="min-height:270px;display:flex;align-items:center;justify-content:center"></div>
+      <span class="punch" id="p-4">Dài: 10. Vuông: 10 × 10 = 100.</span>
+    </div>
+
+    <div class="demo-bar" aria-label="Chọn ví dụ hệ 100" id="tabs-4">
+      <button class="demo active" data-i="0">5 dm² = … cm²</button>
+      <button class="demo" data-i="1">4 m² = … dm²</button>
+      <button class="demo" data-i="2">500 cm² = … dm²</button>
+      <button class="demo" data-i="3">2 m² = … cm²</button>
+    </div>
+    <div id="body-4"></div>
+  </section>
+
+  <!-- ================= MỤC 5: TÍNH TỪNG BƯỚC ================= -->
+  <section id="muc-5" class="card">
+    <div class="card-head">
+      <span class="num orange">5</span>
+      <div>
+        <h2 class="h2" style="color:#B45309">SỐ ĐO KÉP: TÍNH TỪNG BƯỚC</h2>
+        <p class="hint">Đổi phần đơn vị lớn trước, giữ phần nhỏ, rồi mới cộng.</p>
+      </div>
+    </div>
+
+    <div class="stepper-bar">
+      <label for="calc-sample" style="font-weight:900">Chọn mẫu:</label>
+      <select id="calc-sample" class="btn" style="min-width:230px">
+        <option value="0">4 m 25 cm = … cm</option>
+        <option value="1">3 tấn 8 kg = … kg</option>
+        <option value="2">23 dm² 12 cm² = … cm²</option>
+        <option value="3">2 km 5 hm = … hm</option>
+      </select>
+      <button class="btn" id="calc-prev">◀ Lùi một bước</button>
+      <button class="btn pri" id="calc-next">Bước tiếp theo ▶</button>
+      <button class="btn" id="calc-reset">🔄 Làm lại</button>
+    </div>
+
+    <div class="calc">
+      <div>
+        <div id="calc-table"></div>
+        <div class="burst">
+          <div class="block" id="burst-big">4 m</div>
+          <div style="font-size:20px;font-weight:900;color:var(--orange)">➔ BỪNG NỔ ➔</div>
+          <div style="text-align:center">
+            <div class="split" id="burst-split"></div>
+            <div class="basket" style="margin-top:6px">
+              <span class="lbl">Rơi xuống <b id="burst-unit">cm</b>:</span>
+              <span class="val" id="burst-num">400</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="right-pane">
+        <span class="tag" id="calc-tag">BƯỚC 1</span>
+        <div class="mathline" id="calc-math">4 × 100 = 400 cm</div>
+        <div id="calc-desc" style="font-weight:800;font-size:16px">Đổi phần đơn vị lớn trước.</div>
+        <div class="ruleline" id="calc-rule">Đổi phần lớn trước.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MỤC 6: NGOÀI HỆ 10 ================= -->
+  <section id="muc-6" class="card">
+    <div class="card-head">
+      <span class="num purple">6</span>
+      <div>
+        <h2 class="h2 purple">NGOÀI HỆ 10 — KHÔNG ĐƯỢC THÊM 0</h2>
+        <p class="hint">Thời gian và hect-giây đi theo nhịp khác hẳn.</p>
+      </div>
+    </div>
+
+    <div class="outgrid">
+      <div class="viewport" style="margin:0">
+        <p style="text-align:center;font-weight:900;color:var(--purple);margin-bottom:10px">⏰ MẶT ĐỒNG HỒ 60 VẠCH</p>
+        <svg viewBox="0 0 320 250" style="width:100%;max-width:320px;height:auto;display:block;margin:0 auto" role="img" aria-label="Mặt đồng hồ 60 vạch: 1 giờ bằng 60 phút">
+          <circle cx="160" cy="120" r="100" fill="#fff" stroke="#7A4E9E" stroke-width="5"/>
+          <g id="clock-ticks"></g>
+          <line x1="160" y1="120" x2="160" y2="55" stroke="#2E2A24" stroke-width="6" stroke-linecap="round"/>
+          <line x1="160" y1="120" x2="225" y2="120" stroke="#EF8A2B" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="160" cy="120" r="8" fill="#7A4E9E"/>
+          <text x="160" y="240" text-anchor="middle" font-size="19" font-weight="900" fill="#5A2E7C">1 giờ = 60 phút</text>
+        </svg>
+      </div>
+      <div>
+        <div class="cmp" style="max-width:none;grid-template-columns:1fr 1fr">
+          <div class="c len"><div class="k">Độ dài</div><div class="v">1 m = 10 dm</div><div class="d">thêm 1 chữ số 0</div></div>
+          <div class="c area"><div class="k">Thời gian</div><div class="v">1 giờ = 60 phút</div><div class="d">không thêm 0!</div></div>
+        </div>
+        <div class="note" style="border-left-color:var(--purple);background:#EFE3F7">
+          <span class="pill">Học thuộc</span>
+          <div style="margin-top:8px;font-weight:900">1 phút = 60 giây · 1 thế kỉ = 100 năm</div>
+          <div style="margin-top:6px">1 ngày = 24 giờ · 1 tuần = 7 ngày</div>
+        </div>
+        <div class="note" style="border-left-color:var(--red);background:#FBE3E3">
+          <span class="tag5">Nhánh lớp 5</span>1 ha = 10 000 m² — cánh đồng, không phải mảnh vở.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MỤC 7: LUYỆN TẬP ================= -->
+  <section id="muc-7" class="card">
+    <div style="margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--line)">
+      <span class="sb sb-g">Mỗi bạn làm 1 lần rồi nộp</span>
+      <h2 class="h2">LUYỆN TẬP 7 CẤP — <span id="graded-total" class="math">16</span> CÂU CHẤM ĐIỂM</h2>
+      <p class="hint">Cấp 1·2·3 là ôn, bấm Kiểm tra thoải mái. Cấp 4·5·6·7 được chấm, mỗi câu chỉ ghi lần đầu. Nộp xong điểm gửi về bảng của thầy.</p>
+    </div>
+
+    <div class="gate" id="name-gate">
+      <div class="em">✏️</div>
+      <h3>Em tên là gì?</h3>
+      <p class="sub">Bấm tên hoặc gõ tên rồi bắt đầu. Danh sách này sửa được ở <code class="math">ROSTER</code> trong file.</p>
+      <div class="chips" id="roster-chips"></div>
+      <div class="gate-row">
+        <input id="name-input" placeholder="Gõ tên em..." aria-label="Tên học sinh">
+        <button class="btn pri" id="name-go">Bắt đầu</button>
+      </div>
+      <div id="gate-error"></div>
+    </div>
+
+    <div id="practice-wrap" class="hidden">
+      <p style="margin-bottom:10px;font-weight:800">Chào <b id="runner-name"></b>! <span id="progress-line" style="color:#7A6E5C"></span></p>
+      <div class="lv-tabs" id="level-tabs" role="tablist"></div>
+      <div id="quiz-container"></div>
+      <div id="submit-bar" style="margin-top:14px"></div>
+      <div id="report-wrap" style="margin-top:14px"></div>
+    </div>
+  </section>
+
+  <footer class="footer" id="footer-stamp">Đang tự kiểm tra đáp số...</footer>
+</div>
+
+<script>
+/* ================= DỮ LIỆU ĐƠN VỊ ================= */
+var LEN = [
+  { k:'km', label:'km', name:'ki-lô-mét' }, { k:'hm', label:'hm', name:'héc-tô-mét' },
+  { k:'dam', label:'dam', name:'đề-ca-mét' }, { k:'m', label:'m', name:'mét' },
+  { k:'dm', label:'dm', name:'đề-xi-mét' }, { k:'cm', label:'cm', name:'xăng-ti-mét' },
+  { k:'mm', label:'mm', name:'mi-li-mét' }
+];
+var MASS = [
+  { k:'tan', label:'tấn', name:'tấn' }, { k:'ta', label:'tạ', name:'tạ' },
+  { k:'yen', label:'yến', name:'yến' }, { k:'kg', label:'kg', name:'ki-lô-gam' },
+  { k:'hg', label:'hg', name:'héc-tô-gam', rare:true }, { k:'dag', label:'dag', name:'đề-ca-gam', rare:true },
+  { k:'g', label:'g', name:'gam' }
+];
+var AREA = [
+  { k:'m2', label:'m²', name:'mét vuông' }, { k:'dm2', label:'dm²', name:'đề-xi-mét vuông' },
+  { k:'cm2', label:'cm²', name:'xăng-ti-mét vuông' }, { k:'mm2', label:'mm²', name:'mi-li-mét vuông' }
+];
+// nhánh lớp 5: chỉ dùng để tra đổi, không nằm trong thang ×100 liên tiếp
+var AREA_EXTRA = [
+  { k:'ha', label:'ha', name:'héc-ta', rare:true }, { k:'km2', label:'km²', name:'ki-lô-mét vuông', rare:true }
+];
+var GROUPS = { len: LEN, mass: MASS, area: AREA.concat(AREA_EXTRA) };
+
+// đơn vị gốc: độ dài theo mm, khối lượng theo g, diện tích theo mm²
+var BASE = {
+  mm:1, cm:10, dm:100, m:1000, dam:10000, hm:100000, km:1000000,
+  g:1, dag:10, hg:100, kg:1000, yen:10000, ta:100000, tan:1000000,
+  mm2:1, cm2:100, dm2:10000, m2:1000000, ha:10000000000, km2:1000000000000
+};
+
+function labelOf(k) {
+  for (var key in GROUPS) {
+    for (var i = 0; i < GROUPS[key].length; i++) if (GROUPS[key][i].k === k) return GROUPS[key][i].label;
+  }
+  return k;
+}
+function quiTo(target, parts) {
+  var tb = BASE[target]; if (!tb) return 0;
+  var total = 0;
+  for (var i = 0; i < parts.length; i++) {
+    var r = BASE[parts[i].unit];
+    if (r) total += parts[i].val * r;
+  }
+  return total / tb;
+}
+function fmt(n) {
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+/* ================= MỤC 1: SƠ ĐỒ TƯ DUY ================= */
+(function bindMindMap() {
+  var nodes = document.querySelectorAll('.mm-node');
+  function go(el) {
+    var sel = el.getAttribute('data-jump');
+    var t = sel && document.querySelector(sel);
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  for (var i = 0; i < nodes.length; i++) {
+    (function (el) {
+      el.addEventListener('click', function () { go(el); });
+      el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(el); } });
+    })(nodes[i]);
+  }
+})();
+
+/* ================= MỤC 2: THANG TƯƠNG TÁC ================= */
+function buildLadder(colId, outId, units, ratio) {
+  var el = document.getElementById(colId), sel = [];
+  el.innerHTML = '';
+  units.forEach(function (x, i) {
+    var d = document.createElement('div');
+    d.className = 'rung' + (x.rare ? ' rare' : '');
+    d.innerHTML = '<span class="math">' + x.label + '</span><small>' + x.name + '</small>';
+    d.onclick = function () {
+      if (sel.indexOf(i) >= 0) sel = sel.filter(function (s) { return s !== i; });
+      else { sel.push(i); if (sel.length > 2) sel = sel.slice(1); }
+      var rungs = el.querySelectorAll('.rung');
+      for (var j = 0; j < rungs.length; j++) rungs[j].classList.toggle('sel', sel.indexOf(j) >= 0);
+      var out = document.getElementById(outId);
+      if (sel.length === 2) {
+        var a = sel.slice().sort(function (p, q) { return p - q; });
+        var steps = a[1] - a[0], down = Math.pow(ratio, steps), up = a[0];
+        out.innerHTML = '<span class="math">' + units[up].label + '</span> → <span class="math">' + units[a[1]].label +
+          '</span>: ' + steps + ' bậc → <b class="math">×' + fmt(down) + '</b><br>' +
+          '<span style="font-size:14px">Ngược lại (đi lên): <b class="math">÷' + fmt(down) + '</b></span>';
+      } else out.innerHTML = '👆 Bấm 2 bậc để xem hệ số.';
+    };
+    el.appendChild(d);
+    if (i < units.length - 1) {
+      var ar = document.createElement('div');
+      ar.className = 'rung-arrow';
+      ar.innerHTML = '▼ ×' + ratio;
+      el.appendChild(ar);
+    }
+  });
+}
+buildLadder('ladder-len', 'out-len', LEN, 10);
+buildLadder('ladder-mass', 'out-mass', MASS, 10);
+buildLadder('ladder-area', 'out-area', AREA, 100);
+
+/* ================= MÁY ĐỔI NHANH ================= */
+(function buildConverter() {
+  var g = document.getElementById('cv-group'), from = document.getElementById('cv-from'), to = document.getElementById('cv-to');
+  function fillUnits() {
+    var units = GROUPS[g.value];
+    from.innerHTML = ''; to.innerHTML = '';
+    units.forEach(function (x, i) { from.add(new Option(x.label, i)); to.add(new Option(x.label, i)); });
+    from.value = 0; to.value = 1;
+    document.getElementById('conv-out').textContent = '';
+  }
+  g.onchange = fillUnits; fillUnits();
+  document.getElementById('cv-go').onclick = function () {
+    var v = parseFloat(document.getElementById('cv-num').value);
+    if (isNaN(v)) { document.getElementById('conv-out').textContent = 'Em nhập một số trước nhé.'; return; }
+    var units = GROUPS[g.value], a = units[+from.value], b = units[+to.value];
+    var f = BASE[a.k] / BASE[b.k];
+    var out = v * f;
+    var zeros = f >= 1 ? String(Math.round(f)).replace(/^1/, '') : '';
+    var tail = f >= 1
+      ? '×' + fmt(Math.round(f)) + (zeros.length ? ' — thêm ' + zeros.length + ' chữ số 0' : '')
+      : '÷' + fmt(Math.round(1 / f)) + ' — bớt ' + String(Math.round(1 / f)).slice(1).length + ' chữ số 0';
+    document.getElementById('conv-out').textContent = fmt(v) + ' ' + a.label + ' = ' + fmt(out) + ' ' + b.label + '  (' + tail + ')';
+  };
+})();
+
+/* ================= Ô DỰ ĐOÁN ================= */
+var PRED = {
+  3: {
+    right: 'less',
+    good: '✓ Đúng! Yến to hơn kg nên số co lại: 50 kg = 5 yến.',
+    bad: '✗ Chưa đúng! Đơn vị to hơn thì số bé đi: 50 kg = 5 yến (bớt 1 chữ số 0).',
+    ask: '<div class="q">Dự đoán: Bao xi măng 50 kg đổi ra yến thì số to lên hay co lại?</div>' +
+      '<div class="btns"><button class="choice" data-p="3" data-v="more">To lên (thêm 0)</button>' +
+      '<button class="choice" data-p="3" data-v="less">Co lại (bớt 0)</button></div>'
+  },
+  4: {
+    right: '100',
+    good: '✓ Giỏi! 1 dm² = 100 cm² vì 10 hàng × 10 cột.',
+    bad: '✗ Bẫy rồi! Đoạn thẳng mới có 10 vạch. Hình vuông tính 2 chiều: 10 × 10 = 100 ô!',
+    ask: '<div class="q">Dự đoán: 1 dm² chứa được bao nhiêu hình vuông 1 cm²?</div>' +
+      '<div class="btns"><button class="choice" data-p="4" data-v="10">10 ô (như độ dài)</button>' +
+      '<button class="choice" data-p="4" data-v="100">100 ô (10 hàng × 10 cột)</button></div>'
+  }
+};
+document.addEventListener('click', function (e) {
+  var b = e.target.closest ? e.target.closest('.choice') : null;
+  if (!b) return;
+  var cfg = PRED[b.getAttribute('data-p')];
+  var box = document.getElementById('pred-' + b.getAttribute('data-p'));
+  var hit = b.getAttribute('data-v') === cfg.right;
+  box.innerHTML = '<div style="font-size:19px;font-weight:900;color:' + (hit ? 'var(--green)' : 'var(--red)') + '">' +
+    (hit ? cfg.good : cfg.bad) + '</div><button class="btn" style="margin-top:10px" data-reset="' + b.getAttribute('data-p') + '">Xem lại câu hỏi</button>';
+});
+document.addEventListener('click', function (e) {
+  var b = e.target.closest ? e.target.closest('[data-reset]') : null;
+  if (!b) return;
+  var p = b.getAttribute('data-reset');
+  document.getElementById('pred-' + p).innerHTML = PRED[p].ask;
+});
+
+/* ================= VÍ DỤ 3 BƯỚC (demo tabs) ================= */
+var MC = function (v, k) { return '<span class="mini"><span class="v math">' + v + '</span><span class="k">' + k + '</span></span>'; };
+function demoTabs(tabsId, bodyId, items, badgeCls) {
+  var tabs = document.getElementById(tabsId), body = document.getElementById(bodyId);
+  var btns = tabs.querySelectorAll('.demo');
+  function show(i) {
+    for (var j = 0; j < btns.length; j++) btns[j].classList.toggle('active', j === i);
+    var it = items[i];
+    body.innerHTML = '<div class="steps3">' + it.steps.map(function (s, j) {
+      return '<div class="step-col"><div><span class="sb ' + badgeCls[j] + '">Bước ' + (j + 1) + '</span>' +
+        '<div style="font-weight:900;font-size:15px;margin-bottom:6px">' + s.h + '</div>' +
+        '<div class="body">' + s.d + '</div></div><p class="foot">' + s.f + '</p></div>';
+    }).join('') + '</div><p class="ans-line">👉 <span class="math">' + it.ans + '</span></p>';
+  }
+  for (var i = 0; i < btns.length; i++) {
+    (function (b, idx) { b.onclick = function () { show(idx); }; })(btns[i], i);
+  }
+  show(0);
+}
+demoTabs('tabs-3', 'body-3', [
+  { ans: '50 kg = 5 yến', steps: [
+    { h: 'Đi từ đâu đến đâu', d: MC('kg', 'đi từ đây') + '<div style="font-size:20px;color:#B9AA8C">↑</div>' + MC('yến', 'đến đây'), f: 'kg xuống bậc cao hơn → đi LÊN.' },
+    { h: 'Đếm bậc', d: '<div class="bignum math">1 bậc</div><div style="font-size:13px;font-weight:800">kg → yến</div>', f: 'Mỗi bậc ÷10.' },
+    { h: 'Chia', d: '<div class="bignum math">50 ÷ 10 = 5</div>', f: 'Bớt 1 chữ số 0.' } ] },
+  { ans: '4 m = 40 dm', steps: [
+    { h: 'Đi từ đâu đến đâu', d: MC('m', 'đi từ đây') + '<div style="font-size:20px;color:#B9AA8C">↓</div>' + MC('dm', 'đến đây'), f: 'm xuống bậc thấp hơn → đi XUỐNG.' },
+    { h: 'Đếm bậc', d: '<div class="bignum math">1 bậc</div>', f: 'Mỗi bậc ×10.' },
+    { h: 'Nhân', d: '<div class="bignum math">4 × 10 = 40</div>', f: 'Thêm 1 chữ số 0.' } ] },
+  { ans: '300 kg = 3 tạ', steps: [
+    { h: 'Đi từ đâu đến đâu', d: MC('kg', 'đi từ đây') + '<div style="font-size:20px;color:#B9AA8C">↑</div>' + MC('tạ', 'đến đây'), f: 'Đi LÊN 2 bậc.' },
+    { h: 'Đếm bậc', d: '<div class="bignum math">2 bậc</div><div style="font-size:13px;font-weight:800">kg → yến → tạ</div>', f: '÷10 rồi ÷10 = ÷100.' },
+    { h: 'Chia', d: '<div class="bignum math">300 ÷ 100 = 3</div>', f: 'Bớt 2 chữ số 0.' } ] },
+  { ans: '6 cm = 60 mm', steps: [
+    { h: 'Đi từ đâu đến đâu', d: MC('cm', 'đi từ đây') + '<div style="font-size:20px;color:#B9AA8C">↓</div>' + MC('mm', 'đến đây'), f: 'Đi XUỐNG 1 bậc.' },
+    { h: 'Đếm bậc', d: '<div class="bignum math">1 bậc</div>', f: '×10.' },
+    { h: 'Nhân', d: '<div class="bignum math">6 × 10 = 60</div>', f: 'Thêm 1 chữ số 0.' } ] }
+], ['sb b', 'sb o', 'sb g']);
+
+demoTabs('tabs-4', 'body-4', [
+  { ans: '5 dm² = 500 cm²', steps: [
+    { h: 'Thấy dấu ²', d: MC('dm²', 'đi từ đây') + '<div style="font-size:20px;color:#B9AA8C">↓</div>' + MC('cm²', 'đến đây'), f: 'Có ² → mỗi bậc ×100, không phải ×10.' },
+    { h: 'Đếm bậc', d: '<div class="bignum math">1 bậc</div>', f: 'Hệ số ×100.' },
+    { h: 'Nhân', d: '<div class="bignum math">5 × 100 = 500</div>', f: 'Thêm 2 chữ số 0.' } ] },
+  { ans: '4 m² = 400 dm²', steps: [
+    { h: 'Thấy dấu ²', d: MC('m²', 'đi từ đây') + '<div style="font-size:20px;color:#B9AA8C">↓</div>' + MC('dm²', 'đến đây'), f: 'Vuông → ×100 mỗi bậc.' },
+    { h: 'Đếm bậc', d: '<div class="bignum math">1 bậc</div>', f: 'm² → dm² liền nhau.' },
+    { h: 'Nhân', d: '<div class="bignum math">4 × 100 = 400</div>', f: 'Đừng nhân 10!' } ] },
+  { ans: '500 cm² = 5 dm²', steps: [
+    { h: 'Đi lên', d: MC('cm²', 'đi từ đây') + '<div style="font-size:20px;color:#B9AA8C">↑</div>' + MC('dm²', 'đến đây'), f: 'Vuông đi lên → chia 100.' },
+    { h: 'Đếm bậc', d: '<div class="bignum math">1 bậc</div>', f: 'Hệ số ÷100.' },
+    { h: 'Chia', d: '<div class="bignum math">500 ÷ 100 = 5</div>', f: 'Bớt 2 chữ số 0.' } ] },
+  { ans: '2 m² = 20 000 cm²', steps: [
+    { h: 'Đếm bậc thật kỹ', d: MC('m²', 'đi từ đây') + '<div style="font-size:20px;color:#B9AA8C">↓↓</div>' + MC('cm²', 'đến đây'), f: 'm² → dm² → cm²: 2 bậc!' },
+    { h: 'Hệ số', d: '<div class="bignum math">100 × 100</div>', f: '= 10 000.' },
+    { h: 'Nhân', d: '<div class="bignum math">2 × 10 000 = 20 000</div>', f: 'Thêm 4 chữ số 0.' } ] }
+], ['sb b', 'sb o', 'sb g']);
+
+/* ================= MỤC 4: LƯỚI VUÔNG TỪNG BƯỚC ================= */
+var STAGES = [
+  { ind: 'Bước 1/3', punch: 'Đoạn thẳng: đếm 1 chiều = 10.' },
+  { ind: 'Bước 2/3', punch: 'Dài: 10. Vuông: 10 × 10 = 100.' },
+  { ind: 'Bước 3/3', punch: 'Thấy ² → ×100 mỗi bậc!' }
+];
+var stageIdx = 0, fillTimers = [];
+function rulerSvg() {
+  var ticks = '';
+  for (var i = 0; i <= 10; i++) {
+    var x = 20 + i * 28;
+    ticks += '<line x1="' + x + '" y1="60" x2="' + x + '" y2="' + (i % 5 === 0 ? 30 : 42) + '" stroke="#1B4F8A" stroke-width="' + (i % 5 === 0 ? 4 : 2) + '"/>';
+    ticks += '<text x="' + x + '" y="86" text-anchor="middle" font-size="14" font-weight="900" fill="' + (i === 0 || i === 10 ? '#C31E1E' : '#1B4F8A') + '">' + i + '</text>';
+  }
+  return '<div style="text-align:center"><div style="font-size:16px;font-weight:900;color:var(--blue);margin-bottom:6px">Đoạn thẳng 1 dm = 10 cm</div>' +
+    '<svg viewBox="0 0 320 100" style="width:100%;max-width:330px;height:auto" role="img" aria-label="Thước 1 dm chia 10 vạch cm">' +
+    '<line x1="20" y1="60" x2="300" y2="60" stroke="#1B4F8A" stroke-width="6" stroke-linecap="round"/>' + ticks +
+    '<text x="20" y="20" font-size="14" font-weight="900" fill="#7A6E5C">0</text><text x="270" y="20" font-size="14" font-weight="900" fill="#C31E1E">10 vạch</text></svg></div>';
+}
+function gridBlock() {
+  var cells = '';
+  for (var i = 0; i < 100; i++) cells += '<div class="cell" data-i="' + i + '"></div>';
+  return '<div class="grid-wrap"><div class="grid-100" id="mesh">' + cells + '</div>' +
+    '<div class="grid-side"><div class="t">Hình vuông 1 dm²</div>' +
+    '<div class="n" id="mesh-count">0 / 100 ô</div>' +
+    '<div class="t" style="font-size:14px;color:#7A6E5C;margin-top:4px">Mỗi ô nhỏ là 1 cm². Tô xong 10 hàng × 10 cột.</div>' +
+    '<button class="btn" id="mesh-again" style="margin-top:8px">▶ Tô lại</button></div></div>';
+}
+function cmpBlock() {
+  return '<div style="text-align:center"><div class="cmp"><div class="c len"><div class="k">Độ dài</div>' +
+    '<div class="v">1 dm = 10 cm</div><div class="d">1 chiều → ×10</div></div>' +
+    '<div class="c area"><div class="k">Diện tích</div><div class="v">1 dm² = 100 cm²</div><div class="d">2 chiều → ×100</div></div></div>' +
+    '<div style="margin-top:12px;font-weight:900;color:var(--red)">1 m² = 100 dm² = 10 000 cm²</div></div>';
+}
+function fillMesh() {
+  for (var i = 0; i < fillTimers.length; i++) clearTimeout(fillTimers[i]);
+  fillTimers = [];
+  var cells = document.querySelectorAll('#mesh .cell');
+  if (!cells.length) return;
+  var count = document.getElementById('mesh-count');
+  for (var c = 0; c < cells.length; c++) cells[c].className = 'cell';
+  for (var j = 0; j < cells.length; j++) {
+    (function (el, idx) {
+      fillTimers.push(setTimeout(function () {
+        el.classList.add(idx % 10 === 9 ? 'rowdone' : 'on');
+        count.textContent = (idx + 1) + ' / 100 ô';
+      }, idx * 22));
+    })(cells[j], j);
+  }
+}
+function renderStage() {
+  var stage = document.getElementById('grid-stage');
+  stage.innerHTML = stageIdx === 0 ? rulerSvg() : (stageIdx === 1 ? gridBlock() : cmpBlock());
+  document.getElementById('grid-ind').textContent = STAGES[stageIdx].ind;
+  document.getElementById('p-4').textContent = STAGES[stageIdx].punch;
+  document.getElementById('grid-prev').disabled = stageIdx === 0;
+  document.getElementById('grid-next').disabled = stageIdx === 2;
+  if (stageIdx === 1) {
+    fillMesh();
+    document.getElementById('mesh-again').onclick = fillMesh;
+  }
+}
+document.getElementById('grid-prev').onclick = function () { if (stageIdx > 0) { stageIdx--; renderStage(); } };
+document.getElementById('grid-next').onclick = function () { if (stageIdx < 2) { stageIdx++; renderStage(); } };
+document.getElementById('grid-reset').onclick = function () { stageIdx = 0; renderStage(); };
+renderStage();
+
+/* ================= MỤC 6: VẠCH ĐỒNG HỒ ================= */
+(function drawClock() {
+  var g = document.getElementById('clock-ticks'), s = '';
+  for (var i = 0; i < 60; i++) {
+    var a = i * 6 * Math.PI / 180, big = i % 5 === 0;
+    var r1 = big ? 78 : 86, r2 = 94;
+    s += '<line x1="' + (160 + r1 * Math.cos(a)).toFixed(1) + '" y1="' + (120 + r1 * Math.sin(a)).toFixed(1) +
+      '" x2="' + (160 + r2 * Math.cos(a)).toFixed(1) + '" y2="' + (120 + r2 * Math.sin(a)).toFixed(1) +
+      '" stroke="' + (big ? '#7A4E9E' : '#CBB7DE') + '" stroke-width="' + (big ? 3 : 1.5) + '"/>';
+  }
+  g.innerHTML = s;
+})();
+
+/* ================= MỤC 5: SỐ ĐO KÉP TỪNG BƯỚC ================= */
+var SAMPLES = [
+  { title: '4 m 25 cm = … cm', cols: ['Đổi 4 m', 'Giữ 25 cm', 'Gộp kết quả'],
+    steps: [
+      { focus: 0, tag: 'BƯỚC 1', math: '4 × 100 = 400 cm', desc: 'm → cm qua 2 bậc nên ×100.', punch: 'Đổi phần lớn trước.' },
+      { focus: 1, tag: 'BƯỚC 2', math: '25 cm giữ nguyên', desc: 'Đã cùng đơn vị đích.', punch: 'Phần nhỏ để dành.' },
+      { focus: 2, tag: 'BƯỚC 3', math: '400 + 25 = 425 cm', desc: 'Cộng hai phần lại.', punch: 'Đổi xong mới cộng.' }
+    ], big: '4 m', bigCount: 400, unit: 'cm' },
+  { title: '3 tấn 8 kg = … kg', cols: ['Đổi 3 tấn', 'Giữ 8 kg', 'Gộp kết quả'],
+    steps: [
+      { focus: 0, tag: 'BƯỚC 1', math: '3 × 1 000 = 3 000 kg', desc: 'tấn → kg là 3 bậc ×10.', punch: 'Đếm bậc, không phải học thuộc ngoại lệ.' },
+      { focus: 1, tag: 'BƯỚC 2', math: '8 kg giữ nguyên', desc: '8 kg đã là đơn vị đích.', punch: 'Đừng đổi thành 80.' },
+      { focus: 2, tag: 'BƯỚC 3', math: '3 000 + 8 = 3 008 kg', desc: 'Cộng 3 000 với 8.', punch: 'Không phải 38, cũng không phải 3 080.' }
+    ], big: '3 tấn', bigCount: 3000, unit: 'kg' },
+  { title: '23 dm² 12 cm² = … cm²', cols: ['Đổi 23 dm²', 'Giữ 12 cm²', 'Gộp kết quả'],
+    steps: [
+      { focus: 0, tag: 'BƯỚC 1', math: '23 × 100 = 2 300 cm²', desc: 'Mỗi dm² bung thành 100 ô cm².', punch: 'Vuông → ×100.' },
+      { focus: 1, tag: 'BƯỚC 2', math: '12 cm² giữ nguyên', desc: '12 ô nhỏ đã ở cm².', punch: 'Giữ nguyên 12.' },
+      { focus: 2, tag: 'BƯỚC 3', math: '2 300 + 12 = 2 312 cm²', desc: 'Gộp ô bung với ô có sẵn.', punch: 'Đổi xong mới đếm.' }
+    ], big: '23 dm²', bigCount: 2300, unit: 'cm²' },
+  { title: '2 km 5 hm = … hm', cols: ['Đổi 2 km', 'Giữ 5 hm', 'Gộp kết quả'],
+    steps: [
+      { focus: 0, tag: 'BƯỚC 1', math: '2 × 10 = 20 hm', desc: 'km → hm 1 bậc xuống nên ×10.', punch: '1 bậc = 1 chữ số 0.' },
+      { focus: 1, tag: 'BƯỚC 2', math: '5 hm giữ nguyên', desc: 'Đúng đơn vị đích rồi.', punch: 'Giữ nguyên 5.' },
+      { focus: 2, tag: 'BƯỚC 3', math: '20 + 5 = 25 hm', desc: 'Cộng hai phần cùng hm.', punch: 'Chỉ cộng khi cùng đơn vị.' }
+    ], big: '2 km', bigCount: 20, unit: 'hm' }
+];
+var calcIdx = 0, stepIdx = 0;
+function renderCalc() {
+  var s = SAMPLES[calcIdx], st = s.steps[stepIdx];
+  document.getElementById('burst-big').textContent = s.big;
+  document.getElementById('burst-num').textContent = fmt(s.bigCount);
+  document.getElementById('burst-unit').textContent = s.unit;
+  var split = '', per = s.bigCount > 100 ? 100 : 10;
+  for (var i = 0; i < per; i++) split += '<i></i>';
+  document.getElementById('burst-split').innerHTML = split;
+  document.getElementById('burst-split').style.display = (stepIdx === 0) ? 'grid' : 'none';
+  document.getElementById('calc-tag').textContent = st.tag;
+  document.getElementById('calc-math').textContent = st.math;
+  document.getElementById('calc-desc').textContent = st.desc;
+  document.getElementById('calc-rule').textContent = st.punch;
+  var html = '<table class="table-step"><thead><tr>';
+  for (var c = 0; c < s.cols.length; c++) html += '<th class="' + (c === st.focus ? 'focus' : 'dim') + '">' + s.cols[c] + '</th>';
+  html += '</tr></thead><tbody><tr>';
+  for (var d = 0; d < s.cols.length; d++) html += '<td class="' + (d === st.focus ? 'focus' : 'dim') + '">' + (d <= stepIdx ? s.steps[d].math : '…') + '</td>';
+  html += '</tr></tbody></table>';
+  document.getElementById('calc-table').innerHTML = html;
+  document.getElementById('calc-prev').disabled = stepIdx === 0;
+  document.getElementById('calc-next').disabled = stepIdx === s.steps.length - 1;
+}
+document.getElementById('calc-sample').onchange = function () { calcIdx = +this.value; stepIdx = 0; renderCalc(); };
+document.getElementById('calc-next').onclick = function () { if (stepIdx < SAMPLES[calcIdx].steps.length - 1) { stepIdx++; renderCalc(); } };
+document.getElementById('calc-prev').onclick = function () { if (stepIdx > 0) { stepIdx--; renderCalc(); } };
+document.getElementById('calc-reset').onclick = function () { stepIdx = 0; renderCalc(); };
+renderCalc();
+
+/* ================= MỤC 7: NGÂN HÀNG CÂU HỎI ================= */
+var ROSTER = [
+  { key: 'mai', label: 'Mai', alias: ['mai'] },
+  { key: 'gia-linh', label: 'Gia Linh', alias: ['gia linh', 'linh'] },
+  { key: 'tra-giang', label: 'Trà Giang', alias: ['tra giang', 'giang'] }
+];
+// nơi nhận kết quả: điền URL /formResponse của Google Form vào FORM_ENDPOINT rồi mở lại trang
+var FORM_ENDPOINT = '';
+var ENTRY = { ten: '', ngay: '', dung: '', tong: '', sao: '', loiSai: '', phanTram: '', dapAnCuaEm: '' };
+var SEND_READY = FORM_ENDPOINT.indexOf('http') === 0;
+
+var LEVELS = {
+  1: { title: 'Cấp 1: Thứ tự trên thang', hint: 'Ôn — nhìn thang ở Mục 2 mà trả lời.', graded: false,
+    qs: [
+      { q: 'Đứng ngay SAU m (đi xuống) là ...', ans: 'dm', exp: 'km→hm→dam→m→<b>dm</b>→cm→mm.', cat: 'Mèo quên: đi xuống là bậc thấp hơn!' },
+      { q: 'Đứng ngay TRƯỚC m (đi lên) là ...', ans: 'dam', exp: 'Trước m là <b>dam</b>.' },
+      { q: 'Đơn vị độ dài LỚN nhất là ...', ans: 'km', exp: '<b>km</b> đứng đầu thang.' },
+      { q: 'Đơn vị độ dài NHỎ nhất là ...', ans: 'mm', exp: '<b>mm</b> đứng cuối thang.' }
+    ] },
+  2: { title: 'Cấp 2: Độ dài đi XUỐNG', hint: 'Ôn — đếm bậc rồi ×10 mỗi bậc.', graded: false,
+    qs: [
+      { q: '2 km = … m', ans: 2000, exp: 'km→m 3 bậc → ×1 000. 2 × 1 000 = <b>2 000</b>.', parts: [{ val: 2, unit: 'km' }], target: 'm' },
+      { q: '5 m = … cm', ans: 500, exp: 'm→cm 2 bậc → ×100. 5 × 100 = <b>500</b>.', parts: [{ val: 5, unit: 'm' }], target: 'cm' },
+      { q: '7 dm = … mm', ans: 700, exp: 'dm→mm 2 bậc → ×100. 7 × 100 = <b>700</b>.', parts: [{ val: 7, unit: 'dm' }], target: 'mm' },
+      { q: '4 hm = … dam', ans: 40, exp: '1 bậc → ×10. 4 × 10 = <b>40</b>.', parts: [{ val: 4, unit: 'hm' }], target: 'dam' }
+    ] },
+  3: { title: 'Cấp 3: Độ dài đi LÊN', hint: 'Ôn — đếm bậc rồi ÷10 mỗi bậc.', graded: false,
+    qs: [
+      { q: '300 cm = … m', ans: 3, exp: 'cm→m 2 bậc lên → ÷100. 300 ÷ 100 = <b>3</b>.', parts: [{ val: 300, unit: 'cm' }], target: 'm' },
+      { q: '50 dm = … m', ans: 5, exp: '1 bậc lên → ÷10. 50 ÷ 10 = <b>5</b>.', parts: [{ val: 50, unit: 'dm' }], target: 'm' },
+      { q: '2 000 m = … km', ans: 2, exp: '3 bậc lên → ÷1 000. 2 000 ÷ 1 000 = <b>2</b>.', parts: [{ val: 2000, unit: 'm' }], target: 'km' },
+      { q: '90 mm = … cm', ans: 9, exp: '1 bậc lên → ÷10. 90 ÷ 10 = <b>9</b>.', parts: [{ val: 90, unit: 'mm' }], target: 'cm' }
+    ] },
+  4: { title: 'Cấp 4: Khối lượng', hint: 'Chấm điểm — thang cũng mỗi bậc ×10.', graded: true,
+    qs: [
+      { q: '3 tạ = … kg', ans: 300, exp: 'tạ→kg 2 bậc → ×100. 3 × 100 = <b>300</b>.', parts: [{ val: 3, unit: 'ta' }], target: 'kg', cat: 'Mèo đếm thiếu 1 bậc!' },
+      { q: '5 000 g = … kg', ans: 5, exp: 'g→kg 3 bậc lên → ÷1 000. 5 000 ÷ 1 000 = <b>5</b>.', parts: [{ val: 5000, unit: 'g' }], target: 'kg', cat: 'Mèo coi kg→g là ×100!' },
+      { q: '6 yến = … kg', ans: 60, exp: 'yến→kg 1 bậc xuống → ×10. 6 × 10 = <b>60</b>.', parts: [{ val: 6, unit: 'yen' }], target: 'kg' },
+      { q: '40 tạ = … tấn', ans: 4, exp: '1 bậc lên → ÷10. 40 ÷ 10 = <b>4</b>.', parts: [{ val: 40, unit: 'ta' }], target: 'tan' }
+    ] },
+  5: { title: 'Cấp 5: Số đo kép', hint: 'Chấm điểm — đổi phần lớn, cộng phần nhỏ.', graded: true,
+    qs: [
+      { q: '2 tấn 5 tạ = … tạ', ans: 25, exp: '2 tấn = 20 tạ. 20 + 5 = <b>25</b>.', parts: [{ val: 2, unit: 'tan' }, { val: 5, unit: 'ta' }], target: 'ta', cat: 'Mèo cộng thẳng 2 + 5 = 7!' },
+      { q: '1 m 20 cm = … cm', ans: 120, exp: '1 m = 100 cm. 100 + 20 = <b>120</b>.', parts: [{ val: 1, unit: 'm' }, { val: 20, unit: 'cm' }], target: 'cm' },
+      { q: '3 kg 45 g = … g', ans: 3045, exp: '3 kg = 3 000 g. 3 000 + 45 = <b>3 045</b>.', parts: [{ val: 3, unit: 'kg' }, { val: 45, unit: 'g' }], target: 'g', cat: 'Mèo viết 3 450 — quên 45 g chỉ thêm 2 chữ số!' },
+      { q: '5 km 7 hm = … hm', ans: 57, exp: '5 km = 50 hm. 50 + 7 = <b>57</b>.', parts: [{ val: 5, unit: 'km' }, { val: 7, unit: 'hm' }], target: 'hm' }
+    ] },
+  6: { title: 'Cấp 6: Bẫy diện tích', hint: 'Chấm điểm — thấy ² là ×100 mỗi bậc.', graded: true,
+    qs: [
+      { q: '1 m² = … dm²', ans: 100, exp: 'Diện tích 1 bậc → <b>×100</b>.', parts: [{ val: 1, unit: 'm2' }], target: 'dm2', cat: 'Mèo nhân 10 vì quen đổi độ dài!' },
+      { q: '3 dm² = … cm²', ans: 300, exp: '3 × 100 = <b>300</b>.', parts: [{ val: 3, unit: 'dm2' }], target: 'cm2', cat: 'Mèo viết 30 — thiếu 1 chữ số 0!' },
+      { q: '200 cm² = … dm²', ans: 2, exp: 'Đi lên 1 bậc → ÷100. 200 ÷ 100 = <b>2</b>.', parts: [{ val: 200, unit: 'cm2' }], target: 'dm2' },
+      { q: '2 m² = … cm²', ans: 20000, exp: 'm²→cm² 2 bậc → ×10 000. 2 × 10 000 = <b>20 000</b>.', parts: [{ val: 2, unit: 'm2' }], target: 'cm2', cat: 'Mèo đếm 1 bậc nên ra 200!' }
+    ] },
+  7: { title: 'Cấp 7: Lời văn', hint: 'Chấm điểm — đổi cùng đơn vị rồi mới tính.', graded: true,
+    qs: [
+      { q: 'Dây 5 m và dây 30 dm. Cả hai dài … cm', ans: 800, exp: '5 m = 500 cm, 30 dm = 300 cm → <b>800</b>.', parts: [{ val: 5, unit: 'm' }, { val: 30, unit: 'dm' }], target: 'cm' },
+      { q: 'Gạo 5 yến, đường 3 tạ. Cả hai nặng … kg', ans: 350, exp: '5 yến = 50 kg, 3 tạ = 300 kg → <b>350</b>.', parts: [{ val: 5, unit: 'yen' }, { val: 3, unit: 'ta' }], target: 'kg' },
+      { q: '2 giờ = … phút', ans: 120, exp: '1 giờ = 60 phút → 2 × 60 = <b>120</b>. Thời gian KHÔNG ×10.', val: 120, manual: true, outLabel: 'phút', cat: 'Mèo thêm 1 số 0 thành 20 phút!' },
+      { q: 'Sân 4 m² = … dm²', ans: 400, exp: 'Diện tích ×100 mỗi bậc → <b>400</b>.', parts: [{ val: 4, unit: 'm2' }], target: 'dm2' }
+    ] }
+};
+var GRADED = [4, 5, 6, 7];
+var TOTAL = GRADED.reduce(function (s, l) { return s + LEVELS[l].qs.length; }, 0);
+
+/* ================= MÈO SỬA BÀI ================= */
+function catSvg(size) {
+  size = size || 34;
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 100 100" style="vertical-align:middle;flex-shrink:0" aria-hidden="true">' +
+    '<circle cx="50" cy="54" r="34" fill="#7A4E9E"/>' +
+    '<polygon points="22,32 32,8 44,26" fill="#7A4E9E"/><polygon points="78,32 68,8 56,26" fill="#7A4E9E"/>' +
+    '<polygon points="26,28 33,15 39,26" fill="#F472B6"/><polygon points="74,28 67,15 61,26" fill="#F472B6"/>' +
+    '<circle cx="37" cy="52" r="12" fill="#fff"/><circle cx="63" cy="52" r="12" fill="#fff"/>' +
+    '<circle cx="37" cy="52" r="5" fill="#1E1B4B"/><circle cx="63" cy="52" r="5" fill="#1E1B4B"/>' +
+    '<polygon points="50,62 46,67 54,67" fill="#F472B6"/>' +
+    '<path d="M45 72 Q50 76 55 72" stroke="#2E2A24" stroke-width="2" fill="none"/>' +
+    '<rect x="66" y="58" width="24" height="28" rx="4" fill="#D97706" stroke="#78350F" stroke-width="2"/>' +
+    '<line x1="66" y1="68" x2="90" y2="68" stroke="#78350F" stroke-width="2"/>' +
+    '<line x1="66" y1="78" x2="90" y2="78" stroke="#78350F" stroke-width="2"/></svg>';
+}
+function diagHtml(item, correctVal, userVal) {
+  var unitTxt = item.target ? labelOf(item.target) : (item.outLabel || '');
+  var h = '<div class="diag"><div class="t">' + catSvg(30) +
+    '<span>Sai rồi — em ghi ' + userVal + ', đáp số đúng ' + fmt(correctVal) + (unitTxt ? ' ' + unitTxt : '') + '</span></div>';
+  if (item.cat) h += '<div class="catline">🐱 Bẫy của bạn Mèo: ' + item.cat + '</div>';
+  if (item.parts && item.parts.length) {
+    h += '<table class="table-step"><thead><tr>';
+    for (var i = 0; i < item.parts.length; i++) h += '<th>Đổi ' + fmt(item.parts[i].val) + ' ' + labelOf(item.parts[i].unit) + '</th>';
+    if (item.parts.length > 1) h += '<th>Cộng</th>';
+    h += '<th>Đáp số</th></tr></thead><tbody><tr>';
+    var sum = 0;
+    for (var j = 0; j < item.parts.length; j++) {
+      var one = quiTo(item.target, [item.parts[j]]); sum += one;
+      h += '<td>' + fmt(one) + '</td>';
+    }
+    if (item.parts.length > 1) h += '<td>' + fmt(sum) + '</td>';
+    h += '<td style="color:var(--green);font-weight:900">' + fmt(correctVal) + (unitTxt ? ' ' + unitTxt : '') + '</td>';
+    h += '</tr></tbody></table>';
+  }
+  h += '<div style="font-weight:900;font-size:14px;color:#B45309;margin-top:8px">💡 Khẩu quyết: đếm bậc → xuống ×, lên ÷ → vuông thì ×100.</div></div>';
+  return h;
+}
+
+/* ================= MÁY CHẠY LUYỆN TẬP ================= */
+var runState = null, submitted = false, curLevel = 1;
+document.getElementById('graded-total').textContent = TOTAL;
+
+(function buildRoster() {
+  var box = document.getElementById('roster-chips');
+  ROSTER.forEach(function (r) {
+    var b = document.createElement('button');
+    b.className = 'chip'; b.textContent = r.label;
+    b.onclick = function () { document.getElementById('name-input').value = r.label; startPractice(); };
+    box.appendChild(b);
+  });
+})();
+
+function startPractice() {
+  var v = document.getElementById('name-input').value.trim().toLowerCase();
+  var hit = null;
+  for (var i = 0; i < ROSTER.length; i++) {
+    var r = ROSTER[i];
+    if (r.label.toLowerCase() === v || r.alias.indexOf(v) >= 0) { hit = r; break; }
+  }
+  if (!hit) { document.getElementById('gate-error').textContent = 'Tên chưa đúng. Em là Mai, Gia Linh hay Trà Giang?'; return; }
+  document.getElementById('gate-error').textContent = '';
+  runState = { key: hit.key, label: hit.label, attempts: {} };
+  submitted = false;
+  document.getElementById('name-gate').classList.add('hidden');
+  document.getElementById('practice-wrap').classList.remove('hidden');
+  document.getElementById('runner-name').textContent = hit.label;
+  renderTabs(); renderLevel(1); updateProgress();
+}
+document.getElementById('name-go').onclick = startPractice;
+document.getElementById('name-input').onkeydown = function (e) { if (e.key === 'Enter') startPractice(); };
+
+function renderTabs() {
+  var t = document.getElementById('level-tabs'); t.innerHTML = '';
+  Object.keys(LEVELS).forEach(function (l) {
+    var b = document.createElement('button');
+    b.className = 'lv' + (LEVELS[l].graded ? ' graded' : '') + (+l === curLevel ? ' active' : '');
+    b.textContent = 'Cấp ' + l + (LEVELS[l].graded ? ' ★' : '');
+    b.onclick = function () { curLevel = +l; renderTabs(); renderLevel(curLevel); };
+    t.appendChild(b);
+  });
+}
+var qKey = function (l, i) { return 'lvl-' + l + '-' + i; };
+
+function correctOf(item) { return item.manual ? item.val : quiTo(item.target, item.parts); }
+
+function renderLevel(l) {
+  var c = document.getElementById('quiz-container'), lv = LEVELS[l];
+  c.innerHTML = '<p class="lvl-head"><b>' + lv.title + '.</b> ' + lv.hint + (lv.graded ? ' <span class="sb sb-g">chấm điểm</span>' : '') + '</p>';
+  lv.qs.forEach(function (qq, i) {
+    var k = qKey(l, i), at = runState.attempts[k];
+    var d = document.createElement('div');
+    d.className = 'qcard' + (at ? (at.ok ? ' ok' : ' bad') : '');
+    var inputType = /^\d/.test(String(qq.ans)) ? 'number' : 'text';
+    d.innerHTML = '<div class="qrow"><div class="qprompt">' + (i + 1) + '. <span class="math">' + qq.q + '</span></div>' +
+      '<div class="qinput"><input type="' + inputType + '" id="in-' + k + '" placeholder="Điền" aria-label="Kết quả"' +
+      (at ? ' disabled value="' + String(at.val).replace(/"/g, '&quot;') + '"' : '') + '>' +
+      (at ? '' : '<button class="btn pri" data-k="' + k + '">Kiểm tra</button>') + '</div></div>' +
+      '<div id="fb-' + k + '">' + (at ? feedbackHtml(qq, at) : '') + '</div>';
+    c.appendChild(d);
+  });
+  var btns = c.querySelectorAll('.btn');
+  for (var b = 0; b < btns.length; b++) btns[b].onclick = function () { checkAnswer(this.getAttribute('data-k')); };
+  renderSubmitBar();
+}
+function feedbackHtml(qq, at) {
+  if (at.ok) return '<div class="okmsg"><span style="font-size:20px">✓</span><span>Chính xác! ' + qq.exp + '</span></div>';
+  var targetLabel = qq.target ? ' ' + labelOf(qq.target) : '';
+  return '<div class="okmsg" style="background:#FDF2F2;border-color:var(--red);color:var(--red)"><span style="font-size:20px">✗</span>' +
+    '<span>Sau khi làm lại, đáp số đúng là <b>' + fmt(String(qq.ans)) + targetLabel + '</b>. ' + qq.exp + '</span></div>' + diagHtml(qq, correctOf(qq), at.val);
+}
+function normVal(v) { return String(v).trim().toLowerCase().replace(/,/g, '.').replace(/\s/g, ''); }
+function checkAnswer(k) {
+  var p = k.split('-'), li = +p[1], qi = +p[2];
+  var qq = LEVELS[li].qs[qi], inp = document.getElementById('in-' + k);
+  var val = normVal(inp.value); if (!val) return;
+  var ok = /^\d+$/.test(String(qq.ans))
+    ? parseFloat(val) === parseFloat(String(qq.ans))
+    : val === normVal(qq.ans);
+  runState.attempts[k] = { val: inp.value.trim(), ok: ok };
+  renderLevel(curLevel); updateProgress();
+}
+function gradedKeys() {
+  var a = [];
+  GRADED.forEach(function (l) { LEVELS[l].qs.forEach(function (q, i) { a.push(qKey(l, i)); }); });
+  return a;
+}
+function updateProgress() {
+  var keys = gradedKeys(), done = keys.filter(function (k) { return runState.attempts[k]; }).length;
+  document.getElementById('progress-line').textContent = 'Đã làm ' + done + '/' + keys.length + ' câu được chấm.';
+}
+function renderSubmitBar() {
+  var bar = document.getElementById('submit-bar'); bar.innerHTML = '';
+  if (submitted) return;
+  var keys = gradedKeys(), done = keys.filter(function (k) { return runState.attempts[k]; }).length;
+  if (done >= keys.length) {
+    var b = document.createElement('button');
+    b.className = 'btn'; b.style.cssText = 'background:var(--green);border-color:var(--green);color:#fff;padding:12px 30px;font-size:18px';
+    b.textContent = 'Nộp bài'; b.onclick = submitQuiz; bar.appendChild(b);
+  } else {
+    bar.innerHTML = '<p style="font-weight:800;color:#7A6E5C">Làm đủ ' + keys.length + ' câu cấp 4·5·6·7 rồi bấm Nộp bài.</p>';
+  }
+}
+function submitQuiz() {
+  submitted = true;
+  var keys = gradedKeys(), correct = 0, wrong = [], sheet = [];
+  keys.forEach(function (k) {
+    var p = k.split('-'), li = +p[1], qi = +p[2];
+    var qq = LEVELS[li].qs[qi], at = runState.attempts[k];
+    sheet.push('C' + li + '.' + (qi + 1) + '=' + at.val + (at.ok ? ' (D)' : ' (S)'));
+    if (at.ok) correct++;
+    else wrong.push('C' + li + '.' + (qi + 1) + ' (' + qq.q + '): em ghi ' + at.val + ', đúng ' + fmt(String(qq.ans)));
+  });
+  var pct = Math.round(correct / keys.length * 100);
+  var stars = pct >= 85 ? 3 : pct >= 60 ? 2 : pct >= 30 ? 1 : 0;
+  document.getElementById('report-wrap').innerHTML =
+    '<div class="report"><h3>Kết quả: <span class="math">' + correct + '/' + keys.length + '</span> (' + pct + '%)</h3>' +
+    '<div class="stars">' + '★'.repeat(stars) + '☆'.repeat(3 - stars) + '</div>' +
+    (wrong.length ? '<p style="font-weight:900;margin:8px 0 4px">Câu sai:</p><ul>' + wrong.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>'
+      : '<p style="color:var(--green);font-weight:900">Tuyệt vời — đúng cả 16 câu!</p>') +
+    '<p style="margin-top:8px;font-weight:800">' + (stars === 3 ? 'Em nắm chắc thang 10 và thang 100 rồi.' : 'Xem lại Mục 4 rồi làm lại lần sau nhé.') + '</p>' +
+    '<p id="send-status"></p></div>';
+  document.getElementById('submit-bar').innerHTML = '';
+  sendResult(correct, keys.length, stars, pct, wrong.join(' | '), sheet.join(' | '));
+}
+function sendResult(dung, tong, sao, pct, loiSai, dapAn) {
+  var st = document.getElementById('send-status');
+  if (!SEND_READY) { st.textContent = 'Chưa cài Form nhận bài — xem README mục "Nơi nhận kết quả".'; return; }
+  var fd = new FormData();
+  fd.append(ENTRY.ten, runState.label);
+  fd.append(ENTRY.ngay, new Date().toLocaleString('vi-VN'));
+  fd.append(ENTRY.dung, dung); fd.append(ENTRY.tong, tong);
+  fd.append(ENTRY.sao, sao); fd.append(ENTRY.loiSai, loiSai);
+  fd.append(ENTRY.phanTram, pct + '%'); fd.append(ENTRY.dapAnCuaEm, dapAn);
+  fetch(FORM_ENDPOINT, { method: 'POST', mode: 'no-cors', body: fd })
+    .then(function () { st.textContent = '✅ Đã gửi kết quả về bảng của thầy.'; })
+    .catch(function () { st.textContent = '⚠️ Không gửi được, kiểm tra mạng.'; });
+}
+
+/* ================= TỰ KIỂM ĐÁP SỐ ================= */
+var PURE = {
+  '1-0': 'dm', '1-1': 'dam', '1-2': 'km', '1-3': 'mm',
+  '2-0': 2000, '2-1': 500, '2-2': 700, '2-3': 40,
+  '3-0': 3, '3-1': 5, '3-2': 2, '3-3': 9,
+  '4-0': 300, '4-1': 5, '4-2': 60, '4-3': 4,
+  '5-0': 25, '5-1': 120, '5-2': 3045, '5-3': 57,
+  '6-0': 100, '6-1': 300, '6-2': 2, '6-3': 20000,
+  '7-0': 800, '7-1': 350, '7-2': 120, '7-3': 400
+};
+function selfTest() {
+  var err = [], n = 0;
+  Object.keys(LEVELS).forEach(function (l) {
+    LEVELS[l].qs.forEach(function (qq, i) {
+      n++;
+      var k = l + '-' + i, want = PURE[k], got = qq.ans;
+      if (want === undefined) err.push('Thiếu đáp số kiểm chứng ở ' + k);
+      else if (String(want) !== String(got)) err.push('Lệch ' + k + ' ' + qq.q + ': trang=' + got + ' | kiểm=' + want);
+      if (qq.parts && !qq.manual) {
+        var calc = quiTo(qq.target, qq.parts);
+        if (String(calc) !== String(want)) err.push('Máy đổi ra khác ở ' + k + ': quiTo=' + calc + ' | kiểm=' + want);
+      }
+    });
+  });
+  // bật thang: độ dài/khối lượng mỗi bậc ×10, diện tích ×100
+  var pairs10 = 0, pairs100 = 0;
+  [[LEN, 10], [MASS, 10]].forEach(function (cfg) {
+    for (var i = 0; i < cfg[0].length - 1; i++) {
+      pairs10++;
+      if (BASE[cfg[0][i].k] / BASE[cfg[0][i + 1].k] !== 10) {
+        err.push('Bậc ' + cfg[0][i].label + '→' + cfg[0][i + 1].label + ' phải ×10');
+      }
+    }
+  });
+  for (var a = 0; a < AREA.length - 1; a++) {
+    pairs100++;
+    if (BASE[AREA[a].k] / BASE[AREA[a + 1].k] !== 100) {
+      err.push('Bậc ' + AREA[a].label + '→' + AREA[a + 1].label + ' phải ×100');
+    }
+  }
+  if (BASE.kg / BASE.g !== 1000) err.push('kg→g phải là 1 000 (3 bậc ×10)');
+  if (BASE.m2 / BASE.dm2 !== 100) err.push('m²→dm² phải là ×100');
+  var box = document.getElementById('self-test-alert'), foot = document.getElementById('footer-stamp');
+  if (err.length) {
+    box.classList.remove('hidden');
+    box.innerHTML = '<div style="font-size:20px;margin-bottom:8px">TỰ KIỂM THẤT BẠI — ĐÃ CHẶN TRANG</div>' +
+      err.map(function (e) { return '<div>• ' + e + '</div>'; }).join('');
+    foot.textContent = 'Trang bị chặn vì đáp số không khớp.';
+    foot.style.color = 'var(--red)';
+    return false;
+  }
+  box.classList.add('hidden');
+  foot.textContent = 'Tự kiểm: ' + n + '/' + n + ' đáp số khớp · ' + pairs10 + ' cặp ×10 · ' + pairs100 + ' cặp ×100 · trang chạy ổn';
+  return true;
+}
+selfTest();
+</script>
+</body>
+</html>

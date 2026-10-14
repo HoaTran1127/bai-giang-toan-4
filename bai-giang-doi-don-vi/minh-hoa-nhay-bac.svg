@@ -1,0 +1,63 @@
+<svg viewBox="0 0 920 470" xmlns="http://www.w3.org/2000/svg" font-family="Nunito, sans-serif" role="img" aria-label="Minh họa nhảy bậc đổi đơn vị: km sang m, mỗi bước nhân 10">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#f97316"/>
+    </marker>
+  </defs>
+
+  <!-- Vòng cung nhảy -->
+  <g fill="none" stroke="#fb923c" stroke-width="5" stroke-dasharray="12 8" stroke-linecap="round">
+    <path id="arc1" d="M155,330 Q210,165 265,330" marker-end="url(#arr)"/>
+    <path id="arc2" d="M395,330 Q450,165 505,330" marker-end="url(#arr)"/>
+    <path id="arc3" d="M635,330 Q690,165 745,330" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- Nhãn ×10 trên mỗi cung -->
+  <g font-weight="900" font-size="26" text-anchor="middle">
+    <rect x="178" y="188" width="64" height="40" rx="20" fill="#ef4444"/>
+    <text x="210" y="217" fill="#fff">×10</text>
+    <rect x="418" y="188" width="64" height="40" rx="20" fill="#ef4444"/>
+    <text x="450" y="217" fill="#fff">×10</text>
+    <rect x="658" y="188" width="64" height="40" rx="20" fill="#ef4444"/>
+    <text x="690" y="217" fill="#fff">×10</text>
+  </g>
+
+  <!-- Bệ đơn vị -->
+  <g font-weight="900" text-anchor="middle">
+    <rect x="25" y="330" width="130" height="62" rx="18" fill="#3b82f6"/>
+    <text x="90" y="358" fill="#fff" font-size="30" font-family="JetBrains Mono, monospace">km</text>
+    <text x="90" y="380" fill="#dbeafe" font-size="13" font-weight="700">ki-lô-mét</text>
+
+    <rect x="265" y="330" width="130" height="62" rx="18" fill="#14b8a6"/>
+    <text x="330" y="358" fill="#fff" font-size="30" font-family="JetBrains Mono, monospace">hm</text>
+    <text x="330" y="380" fill="#ccfbf1" font-size="13" font-weight="700">héc-tô-mét</text>
+
+    <rect x="505" y="330" width="130" height="62" rx="18" fill="#22c55e"/>
+    <text x="570" y="358" fill="#fff" font-size="30" font-family="JetBrains Mono, monospace">dam</text>
+    <text x="570" y="380" fill="#dcfce7" font-size="13" font-weight="700">đề-ca-mét</text>
+
+    <rect x="745" y="330" width="130" height="62" rx="18" fill="#f59e0b"/>
+    <text x="810" y="358" fill="#fff" font-size="30" font-family="JetBrains Mono, monospace">m</text>
+    <text x="810" y="380" fill="#fef3c7" font-size="13" font-weight="700">mét</text>
+  </g>
+
+  <!-- Chú thích số bậc -->
+  <g font-size="15" font-weight="700" fill="#64748b" text-anchor="middle">
+    <text x="210" y="420">bậc 1</text>
+    <text x="450" y="420">bậc 2</text>
+    <text x="690" y="420">bậc 3</text>
+  </g>
+
+  <!-- Ếch nhảy dọc đường -->
+  <text font-size="44" text-anchor="middle">
+    <animateMotion dur="7s" repeatCount="indefinite"
+      path="M155,318 Q210,153 265,318 L395,318 Q450,153 505,318 L635,318 Q690,153 745,318"/>
+    🐸
+  </text>
+
+  <!-- Ví dụ -->
+  <g text-anchor="middle">
+    <rect x="230" y="30" width="460" height="56" rx="16" fill="#eff6ff" stroke="#bfdbfe" stroke-width="2"/>
+    <text x="460" y="65" font-size="22" font-weight="800" fill="#1d4ed8" font-family="JetBrains Mono, monospace">3 km = 3 × 10 × 10 × 10 = 3000 m</text>
+  </g>
+</svg>
