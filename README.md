@@ -46,6 +46,7 @@ Chi tiết bài 2 (7 mục, 3 lỗi sư phạm đã sửa so với bản gốc, 
 - Sao: 3★ từ 85% (≥14/16) · 2★ từ 60% (≥10) · 1★ từ 30% (≥5) · dưới 5 câu = 0★.
 - Không còn khoá máy: tin vào **thầy nhận được kết quả**. Trang chỉ báo "✅ Đã gửi" khi đã bắn request đi, chứ file tĩnh **không đọc được phản hồi** của Google nên không thể xác nhận chắc chắn.
 - Muốn một bạn làm lại: thầy **xoá dòng của bạn đó** trên Sheet (hoặc ghi chú đã kiểm tra). Học sinh tải lại trang là làm lại được — đây là giới hạn cố hữu của file tĩnh không có server.
+- **Tải lại trang giữa bài thì KHÔNG mất bài nữa** (15/10): tên, số câu đã ghi nhận, cấp đang đứng và cả số đang gõ được giữ trong `localStorage` của máy đó, mở lại là tiếp tục. Muốn làm lại vẫn được: bấm "Ghi tên bạn khác" (xoá sạch chỗ giữ này).
 
 ## Nơi nhận kết quả của bài 1 (đã cài xong 12/10/2026)
 
@@ -112,12 +113,13 @@ Sửa trực tiếp trên GitHub: vào file → nút bút chì → sửa → **C
 - **8 field gửi về Sheet**: khớp tên miền `entry.*`, không trùng id, endpoint đúng dạng `formResponse`.
 - **Ô trả lời**: số em đã gõ nhưng chưa bấm Kiểm tra phải được **lưu lại** khi trang dựng lại danh sách (và khi đổi cấp độ), ô chưa gõ thì không được gắn giá trị lạ; mỗi ô có nhánh `Enter`; giá trị lưu bị lọc còn chữ số; đổi sang bạn khác thì màn hình **sạch hoàn toàn**.
 - **Cột "Ngày làm bài"**: luôn ra dạng `dd/MM/yyyy HH:mm` (không phụ thuộc ngôn ngữ trình duyệt của từng máy).
+- **Giữ bài làm dở**: có `localStorage` giả trong bộ nạp, nặn một bài đã ghi nhận 2 câu ở cấp 6 + số đang gõ, rồi gọi `moLaiBai()` → phải trả về đúng bạn, đúng số câu, đúng cấp, đúng ô nháp; tên lạ → bỏ; JSON vỡ → bỏ; trình duyệt chặn `localStorage` (ẩn danh/`file://`) → `luuBai()` trả `false` chứ **không được ném lỗi** làm hỏng bài; `backToGate()` phải xoá sạch key (chống bạn sau ăn bài bạn trước).
 
 ### Bài 2 — `selfTest()` chạy trong trang
 
 Bài "Thang 10 và Thang 100" tự dò lại **28 đáp số** trong ngân hàng câu hỏi bằng một máy đổi tỷ lệ độc lập (`quiTo` dựa trên đơn vị gốc mm / g / mm²), cộng thêm **12 cặp bậc ×10** và **3 cặp bậc ×100**. Lệch bất kỳ đâu → trang tự chặn và in danh sách lỗi lên đầu trang. Trạng thái hiện tại: `28/28 đáp số khớp · 12 cặp ×10 · 3 cặp ×100`.
 
-### Sáu lỗi đã tìm ra và sửa (12–13/10/2026)
+### Bảy lỗi đã tìm ra và sửa (12–15/10/2026)
 
 1. **Mẫu 3 (1 000 − 347) ở Mục 4 vẽ thiếu dấu chấm ở cột nghìn.** Ba bước trước đều chấm đúng quy tắc, nhưng bước cuối mượn 1 nghìn thì không có dấu chấm nào — trong khi bảng chẩn đoán (học sinh sai sẽ thấy) lại chấm vào ô trống cột nghìn. Hai chỗ dạy không giống nhau. Nay Mẫu 3 hiện chữ 0 mờ + dấu chấm ở ô trống và có thêm dòng "Cột nghìn: 1 − 1 = 0 ➔ chữ số 0 đứng đầu không viết".
 2. **Bảng chẩn đoán xếp lời giải ngược.** Nó in ra từ cột cao nhất xuống cột đơn vị, tức **ngược** với thứ tự trẻ thực hiện. Nay in theo thứ tự nhẩm: Cột Đơn vị trước, lần lượt sang trái (11/11 bài).
@@ -125,6 +127,7 @@ Bài "Thang 10 và Thang 100" tự dò lại **28 đáp số** trong ngân hàng
 4. **Mất đáp án trẻ đã gõ (13/10).** Mỗi lần bấm *Kiểm tra* ở câu được chấm, trang dựng lại cả danh sách 16 câu — **mọi ô khác bị xoá sạch số đang gõ dở**. Trẻ thường gõ liền 3–4 ô rồi bấm kiểm tra từng cái, nên cứ bấm câu đầu là mấy câu sau mất trắng. Nay có kho nháp: số chưa nộp được giữ khi dựng lại và khi đổi cấp độ, nộp xong thì nháp câu đó bị bỏ.
 5. **Nháp rò giữa hai bạn (13/10).** Sau lỗi 4, một bạn quay lại cổng ghi tên rồi gọi bạn khác vào làm — **màn hình vẫn hiện số bạn trước vừa gõ dở**, và bạn mới rất dễ bấm *Kiểm tra* luôn vào số đó (mỗi câu chỉ được ghi nhận 1 lần, nên đây là mất điểm thật). Nay `clearDrafts()` xoá cả kho nháp lẫn ô trên màn hình ở cả hai đầu: lúc ghi tên mới và lúc quay lại cổng.
 6. **Enter không dùng được + cột ngày giờ loạn (13/10).** Chỉ có ô ghi tên bắt được Enter, nên trẻ gõ số rồi bấm Enter thì không xảy ra gì. Nay mọi ô trả lời đều có nhánh `Enter` (phím khác vẫn bỏ qua). Cột "Ngày làm bài" trước sinh bởi `toLocaleString('vi-VN')` — Chrome trả `12:34:54 13/10/2026` (giờ trước ngày) và thứ tự đổi theo máy; nay tự ghép `13/10/2026 12:34`.
+7. **"Làm xong cấp 6 thì bị văng ra" (15/10) — mất trắng bài đang làm.** Học sinh phản ánh vậy. Kiểm trên bản live: cấp 4·5·6·7 chạy sạch (16/16 ghi nhận, 0 exception, cả trên màn 360px), nên không phải lỗi chấm bài. Nguyên nhân thật: **trang không lưu gì cả** (`localStorage` trống 0 key), nên chỉ cần điện thoại giải phóng tab lúc chuyển app, kéo để tải lại, hoặc bấm nhầm nút làm mới là `runState = null` — các em quay lại gặp đúng cổng ghi tên, 11 câu đã làm bay sạch và thầy không nhận được kết quả. Cấp 6 là lúc bài đã dài ~10 phút nên dễ bị đánh bật nhất. Nay trang **giữ hộ bài làm dở** (`luuBai()` vào `bg4-giu-bai-lam-do`): mở lại là tiếp tục đúng cấp đang đứng, số đang gõ cũng còn, kèm dòng chữ "↩ Trang vừa được mở lại, nên thầy giữ hộ em 11 câu đã ghi nhận". Nộp rồi thì mở lại hiện thẳng báo cáo cũ. **Đây không phải khoá máy** — bấm "Ghi tên bạn khác" là xoá sạch (`xoaBai()`), bạn sau không thấy bài bạn trước.
 
 ### Luồng Mục 5 chạy thật trong trình duyệt (12–13/10/2026)
 
@@ -142,3 +145,4 @@ Trước đó **đã bắn thật vào Google Form** (12/10/2026): một POST �
 - Bài 1 phụ thuộc `cdn.tailwindcss.com`: mở khi mất mạng và chưa cache thì giao diện vỡ.
 - Bài 2 chưa nối Google Form (điểm chỉ hiện trên màn hình, thầy không nhận được) và sơ đồ tư duy rộng 960px nên trên điện thoại phải kéo ngang.
 - File tĩnh không xác nhận được Google đã nhận hay chưa, và không khoá được học sinh làm lại lần hai.
+- Chỗ giữ bài làm dở nằm trong `localStorage` của **máy đó**: học sinh xoá lịch sử/dữ liệu duyệt web, dùng chế độ ẩn danh, hoặc làm trên máy khác là mất. Webview của app nhắn tin (Zalo/Messenger) có thể không giữ được lâu.

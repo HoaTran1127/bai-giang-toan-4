@@ -12,7 +12,7 @@ const html = fs.readFileSync(FILE, 'utf8');
 
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
 if (scripts.length !== 1) throw new Error('expected 1 inline script, got ' + scripts.length);
-const src = scripts[0] + '\n;globalThis.__X = {levelData, colProblems, colNames, buildSubtractionDiagnostic, ROSTER, GRADED_LEVELS, normalizeName, findRoster, starsFor, gradedKeys, isGradedLevel, TOTAL_GRADED, deBang, mistakeLines, answerLines, ENTRY, FORM_ENDPOINT, SEND_READY, ngayLamBai, draftStore, captureDrafts, clearDrafts, answerRowHtml, pressEnter};';
+const src = scripts[0] + '\n;globalThis.__X = {levelData, colProblems, colNames, buildSubtractionDiagnostic, ROSTER, GRADED_LEVELS, normalizeName, findRoster, starsFor, gradedKeys, isGradedLevel, TOTAL_GRADED, deBang, mistakeLines, answerLines, ENTRY, FORM_ENDPOINT, SEND_READY, ngayLamBai, draftStore, captureDrafts, clearDrafts, answerRowHtml, pressEnter, luuBai, xoaBai, moLaiBai, startPractice, backToGate, recordedCount, hienGhiChuPhucHoi, KHO_PHUC_HOI, get runState() { return runState; }, set runState(v) { runState = v; }, get submitted() { return submitted; }, get activeLevelIndex() { return activeLevelIndex; }, set activeLevelIndex(v) { activeLevelIndex = v; }, layBaoCao() { return baoCaoDaNop; }};';
 
 function el() {
   return {
@@ -22,8 +22,19 @@ function el() {
   };
 }
 const STUB = {}; // id -> element giả, cho phép test từng hàm theo DOM dựng sẵn
+
+// localStorage giả có thật: ghi được, đọc được, và bật chế độ "trình duyệt chặn" để
+// test xem trang có sống sót khi setItem ném lỗi (ẩn danh / file://) hay không.
+const LS = {
+  map: new Map(), blocked: false,
+  getItem(k) { if (this.blocked) throw new Error('blocked'); return this.map.has(k) ? this.map.get(k) : null; },
+  setItem(k, v) { if (this.blocked) throw new Error('blocked'); this.map.set(k, String(v)); },
+  removeItem(k) { if (this.blocked) throw new Error('blocked'); this.map.delete(k); }
+};
+
 const sandbox = {
   console, Math, JSON, String, Number, Object, Array, parseInt, parseFloat, isNaN, Date, RegExp, Error, Set,
+  localStorage: LS,
   document: { getElementById: id => STUB[id] || el(), createElement: el, body: { appendChild() {} } },
   window: { addEventListener() {} },
 };
@@ -343,6 +354,81 @@ check('ngayLamBai ra dd/MM/yyyy HH:mm', X.ngayLamBai(d) === '13/10/2026 08:05', 
 check('payload ngay van dung toLocaleString (ph thuoc ngon ngu trinh duyet)', !/toLocaleString/.test(src));
 check('loiSai van dung chu thieu dau', !/'Khong sai cau nao'|'bo trong'|'Bai '/.test(src));
 notes.push('ngayLamBai mau -> ' + X.ngayLamBai(d));
+
+// ============ 8c. GIU BAI DO - CHONG "LAM XONG BI VANG RA" ============
+// Ben that cua hoc sinh: lam den cap 6 roi trinh duyet nap lai trang (tab bi giai phong,
+// keo de tai lai, bam nham nut lam moi) -> toan bo 11 cau da cham mat, trang quay ve cong
+// ghi ten. Trang phai giu ho bai lam do va mo lai dung cho.
+LS.map.clear();
+X.clearDrafts();
+X.runState = null;
+check('luuBai khi chua lam thi khong de lai gi', X.luuBai() === false && LS.map.size === 0);
+
+X.runState = { key: 'mai', label: 'Mai', attempts: { 'lvl-4-0': { val: '27', ok: true } } };
+X.activeLevelIndex = 4;
+check('luuBai thanh cong khi dang co bai lam', X.luuBai() === true);
+const saved = JSON.parse(LS.map.get(X.KHO_PHUC_HOI));
+check('luuBai ghi dung ten', saved.ten === 'Mai', JSON.stringify(saved).slice(0, 120));
+check('luuBai ghi dung cau da cham', Object.keys(saved.attempts).length === 1 && saved.attempts['lvl-4-0'].ok === true);
+check('luuBai ghi dung cap dang dung', saved.cap === 4);
+check('luuBai ghi ca trang thai chua nop', saved.nop === false);
+X.xoaBai();
+check('xoaBai lam sach kho', LS.map.size === 0);
+
+STUB['resume-note'] = el();
+LS.map.set(X.KHO_PHUC_HOI, JSON.stringify({
+  ten: 'gialinh',
+  attempts: { 'lvl-6-1': { val: '1', ok: false }, 'lvl-6-2': { val: '2', ok: true } },
+  cap: 6, nhap: { 'lvl-6-3': '42', 'lvl-5-0': '"><img src=x>' }, nop: false
+}));
+X.runState = null;
+check('moLaiBai dung duoc bai lam do', X.moLaiBai() === true);
+check('phuc hoi dung ban', X.runState && X.runState.label === 'Gia Linh', JSON.stringify(X.runState && X.runState.label));
+check('phuc hoi dung so cau da ghi nhan', Object.keys(X.runState.attempts).length === 2);
+check('recordedCount dem lai dung 2', X.recordedCount() === 2);
+check('phuc hoi dung cap 6 dang dung', X.activeLevelIndex === 6);
+check('phuc hoi ca so em dang go', X.draftStore['lvl-6-3'] === '42', JSON.stringify(X.draftStore));
+check('nhap doc trong kho luu bi chan lai', !('lvl-5-0' in X.draftStore));
+check('chua nop thi khong bi danh dau la nop', X.submitted === false);
+check('co chu cho em biet la bai duoc giu ho', /2 cau da ghi nhan/.test(deacc(STUB['resume-note'].innerText)), STUB['resume-note'].innerText.slice(0, 90));
+
+LS.map.set(X.KHO_PHUC_HOI, JSON.stringify({ ten: 'An', attempts: { 'lvl-4-0': { val: '1', ok: true } }, cap: 4 }));
+check('ten khong con trong danh sach thi bo bai luu', X.moLaiBai() === false);
+check('bai cua ten la cung bi xoa khoi may', LS.map.size === 0);
+
+STUB['report-wrap'] = el();
+LS.map.set(X.KHO_PHUC_HOI, JSON.stringify({
+  ten: 'mai', attempts: { 'lvl-4-0': { val: '27', ok: true } }, cap: 4, nop: true,
+  baoCao: { label: 'Mai', correct: 1, total: 16, stars: 0, ngay: '14/10/2026 09:00', attempts: { 'lvl-4-0': { val: '27', ok: true } }, sent: true, lines: [] }
+}));
+check('nop roi mo lai van thay bao cao', X.moLaiBai() === true && X.submitted === true);
+check('bao cao du dung vao khung', STUB['report-wrap'].innerHTML.length > 50, 'dai=' + STUB['report-wrap'].innerHTML.length);
+
+LS.map.set(X.KHO_PHUC_HOI, '{"attempts":');
+check('JSON lang khong lam hong trang', X.moLaiBai() === false);
+check('JSON lang cung bi xoa', LS.map.size === 0);
+
+// trinh duyet chan localStorage (an danh / file://): trang phai song sot
+LS.blocked = true;
+X.runState = { key: 'mai', label: 'Mai', attempts: { 'lvl-4-0': { val: '27', ok: true } } };
+let nemRaNgoai = false;
+try { X.luuBai(); X.captureDrafts(); } catch (e) { nemRaNgoai = true; }
+check('localStorage bi chan: khong nem loi ra ngoai', nemRaNgoai === false);
+check('localStorage bi chan: luuBai bao that bai chu khong hung', X.luuBai() === false);
+check('localStorage bi chan: van gom duoc nhap', X.draftStore['lvl-4-1'] === '257', JSON.stringify(X.draftStore));
+LS.blocked = false;
+X.runState = null;
+LS.map.clear();
+
+// duong noi day (wiring) - thieu 1 trong 5 moc nay la bai do van mat
+check('captureDrafts cung luu bai do', /function captureDrafts\(\)[\s\S]{0,400}?luuBai\(\);/.test(src));
+check('startPractice luu bai ngay khi bat dau', /function startPractice\(\)[\s\S]{0,900}?luuBai\(\);\s*\}/.test(src));
+check('startPractice xoa bao cao cua lan truoc', /runState = \{ key: kid\.key[\s\S]{0,200}?baoCaoDaNop = null;/.test(src));
+check('backToGate xoa sach bai luu (doi ban khong ke plan nhau)', /function backToGate\(\)[\s\S]{0,400}?xoaBai\(\);/.test(src));
+check('mo trang len la thu phuc hoi', /DOMContentLoaded[\s\S]{0,300}?moLaiBai\(\)/.test(src));
+check('nop bai roi luu ca bao cao', /baoCaoDaNop = \{[\s\S]{0,200}?\};\s*showReport\(kid, baoCaoDaNop\);\s*luuBai\(\);/.test(src));
+check('co cho hien chu phuc hoi trong HTML', /id="resume-note"/.test(html));
+notes.push('KHO_PHUC_HOI -> ' + X.KHO_PHUC_HOI);
 
 // ============ 9. NAM NOI HTML <-> JS ============
 const subIds = [...html.matchAll(/id="btn-sub-demo-([\d-]+)"/g)].map(m => m[1]);

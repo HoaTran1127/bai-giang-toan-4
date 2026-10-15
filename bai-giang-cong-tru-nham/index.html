@@ -395,6 +395,8 @@
           <div class="text-[10px] font-bold text-slate-400 uppercase">3★ từ 85% · 2★ từ 60% · 1★ từ 30%</div>
         </div>
 
+        <div id="resume-note" class="hidden mb-3 p-3 rounded-2xl bg-sky-50 border border-sky-200 text-xs font-bold text-sky-900"></div>
+
         <div class="flex flex-wrap gap-1.5" id="level-tabs"></div>
 
         <div id="quiz-container" class="space-y-6"></div>
@@ -948,6 +950,7 @@
         const giaTri = String(el.value).replace(/[^\d.\-]/g, '').slice(0, 12);
         if (giaTri === '') delete draftStore[k]; else draftStore[k] = giaTri;
       });
+      luuBai(); // mỗi lần gom nháp cũng là một lần lưu bài dở
     }
 
     // Đổi người làm là phải xoá sạch: cả kho nháp lẫn ô đang hiển thị trên màn hình,
@@ -956,6 +959,83 @@
       Object.keys(draftStore).forEach(function (k) { delete draftStore[k]; });
       const container = document.getElementById('quiz-container');
       if (container) container.innerHTML = '';
+    }
+
+    // ---------- GIỮ HỘ BÀI LÀM DỞ ----------
+    // Học sinh làm trên điện thoại: chỉ cần trình duyệt giải phóng tab lúc chuyển sang
+    // app khác, kéo để tải lại, hoặc bấm nhầm nút làm mới là cả bài đang làm mất sạch —
+    // các em quay lại là gặp đúng cảnh "bị văng ra" đầu trang, phải ghi tên từ đầu và
+    // mọi câu đã chấm biến mất. Đây KHÔNG phải khoá máy: muốn làm lại chỉ cần bấm
+    // "Ghi tên bạn khác". Nó chỉ trả lại đúng bài đang làm dở.
+    const KHO_PHUC_HOI = 'bg4-giu-bai-lam-do';
+    let baoCaoDaNop = null;
+
+    function luuBai() {
+      try {
+        if (!runState) { localStorage.removeItem(KHO_PHUC_HOI); return false; }
+        localStorage.setItem(KHO_PHUC_HOI, JSON.stringify({
+          ten: runState.label,
+          attempts: runState.attempts,
+          cap: activeLevelIndex,
+          nhap: draftStore,
+          nop: submitted,
+          baoCao: baoCaoDaNop
+        }));
+        return true;
+      } catch (e) {
+        // Chế độ ẩn danh hoặc mở file:// bị chặn localStorage: trang vẫn chạy bình
+        // thường, chỉ mất khả năng giữ bài dở. Không được để lỗi này làm hỏng bài học.
+        return false;
+      }
+    }
+
+    function xoaBai() {
+      try { localStorage.removeItem(KHO_PHUC_HOI); } catch (e) {}
+    }
+
+    // Trả về true nếu màn hình đang hiển thị lại một bài làm dở.
+    function moLaiBai() {
+      let s = null;
+      try { s = JSON.parse(localStorage.getItem(KHO_PHUC_HOI) || 'null'); } catch (e) { xoaBai(); return false; }
+      if (!s || !s.attempts) { xoaBai(); return false; }
+      const kid = findRoster(s.ten);
+      if (!kid) { xoaBai(); return false; }
+
+      runState = { key: kid.key, label: kid.label, attempts: s.attempts };
+      Object.keys(draftStore).forEach(function (k) { delete draftStore[k]; });
+      if (s.nhap) {
+        Object.keys(s.nhap).forEach(function (k) {
+          const g = String(s.nhap[k]).replace(/[^\d.\-]/g, '').slice(0, 12);
+          if (g !== '') draftStore[k] = g;
+        });
+      }
+      activeLevelIndex = Math.min(7, Math.max(1, parseInt(s.cap, 10) || 1));
+      submitted = !!s.nop;
+      baoCaoDaNop = s.baoCao || null;
+
+      document.getElementById('name-gate').classList.add('hidden');
+      document.getElementById('runner-name').innerText = kid.label;
+
+      if (submitted && baoCaoDaNop) {
+        document.getElementById('practice-wrap').classList.add('hidden');
+        showReport(kid, baoCaoDaNop);
+        return true;
+      }
+      document.getElementById('report-wrap').classList.add('hidden');
+      document.getElementById('practice-wrap').classList.remove('hidden');
+      hienGhiChuPhucHoi(recordedCount());
+      renderLevelTabs();
+      renderQuizList();
+      return true;
+    }
+
+    function hienGhiChuPhucHoi(daNopGhi) {
+      const el = document.getElementById('resume-note');
+      if (!el) return;
+      if (!daNopGhi) { el.classList.add('hidden'); el.innerText = ''; return; }
+      el.classList.remove('hidden');
+      el.innerText = '↩ Trang vừa được mở lại, nên thầy giữ hộ em ' + daNopGhi +
+        ' câu đã ghi nhận. Em làm tiếp từ đây nhé, không phải làm lại từ đầu.';
     }
 
     function gradedKeys() {
@@ -1127,19 +1207,26 @@
 
       runState = { key: kid.key, label: kid.label, attempts: {} };
       clearDrafts();
+      baoCaoDaNop = null;
       activeLevelIndex = 1;
       submitted = false;
       document.getElementById('name-gate').classList.add('hidden');
       document.getElementById('report-wrap').classList.add('hidden');
       document.getElementById('practice-wrap').classList.remove('hidden');
       document.getElementById('runner-name').innerText = kid.label;
+      hienGhiChuPhucHoi(0);
       renderLevelTabs();
       renderQuizList();
+      luuBai();
     }
 
     function backToGate() {
       runState = null;
+      baoCaoDaNop = null;
+      submitted = false;
       clearDrafts();
+      xoaBai();
+      hienGhiChuPhucHoi(0);
       document.getElementById('practice-wrap').classList.add('hidden');
       document.getElementById('report-wrap').classList.add('hidden');
       document.getElementById('name-gate').classList.remove('hidden');
@@ -1423,7 +1510,9 @@
 
       submitted = true;
       const sent = sendResult(rec);
-      showReport(kid, { label: kid.label, correct: correct, total: keys.length, stars: rec.sao, ngay: rec.ngay, attempts: runState.attempts, sent: sent, lines: lines });
+      baoCaoDaNop = { label: kid.label, correct: correct, total: keys.length, stars: rec.sao, ngay: rec.ngay, attempts: runState.attempts, sent: sent, lines: lines };
+      showReport(kid, baoCaoDaNop);
+      luuBai(); // mở lại trang vẫn thấy đúng báo cáo này, không rơi về cổng ghi tên
     }
 
     function questionTitleHtml(q, lvlIdx, idx) {
@@ -1485,6 +1574,7 @@
       updateAddPipeline(6, 8);
       renderColumnBoard();
       renderGate();
+      moLaiBai(); // có bài làm dở (trang vừa bị nạp lại) thì dựng tiếp, không bắt ghi tên lại
     });
   </script>
 </body>
