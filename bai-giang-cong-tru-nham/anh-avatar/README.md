@@ -1,1 +1,16 @@
-IyDhuqJuaCBhdmF0YXIgMyBi4bqhbgoKQmEg4bqjbmggUE5HIDI1NsOXMjU2LCBjw7luZyBt4buZdCBi4buZIHBob25nIGPDoWNoIChpY29uIGJvIGfDs2MsIG7DqXQgdmnhu4FuIMSR4bqtbSwgbeG6r3QgdG8sIG3DoHUgcGFzdGVsKS4KS2jDtG5nIHBo4bqjaSB24bq9IGLhurFuZyBjb2RlIHbDoCBraMO0bmcgbGluayBDRE4g4oaSIGLhuq10IG3DoXkgbmfhuq90IG3huqFuZyB24bqrbiBoaeG7h24uCgp8IEZpbGUgfCBC4bqhbiB8IEjDrG5oIHwKfC0tLXwtLS18LS0tfAp8IGBtYWktcnVhLnBuZ2AgfCBNYWkgfCBjb24gcsO5YSBjb24gfAp8IGBnaWEtbGluaC10aW5oLXRpbmgucG5nYCB8IEdpYSBMaW5oIHwgY29uIHRpbmggdGluaCB8CnwgYHRyYS1naWFuZy1oby1jYS5wbmdgIHwgVHLDoCBHaWFuZyB8IGPDoWkgaOG7kyBuxrDhu5tjIGPDsyBjb24gY8OhIGLGoWkgfAoKxJDhu5VpIOG6o25oIGtow6FjIGNobyBt4buZdCBi4bqhbjogxJHhurd0IGZpbGUgbeG7m2kgdsOgbyDEkcOieSBy4buTaSBz4butYSBnacOhIHRy4buLIGBhbmg6YCB0cm9uZyBgUk9TVEVSYCDhu58gYGluZGV4Lmh0bWxgCihrw61jaCB0aMaw4bubYyBoaeG7g24gdGjhu4s6IDQ04oCTNDhweCB0cm9uZyBuw7p0IGNo4buNbiB0w6puLCAzNuKAkzM4cHggY+G6oW5oIHTDqm4gbMO6YyBsw6BtIGLDoGksIDEwOOKAkzExMnB4IHRyw6puIGLhuqNuZyBr4bq/dCBxdeG6oykuCgrhuqJuaCBn4buRYyAxMDI0w5cxMDI0IG7hurFtIG5nb8OgaSByZXBvLCB0cm9uZyBgYmFpIHRhcC92aWJlX2ltYWdlcy9gOyBi4bqjbiDhu58gxJHDonkgxJHDoyB0aHUgbmjhu48gYuG6sW5nIFBJTCDEkeG7gyB0cmFuZyBuaOG6uS4KVGjGsCBt4bulYyBuw6B5IHBo4bqjaSDEkcaw4bujYyBjb3B5L3NlcnYgY8O5bmcgY2jhu5cgduG7m2kgYGluZGV4Lmh0bWxgIHbDrCDEkcaw4budbmcgZOG6q24gdHJvbmcgYFJPU1RFUmAgbMOgIHTGsMahbmcgxJHhu5FpLgo=
+# Ảnh avatar 3 bạn
+
+Ba ảnh PNG 256×256, cùng một bộ phong cách (icon bo góc, nét viền đậm, mắt to, màu pastel).
+Không phải vẽ bằng code và không link CDN → bật máy ngắt mạng vẫn hiện.
+
+| File | Bạn | Hình |
+|---|---|---|
+| `mai-rua.png` | Mai | con rùa con |
+| `gia-linh-tinh-tinh.png` | Gia Linh | con tinh tinh |
+| `tra-giang-ho-ca.png` | Trà Giang | cái hồ nước có con cá bơi |
+
+Đổi ảnh khác cho một bạn: đặt file mới vào đây rồi sửa giá trị `anh:` trong `ROSTER` ở `index.html`
+(kích thước hiển thị: 44–48px trong nút chọn tên, 36–38px cạnh tên lúc làm bài, 108–112px trên bảng kết quả).
+
+Ảnh gốc 1024×1024 nằm ngoài repo, trong `bai tap/vibe_images/`; bản ở đây đã thu nhỏ bằng PIL để trang nhẹ.
+Thư mục này phải được copy/serv cùng chỗ với `index.html` vì đường dẫn trong `ROSTER` là tương đối.
