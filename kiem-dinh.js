@@ -246,7 +246,8 @@ check(' toi da 3 sao', X.starsFor(16, 16) === 3);
 check('diem 0 -> 0 sao', X.starsFor(0, 16) === 0);
 
 // ============ 6. CONG TEN ============
-[['Mai', 'Mai'], ['mai', 'Mai'], [' MAI ', 'Mai'], ['maI', 'Mai'], ['Mai ', 'Mai'],
+[['Ban Mai', 'Ban Mai'], ['Mai', 'Ban Mai'], ['mai', 'Ban Mai'], [' MAI ', 'Ban Mai'], ['maI', 'Ban Mai'], ['Mai ', 'Ban Mai'],
+['ban mai', 'Ban Mai'], ['BanMai', 'Ban Mai'], ['BAN MAI', 'Ban Mai'],
 ['Gia Linh', 'Gia Linh'], ['gialinh', 'Gia Linh'], ['Linh', 'Gia Linh'], ['linh', 'Gia Linh'],
 ['GIA LINH', 'Gia Linh'], ['Trà Giang', 'Trà Giang'], ['tra giang', 'Trà Giang'],
 ['TrA GIANG', 'Trà Giang'], ['giang', 'Trà Giang'], ['Giang', 'Trà Giang'], ['TraGiang', 'Trà Giang'],
@@ -364,11 +365,11 @@ X.clearDrafts();
 X.runState = null;
 check('luuBai khi chua lam thi khong de lai gi', X.luuBai() === false && LS.map.size === 0);
 
-X.runState = { key: 'mai', label: 'Mai', attempts: { 'lvl-4-0': { val: '27', ok: true } } };
+X.runState = { key: 'mai', label: 'Ban Mai', attempts: { 'lvl-4-0': { val: '27', ok: true } } };
 X.activeLevelIndex = 4;
 check('luuBai thanh cong khi dang co bai lam', X.luuBai() === true);
 const saved = JSON.parse(LS.map.get(X.KHO_PHUC_HOI));
-check('luuBai ghi dung ten', saved.ten === 'Mai', JSON.stringify(saved).slice(0, 120));
+check('luuBai ghi dung ten', saved.ten === 'Ban Mai', JSON.stringify(saved).slice(0, 120));
 check('luuBai ghi dung cau da cham', Object.keys(saved.attempts).length === 1 && saved.attempts['lvl-4-0'].ok === true);
 check('luuBai ghi dung cap dang dung', saved.cap === 4);
 check('luuBai ghi ca trang thai chua nop', saved.nop === false);
@@ -399,7 +400,7 @@ check('bai cua ten la cung bi xoa khoi may', LS.map.size === 0);
 STUB['report-wrap'] = el();
 LS.map.set(X.KHO_PHUC_HOI, JSON.stringify({
   ten: 'mai', attempts: { 'lvl-4-0': { val: '27', ok: true } }, cap: 4, nop: true,
-  baoCao: { label: 'Mai', correct: 1, total: 16, stars: 0, ngay: '14/10/2026 09:00', attempts: { 'lvl-4-0': { val: '27', ok: true } }, sent: true, lines: [] }
+  baoCao: { label: 'Ban Mai', correct: 1, total: 16, stars: 0, ngay: '14/10/2026 09:00', attempts: { 'lvl-4-0': { val: '27', ok: true } }, sent: true, lines: [] }
 }));
 check('nop roi mo lai van thay bao cao', X.moLaiBai() === true && X.submitted === true);
 check('bao cao du dung vao khung', STUB['report-wrap'].innerHTML.length > 50, 'dai=' + STUB['report-wrap'].innerHTML.length);
@@ -410,7 +411,7 @@ check('JSON lang cung bi xoa', LS.map.size === 0);
 
 // trinh duyet chan localStorage (an danh / file://): trang phai song sot
 LS.blocked = true;
-X.runState = { key: 'mai', label: 'Mai', attempts: { 'lvl-4-0': { val: '27', ok: true } } };
+X.runState = { key: 'mai', label: 'Ban Mai', attempts: { 'lvl-4-0': { val: '27', ok: true } } };
 let nemRaNgoai = false;
 try { X.luuBai(); X.captureDrafts(); } catch (e) { nemRaNgoai = true; }
 check('localStorage bi chan: khong nem loi ra ngoai', nemRaNgoai === false);

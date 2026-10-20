@@ -913,7 +913,7 @@
     // ============================================================
     const GRADED_LEVELS = [4, 5, 6, 7];
     const ROSTER = [
-      { key: 'mai', label: 'Mai', alias: ['mai'], anh: 'anh-avatar/mai-rua.png' },
+      { key: 'mai', label: 'Ban Mai', alias: ['mai', 'ban mai'], anh: 'anh-avatar/mai-rua.png' },
       { key: 'gia-linh', label: 'Gia Linh', alias: ['gia linh', 'linh'], anh: 'anh-avatar/gia-linh-tinh-tinh.png' },
       { key: 'tra-giang', label: 'Trà Giang', alias: ['tra giang', 'giang'], anh: 'anh-avatar/tra-giang-ho-ca.png' }
     ];
@@ -1208,7 +1208,7 @@
     function startPractice() {
       const kid = findRoster(document.getElementById('name-input').value);
       if (!kid) {
-        gateError('Em chưa gõ đúng tên lớp mình. Em hãy chọn hoặc gõ một trong ba bạn: Mai, Gia Linh, Trà Giang.');
+        gateError('Em chưa gõ đúng tên lớp mình. Em hãy chọn hoặc gõ một trong ba bạn: Ban Mai, Gia Linh, Trà Giang.');
         return;
       }
       document.getElementById('gate-error').classList.add('hidden');

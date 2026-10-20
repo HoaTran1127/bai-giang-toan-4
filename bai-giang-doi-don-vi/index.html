@@ -1502,7 +1502,7 @@ renderCalc();
 
 /* ================= MỤC 7: NGÂN HÀNG CÂU HỎI ================= */
 var ROSTER = [
-  { key: 'mai', label: 'Mai', alias: ['mai'], anh: 'anh-avatar/mai-rua.png' },
+  { key: 'mai', label: 'Ban Mai', alias: ['mai', 'ban mai'], anh: 'anh-avatar/mai-rua.png' },
   { key: 'gia-linh', label: 'Gia Linh', alias: ['gia linh', 'linh'], anh: 'anh-avatar/gia-linh-tinh-tinh.png' },
   { key: 'tra-giang', label: 'Trà Giang', alias: ['tra giang', 'giang'], anh: 'anh-avatar/tra-giang-ho-ca.png' }
 ];
@@ -1627,7 +1627,7 @@ function startPractice() {
     var r = ROSTER[i];
     if (r.label.toLowerCase() === v || r.alias.indexOf(v) >= 0) { hit = r; break; }
   }
-  if (!hit) { document.getElementById('gate-error').textContent = 'Tên chưa đúng. Em là Mai, Gia Linh hay Trà Giang?'; return; }
+  if (!hit) { document.getElementById('gate-error').textContent = 'Tên chưa đúng. Em là Ban Mai, Gia Linh hay Trà Giang?'; return; }
   document.getElementById('gate-error').textContent = '';
   runState = { key: hit.key, label: hit.label, anh: hit.anh, attempts: {} };
   submitted = false;

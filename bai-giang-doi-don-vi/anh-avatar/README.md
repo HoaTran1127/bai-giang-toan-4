@@ -5,7 +5,7 @@ Không phải vẽ bằng code và không link CDN → bật máy ngắt mạng 
 
 | File | Bạn | Hình |
 |---|---|---|
-| `mai-rua.png` | Mai | con rùa con |
+| `mai-rua.png` | Ban Mai | con rùa con |
 | `gia-linh-tinh-tinh.png` | Gia Linh | con tinh tinh |
 | `tra-giang-ho-ca.png` | Trà Giang | cái hồ nước có con cá bơi |
 
