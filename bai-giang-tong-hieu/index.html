@@ -313,6 +313,13 @@
   .cachgiai { margin-top: 8px; font-size: 14px; font-weight: 800; color: #4B4238; }
   .cachgiai .bx { color: var(--teal); font-weight: 900; }
   .cachgiai .dx { color: var(--red); font-weight: 900; }
+  .dang-van { font-size: 15px; font-weight: 800; line-height: 1.8; margin-bottom: 8px; }
+  .dang-hd { font-size: 13px; font-weight: 800; color: #6B6152; margin: 4px 0 8px; }
+  .dang-step { margin-top: 8px; padding: 8px; border: 2px solid var(--line); border-radius: 10px; }
+  .dang-step.locked { border-color: var(--green); background: #F3FBF6; }
+  .dang-step input { width: 78px; min-height: 34px; border: 2px solid var(--blue); border-radius: 8px; text-align: center; font: 900 16px inherit; }
+  .dang-step input.ok { border-color: var(--green); background: #F3FBF6; }
+  .dang-step input.bad { border-color: var(--red); background: #FDF2F2; }
   .lv-head { font-size: 15px; font-weight: 800; color: #6B6152; margin-bottom: 12px; }
   .lv-head b { color: var(--blue); }
   .report { padding: 18px; background: #F3FBF6; border: 3px solid var(--green); border-radius: 16px; }
@@ -855,31 +862,31 @@ var DANG = [
   {
     ico: '🟢', t: 'DẠNG 1 · ĐỀ NÓI THẲNG', dau: 'tất cả / cả hai · nhiều hơn / ít hơn',
     mat: 'TỔNG và HIỆU nằm ngay trên mặt đề.',
-    dk: { tong: 120, hieu: 10 }, dv: 'lít',
+    dk: { tong: 120, hieu: 10 }, ten: ['thùng bé', 'thùng to'], dv: 'lít',
     van: 'Hai thùng có tất cả {t} lít. Thùng to hơn thùng bé {h} lít.'
   },
   {
     ico: '🎂', t: 'DẠNG 2 · TUỔI (HIỆU KHÔNG ĐỔI)', dau: 'mẹ hơn con .. tuổi · sau .. năm',
     mat: 'Hiệu tuổi giữ nguyên, TỔNG đổi theo số năm.',
-    dk: { hieu: 28, tongSau: 60, namSau: 3 }, dv: 'tuổi',
+    dk: { hieu: 28, tongSau: 60, namSau: 3 }, ten: ['con', 'mẹ'], dv: 'tuổi',
     van: 'Mẹ hơn con {h} tuổi. Sau {namSau} năm nữa tổng số tuổi hai mẹ con là {tongSau}. Hỏi hiện nay con bao nhiêu tuổi?'
   },
   {
     ico: '🤝', t: 'DẠNG 3 · CHO NHAU THÌ BẰNG', dau: 'A cho B .. viên thì bằng nhau',
     mat: 'HIỆU = số cho × 2 (mất 1 phần, được thêm 1 phần).',
-    dk: { tong: 60, cho: 6 }, dv: 'viên bi',
+    dk: { tong: 60, cho: 6 }, ten: ['Bình', 'An'], dv: 'viên bi',
     van: 'Cả hai bạn có {t} viên bi. An cho Bình {cho} viên thì hai bạn bằng nhau. Hỏi An có bao nhiêu viên?'
   },
   {
     ico: '🔢', t: 'DẠNG 4 · SỐ LIÊN TIẾP', dau: 'hai số chẵn / lẻ / tự nhiên liên tiếp',
     mat: 'HIỆU đã biết trước: chẵn hoặc lẻ liên tiếp = 2, tự nhiên = 1.',
-    dk: { tong: 74, lienTiep: 'chan' }, dv: '',
+    dk: { tong: 74, lienTiep: 'chan' }, ten: ['số bé', 'số lớn'], dv: '',
     van: 'Hai số chẵn liên tiếp có tổng là {t}. Hỏi hai số đó.'
   },
   {
     ico: '📐', t: 'DẠNG 5 · TỔNG GIẤU SAU HÌNH', dau: 'trung bình cộng · nửa chu vi · chu vi',
     mat: 'TỔNG phải tính: trung bình cộng × 2, chu vi ÷ 2.',
-    dk: { chuVi: 84, hieu: 6 }, dv: 'm',
+    dk: { chuVi: 84, hieu: 6 }, ten: ['chiều rộng', 'chiều dài'], dv: 'm',
     van: 'Chu vi một hình chữ nhật là {chuVi} m. Chiều dài hơn chiều rộng {h} m. Hỏi chiều dài.'
   },
   {
@@ -1698,13 +1705,64 @@ function moDang(i) {
       '<label for="gap15-lon">Số lớn</label><input id="gap15-lon" type="number" inputmode="numeric" aria-label="Số lớn trong bài gấp một phẩy năm lần">' +
       '<button class="btn pri" type="button" onclick="kiemTraGap15()">Kiểm tra</button></div><div id="gap15-kq" class="ti-le-kq"></div></div>';
   } else {
-    var s = doiSo(it.dk);
-    var van = dienVan(it.van, it.dk);
-    var q = { mau: it.van, dk: it.dk, hoi: (it.t.indexOf('DẠNG 3') >= 0 || it.t.indexOf('DẠNG 5') >= 0 || it.t.indexOf('DẠNG 2') >= 0) ? 'lon' : 'be', dv: it.dv };
-    box.innerHTML = '<div style="font-weight:800;font-size:15px;margin-bottom:6px">' + van + '</div>' +
-      veSoDo({ dai: 1, le: String(s.hieu), gao: String(s.tong), be: s.be, lon: s.lon }, 'bé', 'lớn') +
-      loiGiai(q).map(function (l) { return '<div class="cachgiai">' + l + '</div>'; }).join('');
+    box.innerHTML = veDangBai(i);
+    ganKeoTha('dang-item-' + i, function (el) { dangTha(i, el); });
   }
+}
+
+function dangVan(i) {
+  var it = DANG[i], d = it.dk, s = doiSo(d), t = it.ten;
+  var tong = d.tong != null ? 'tất cả ' + d.tong : d.chuVi + ' ÷ 2 = ' + s.tong;
+  var hieu = d.hieu != null ? d.hieu : s.hieu;
+  if (i === 0) return 'Hai thùng có <span class="keo" draggable="true" data-gia="' + s.tong + '" data-loai="tong">tất cả ' + s.tong + ' lít</span>. <span class="keo" draggable="true" data-gia="' + t[1] + '" data-loai="ten">' + t[1] + '</span> hơn <span class="keo" draggable="true" data-gia="' + t[0] + '" data-loai="ten">' + t[0] + '</span> <span class="keo" draggable="true" data-gia="' + hieu + '" data-loai="hieu">' + hieu + ' lít</span>.';
+  if (i === 1) return 'Mẹ hơn con <span class="keo" draggable="true" data-gia="' + hieu + '" data-loai="hieu">' + hieu + ' tuổi</span>. Sau ' + d.namSau + ' năm nữa, tổng là ' + d.tongSau + ' tuổi; dữ kiện dùng cho hiện nay là <span class="keo" draggable="true" data-gia="' + s.tong + '" data-loai="tong">' + d.tongSau + ' − ' + d.namSau + ' × 2 = ' + s.tong + '</span>. <span class="keo" draggable="true" data-gia="' + t[1] + '" data-loai="ten">' + t[1] + '</span> và <span class="keo" draggable="true" data-gia="' + t[0] + '" data-loai="ten">' + t[0] + '</span>.';
+  if (i === 2) return 'Cả hai bạn có <span class="keo" draggable="true" data-gia="' + s.tong + '" data-loai="tong">' + s.tong + ' viên</span>. ' + t[1] + ' cho ' + t[0] + ' <span class="keo" draggable="true" data-gia="' + hieu + '" data-loai="hieu">' + d.cho + ' × 2 = ' + hieu + '</span> viên thì bằng nhau. <span class="keo" draggable="true" data-gia="' + t[1] + '" data-loai="ten">' + t[1] + '</span> và <span class="keo" draggable="true" data-gia="' + t[0] + '" data-loai="ten">' + t[0] + '</span>.';
+  if (i === 3) return 'Hai số chẵn liên tiếp có <span class="keo" draggable="true" data-gia="' + s.tong + '" data-loai="tong">TỔNG ' + s.tong + '</span>. Hiệu giữa <span class="keo" draggable="true" data-gia="' + t[1] + '" data-loai="ten">' + t[1] + '</span> và <span class="keo" draggable="true" data-gia="' + t[0] + '" data-loai="ten">' + t[0] + '</span> là <span class="keo" draggable="true" data-gia="' + s.hieu + '" data-loai="hieu">2</span>.';
+  return 'Chu vi hình chữ nhật là <span class="keo" draggable="true" data-gia="' + s.tong + '" data-loai="tong">' + d.chuVi + ' ÷ 2 = ' + s.tong + '</span> m. <span class="keo" draggable="true" data-gia="' + t[1] + '" data-loai="ten">' + t[1] + '</span> hơn <span class="keo" draggable="true" data-gia="' + t[0] + '" data-loai="ten">' + t[0] + '</span> <span class="keo" draggable="true" data-gia="' + hieu + '" data-loai="hieu">' + hieu + ' m</span>.';
+}
+
+function veDangBai(i) {
+  var it = DANG[i], s = doiSo(it.dk), t = it.ten;
+  return '<div id="dang-item-' + i + '">' +
+    '<div class="dang-van">' + dangVan(i) + '</div>' +
+    '<div class="dang-hd">Kéo dữ kiện ngay trong đề vào sơ đồ: tên vào hai đầu thanh, HIỆU vào đoạn cam, TỔNG vào ngoặc tím.</div>' +
+    '<div class="dang-step" id="dang-step-' + i + '">' + soDo2({
+      P: kichThuoc({ dai: 1, le: String(s.hieu), gao: String(s.tong), be: s.be, lon: s.lon }).P,
+      dai: 1, lech: true,
+      ten0: '<span class="drop" data-loai="ten" data-dap="' + t[0] + '">?</span>',
+      ten1: '<span class="drop" data-loai="ten" data-dap="' + t[1] + '">?</span>',
+      hieuO: '<span class="drop" data-loai="hieu" data-dap="' + s.hieu + '">?</span>',
+      tongO: 'TỔNG <span class="drop" data-loai="tong" data-dap="' + s.tong + '">?</span>'
+    }) + '<div class="cap" id="dang-kq-' + i + '">Kéo đủ 4 dữ kiện.</div></div>' +
+    '<div id="dang-form-' + i + '" class="hidden"></div></div>';
+}
+
+function dangTha(i, el) {
+  var cap = document.getElementById('dang-kq-' + i), box = document.getElementById('dang-step-' + i);
+  if (!KEO || !el || el.classList.contains('ok')) return;
+  if (String(KEO.gia) !== el.getAttribute('data-dap')) {
+    rungVaBao(el, cap, '✕ Dữ kiện này chưa đúng vị trí trong sơ đồ.');
+    return;
+  }
+  thaDung(el, KEO, cap);
+  if (box.querySelectorAll('.drop.ok').length === 4) {
+    box.classList.add('locked'); cap.className = 'cap ok'; cap.textContent = '✓ Đã khóa sơ đồ. Điền đáp số bên dưới.';
+    dangMoDap(i);
+  }
+}
+
+function dangMoDap(i) {
+  var host = document.getElementById('dang-form-' + i), s = doiSo(DANG[i].dk), t = DANG[i].ten;
+  if (!host || host.innerHTML) return;
+  host.classList.remove('hidden');
+  host.innerHTML = '<div class="dang-step"><b>Điền đủ hai đáp số:</b> ' + t[0] + ' <input id="dang-be-' + i + '" type="number" required> · ' + t[1] + ' <input id="dang-lon-' + i + '" type="number" required><div class="cap" id="dang-ans-' + i + '">Không được bỏ trống.</div></div>';
+  ['be', 'lon'].forEach(function (x) { document.getElementById('dang-' + x + '-' + i).addEventListener('input', function () { dangKiemDap(i); }); });
+}
+function dangKiemDap(i) {
+  var s = doiSo(DANG[i].dk), a = document.getElementById('dang-be-' + i), b = document.getElementById('dang-lon-' + i), k = document.getElementById('dang-ans-' + i);
+  if (!a.value || !b.value) { k.className = 'cap bad'; k.textContent = '✕ Điền đủ cả hai ô rồi mới sang bước tiếp theo.'; return; }
+  var ok = Number(a.value) === s.be && Number(b.value) === s.lon;
+  a.className = ok ? 'ok' : 'bad'; b.className = ok ? 'ok' : 'bad'; k.className = 'cap ' + (ok ? 'ok' : 'bad'); k.textContent = ok ? '✓ Đúng.' : '✕ Xem lại công thức.';
 }
 function kiemTraGap15() {
   var be = Number(document.getElementById('gap15-be').value);
@@ -1729,25 +1787,52 @@ var THU = { tong: 120, hieu: 10 };
 
 // Sơ đồ cây thử lại: hai số tìm được → CỘNG ra TỔNG · TRỪ ra HIỆU.
 function veThuCay() {
-  var s = doiSo({ tong: THU.tong, hieu: THU.hieu });
   return '<div class="thu-cay">' +
-    '<div class="cay-cap">Hai số tìm được: <b>' + s.be + '</b> và <b>' + s.lon + '</b> — thử lại bằng hai phép:</div>' +
+    '<div class="cay-cap">Hai số tìm được — thử lại bằng hai phép:</div>' +
     '<div class="cay-hang">' +
-    '<div class="cay-nhanh"><div class="cay-phep cong">↓ CỘNG hai số</div><div class="cay-kq tong">' + s.be + ' + ' + s.lon + ' = ' + THU.tong + ' ✓ đúng TỔNG</div></div>' +
-    '<div class="cay-nhanh"><div class="cay-phep tru">↓ TRỪ hai số</div><div class="cay-kq hieu">' + s.lon + ' − ' + s.be + ' = ' + THU.hieu + ' ✓ đúng HIỆU</div></div>' +
+    '<div class="cay-nhanh"><div class="cay-phep cong">↓ CỘNG hai số</div><div class="cay-kq tong">SỐ BÉ + SỐ LỚN = TỔNG</div></div>' +
+    '<div class="cay-nhanh"><div class="cay-phep tru">↓ TRỪ hai số</div><div class="cay-kq hieu">SỐ LỚN − SỐ BÉ = HIỆU</div></div>' +
     '</div></div>';
 }
 function veThuBai() {
   var T = THU.tong, H = THU.hieu, s = doiSo({ tong: T, hieu: H });
   return '<div class="bai">' +
     '<div class="bai-b">B1 · Vẽ sơ đồ</div>' +
-    veSoDo({ dai: 1, le: String(H), gao: String(T), be: s.be, lon: s.lon }, 'số bé', 'số lớn') +
+    '<div class="dang-step" id="thu-b1"><div class="dang-hd">Kéo dữ kiện từ đề vào sơ đồ, không ghi sẵn số: tên vào hai đầu thanh, HIỆU vào đoạn cam, TỔNG vào ngoặc tím.</div>' +
+    '<div class="dang-van"><span class="keo" draggable="true" data-gia="số bé" data-loai="ten">số bé</span> <span class="keo" draggable="true" data-gia="số lớn" data-loai="ten">số lớn</span> <span class="keo" draggable="true" data-gia="' + H + '" data-loai="hieu">HIỆU ' + H + '</span> <span class="keo" draggable="true" data-gia="' + T + '" data-loai="tong">TỔNG ' + T + '</span></div>' + soDo2({
+      P: kichThuoc({ dai: 1, le: String(H), gao: String(T), be: s.be, lon: s.lon }).P,
+      dai: 1, lech: true,
+      ten0: '<span class="drop" data-loai="ten" data-dap="số bé">?</span>',
+      ten1: '<span class="drop" data-loai="ten" data-dap="số lớn">?</span>',
+      hieuO: '<span class="drop" data-loai="hieu" data-dap="' + H + '">?</span>',
+      tongO: 'TỔNG <span class="drop" data-loai="tong" data-dap="' + T + '">?</span>'
+    }) + '<div class="cap" id="thu-b1-kq">Kéo đủ 4 dữ kiện.</div></div>' +
     '<div class="bai-b">B2 · Tìm hai số</div>' +
-    '<div class="bai-d">Số bé = (TỔNG − HIỆU) ÷ 2 = (' + T + ' − ' + H + ') ÷ 2 = <b>' + s.be + '</b><br>' +
-    'Số lớn = ' + s.be + ' + HIỆU = ' + s.be + ' + ' + H + ' = <b>' + s.lon + '</b></div>' +
+    '<div class="dang-step hidden" id="thu-b2"><div>Số bé = (TỔNG − HIỆU) ÷ 2 = (' + T + ' − ' + H + ') ÷ 2 = <input id="thu-be" type="number" required aria-label="Số bé"> <span>· Số lớn = Số bé + HIỆU = <input id="thu-lon" type="number" required aria-label="Số lớn"></span></div><div class="cap" id="thu-b2-kq">Điền đủ hai đáp số.</div></div>' +
     '<div class="bai-b">B3 · Thử lại bằng hai phép</div>' + veThuCay() +
-    '<div class="bai-d">Đáp số: <b>' + s.be + '</b> và <b>' + s.lon + '</b></div>' +
+    '<div class="dang-step hidden" id="thu-b3"><div>CỘNG hai số = <input id="thu-cong" type="number" required aria-label="Kết quả phép cộng"> · TRỪ hai số = <input id="thu-tru" type="number" required aria-label="Kết quả phép trừ"></div><div class="cap" id="thu-b3-kq">Chưa thể thử lại khi B2 còn trống.</div></div>' +
     '</div>';
+}
+function thuTha(el) {
+  var cap = document.getElementById('thu-b1-kq'), root = document.getElementById('thu-b1');
+  if (!KEO || !el || el.classList.contains('ok')) return;
+  if (String(KEO.gia) !== el.getAttribute('data-dap')) { rungVaBao(el, cap, '✕ Kéo đúng dữ kiện vào đúng vị trí.'); return; }
+  thaDung(el, KEO, cap);
+  if (root.querySelectorAll('.drop.ok').length === 4) {
+    root.classList.add('locked'); cap.className = 'cap ok'; cap.textContent = '✓ Đã khóa sơ đồ. Bây giờ điền B2.';
+    document.getElementById('thu-b2').classList.remove('hidden');
+  }
+}
+function thuKiem() {
+  var s = doiSo(THU), b = document.getElementById('thu-be'), l = document.getElementById('thu-lon');
+  var c = document.getElementById('thu-cong'), t = document.getElementById('thu-tru');
+  if (!b || !l || !c || !t) return;
+  var full = b.value && l.value && c.value && t.value, ok = full && Number(b.value) === s.be && Number(l.value) === s.lon && Number(c.value) === THU.tong && Number(t.value) === THU.hieu;
+  document.getElementById('thu-b2-kq').className = 'cap ' + (b.value && l.value && Number(b.value) === s.be && Number(l.value) === s.lon ? 'ok' : 'bad');
+  document.getElementById('thu-b2-kq').textContent = b.value && l.value ? (Number(b.value) === s.be && Number(l.value) === s.lon ? '✓ B2 đúng.' : '✕ B2 chưa đúng.') : '✕ Không được bỏ trống B2.';
+  document.getElementById('thu-b3').classList.toggle('hidden', !(b.value && l.value && Number(b.value) === s.be && Number(l.value) === s.lon));
+  document.getElementById('thu-b3-kq').className = 'cap ' + (ok ? 'ok' : 'bad');
+  document.getElementById('thu-b3-kq').textContent = !full ? '✕ Điền đủ B2 và hai phép thử lại.' : (ok ? '✓ Hoàn thành.' : '✕ Thử lại: cộng phải ra TỔNG, trừ phải ra HIỆU.');
 }
 var GAU = [
   { t: 'Bước 1 · Đọc đề: TỔNG = 120, HIỆU = 10.', sai: false },
@@ -2685,11 +2770,11 @@ function tuKiem() {
   n++;
   var cayHtml = veThuCay();
   if (cayHtml.indexOf('CỘNG') < 0 || cayHtml.indexOf('TRỪ') < 0) err.push('Mục 6: sơ đồ cây phải chỉ rõ CỘNG ra TỔNG · TRỪ ra HIỆU');
-  if (cayHtml.indexOf('120') < 0 || cayHtml.indexOf('10') < 0) err.push('Mục 6: sơ đồ cây phải ghi số TỔNG 120 và HIỆU 10');
+  if (cayHtml.indexOf('TỔNG') < 0 || cayHtml.indexOf('HIỆU') < 0) err.push('Mục 6: sơ đồ cây phải nối phép CỘNG với TỔNG và phép TRỪ với HIỆU');
   n++;
   // MỤC 6 phải là một BÀI hoàn chỉnh: sơ đồ + 3 bước + đáp số, và không còn chữ "máy chấm".
   var bai6 = veThuBai();
-  ['B1 · Vẽ sơ đồ', 'B2 · Tìm hai số', 'B3 · Thử lại', 'Đáp số'].forEach(function (b) {
+  ['B1 · Vẽ sơ đồ', 'B2 · Tìm hai số', 'B3 · Thử lại', 'Số bé', 'Số lớn'].forEach(function (b) {
     if (bai6.indexOf(b) < 0) err.push('Mục 6: bài mẫu thiếu phần "' + b + '"');
   });
   if (document.getElementById('muc-6').textContent.indexOf('máy chấm') >= 0) err.push('Mục 6: bỏ hẳn dòng "Không có máy chấm ở mục này"');
@@ -2733,6 +2818,10 @@ function selfTest() {
 function khoiDong() {
   veMuc1(); veDinhNghia(); veMuc2(); veMuc3(); veMay(); veMuc5(); veGau();
   document.getElementById('thu-out').innerHTML = veThuBai();
+  ganKeoTha('thu-b1', thuTha);
+  ['thu-be', 'thu-lon', 'thu-cong', 'thu-tru'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', thuKiem);
+  });
   var mayTimer = null, mayThoai = false;
   function mayTuChay() {
     if (mayTimer || mayThoai) return;
