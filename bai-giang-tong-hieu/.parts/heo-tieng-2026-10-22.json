@@ -1,0 +1,558 @@
+{
+ "ngay": "2026-10-22",
+ "han_che": "Ty le so tu bi nhieu doi cho ASR nghe sai dau/chu (nhe→nhat, tong→tung, so→xo). Vi vay file nay ghi RUI danh sach tu lech hai chieu de doc lai, va tam = 'lech cau truc' (trang ghi >=3 tu clip khong noi) — loai nay khong the giai thich bang ASR: clip thieu ca ve.",
+ "lech_cau_truc_so_khoa": 22,
+ "lech_cau_truc": [
+  "cong-thuc-xong",
+  "doc-lai-de",
+  "du-kien-sai",
+  "hai-so-khac",
+  "keo-du-kien",
+  "keo-dung-cho",
+  "khoa-so-do-b2",
+  "khung-hieu-thu-tu",
+  "khung-hieu",
+  "khung-tong",
+  "kiem-hieu",
+  "kiem-tong",
+  "nham-hieu",
+  "nham-tong",
+  "nhan-ten-khung",
+  "nhan-ten",
+  "o-hieu",
+  "o-so",
+  "o-tong",
+  "san-du",
+  "ten-sai-thanh",
+  "the-ten"
+ ],
+ "muc_dich": "Bang chung minh bo clip tro-giang trong may THUOC BAN KHAC (ban the nam trong de — cua phien bien tap khac), khong phai ban da push. Dung khi nao thu lai hoac ship clip.",
+ "ban_da_push": "ea3c15e (merge) + b0afc3f (probe) — Pages dang phuc vu; tro-giang/ KHONG nam trong repo",
+ "index_bytes": 241246,
+ "phuong_phap": "ASR faster-whisper small tren CPU (ffmpeg giai PCM 16k mono). Moi khoa so voi chu THAT trong index.html; chu trong bang duoc do lai nguyen van nen bang khong the gia co. Ty le = so tu cua clip co mat trong chu tren trang.",
+ "so_khoa_trong_CO_FILE": 28,
+ "so_clip_asr": 27,
+ "bang_khop_nguyen_van_index_html": "28/28",
+ "lech": 27,
+ "khoa_chua_co_trong_bang": [],
+ "bang_lech_khi_trang_doi_loi": [],
+ "thieu_clip_trong_nguon": [
+  "ten-sai-nguoi.mp3 — trang con dung khoa nay (2 khung ten: MUC 2 thanh dai/ngan, MUC 3 nguoi nhieu hon/it hon) nhung may khong con file; ban khac da gộp ve ten-sai-dai"
+ ],
+ "clip_thua_khong_dung": [
+  "khen-2.mp3",
+  "khen-3.mp3",
+  "khen-4.mp3",
+  "khen-5.mp3",
+  "khen-6.mp3"
+ ],
+ "ket_luan_ship": "KHONG ship tro-giang/ cung ban nay: 27/27 clip lech loi tren trang, trong do 22 clip noi THIEU CA VE ma trang in ra (khong phai ASR nghe sai) -> bong hoa va tieng doc mau thuan, pham luat 'loi bong hoa phai khop dung chu da thu'. Trang tu doc bang speechSynthesis tieng Viet (vi-VN), van chay; muon co tieng thu thi phai thu lai theo loi ban nay.",
+ "doi": [
+  {
+   "khoa": "co-doi-em",
+   "clip_noi_theo_asr": "cô đang nghe em làm bài. Kéo sai chỗ nào, cô nhắc chỗ đó nhất.",
+   "trang_in": "Cô đang nghe em làm bài. Kéo sai chỗ nào, cô nhắc chỗ đó nhé!",
+   "ty_le_giong_nhau": 92,
+   "clip_noi_ma_trang_khong_ghi": [
+    "nhat"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "cong-thuc-xong",
+   "clip_noi_theo_asr": "Hai công thức xong rồi. Em điền đáp số bên dưới nhé.",
+   "trang_in": "Hai công thức xong rồi, giỏi quá. Em điền đáp số vào ô bên dưới nhé.",
+   "ty_le_giong_nhau": 100,
+   "clip_noi_ma_trang_khong_ghi": [],
+   "trang_ghi_ma_clip_khong_noi": [
+    "gioi",
+    "qua",
+    "vao"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "doc-lai-de",
+   "clip_noi_theo_asr": "số này không đứng ở ô đó. Em đọc lại để nhé.",
+   "trang_in": "Số này không đứng ở ô đó đâu. Em đọc lại đề nhé, xem số nào đứng trước, số nào đứng sau, rồi kéo lại.",
+   "ty_le_giong_nhau": 100,
+   "clip_noi_ma_trang_khong_ghi": [],
+   "trang_ghi_ma_clip_khong_noi": [
+    "dau",
+    "xem",
+    "nao",
+    "truoc",
+    "sau",
+    "keo"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "du-kien-sai",
+   "clip_noi_theo_asr": "Dứ kiện này chưa đúng chỗ. Em nhìn sơ đồ rồi kéo lại nhé.",
+   "trang_in": "Dữ kiện này chưa đúng chỗ rồi em. Tên thì ở đầu thanh, HIỆU ở đoạn cam, còn TỔNG ở ngoặc tím. Em kéo lại nhé.",
+   "ty_le_giong_nhau": 79,
+   "clip_noi_ma_trang_khong_ghi": [
+    "nhin",
+    "so",
+    "do"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "ten",
+    "dau",
+    "thanh",
+    "hieu",
+    "doan",
+    "cam",
+    "con",
+    "tong",
+    "ngoac",
+    "tim"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "dung-roi",
+   "clip_noi_theo_asr": "Đúng rồi, ròi quá!",
+   "trang_in": "Đúng rồi, giỏi quá!",
+   "ty_le_giong_nhau": 100,
+   "clip_noi_ma_trang_khong_ghi": [],
+   "trang_ghi_ma_clip_khong_noi": [
+    "gioi"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "hai-so-khac",
+   "clip_noi_theo_asr": "2 ô phải là 2 số khác nhau. Mỗi số chỉ dùng 1 lần thôi.",
+   "trang_in": "Hai ô của khung TỔNG phải là hai số khác nhau em nhé. Mỗi số trong đề chỉ dùng một lần thôi.",
+   "ty_le_giong_nhau": 100,
+   "clip_noi_ma_trang_khong_ghi": [],
+   "trang_ghi_ma_clip_khong_noi": [
+    "hai",
+    "cua",
+    "khung",
+    "tong",
+    "trong",
+    "de",
+    "mot"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "keo-du-kien",
+   "clip_noi_theo_asr": "Chưa đúng vị trí. Em nhìn lại xơ đồ rồi kéo lại nhé.",
+   "trang_in": "Chưa đúng vị trí rồi em. Em thử lại nhé: tên lên đầu thanh, HIỆU xuống đoạn cam, TỔNG vào ngoặc tím.",
+   "ty_le_giong_nhau": 67,
+   "clip_noi_ma_trang_khong_ghi": [
+    "nhin",
+    "xo",
+    "do",
+    "keo"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "thu",
+    "ten",
+    "len",
+    "dau",
+    "thanh",
+    "hieu",
+    "xuong",
+    "doan",
+    "cam",
+    "tong",
+    "vao",
+    "ngoac",
+    "tim"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "keo-dung-cho",
+   "clip_noi_theo_asr": "Ô chức giấu là tổng, ô sau giấu là hiệu. Em kéo lại nhé.",
+   "trang_in": "Chỗ này chưa đúng rồi. Ô trước dấu là TỔNG, ô sau dấu là HIỆU. Em nhìn lại rồi kéo cho đúng nhé.",
+   "ty_le_giong_nhau": 80,
+   "clip_noi_ma_trang_khong_ghi": [
+    "chuc",
+    "giau"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "cho",
+    "chua",
+    "dung",
+    "truoc",
+    "dau",
+    "nhin"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "khoa-so-do-b2",
+   "clip_noi_theo_asr": "Sơ đồ đủ rồi. Bây giờ em biển bước 2 nhé.",
+   "trang_in": "Sơ đồ đủ rồi, cô khóa lại nhé. Bây giờ em điền bước hai.",
+   "ty_le_giong_nhau": 90,
+   "clip_noi_ma_trang_khong_ghi": [
+    "bien"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "khoa",
+    "lai",
+    "dien",
+    "hai"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "khoa-so-do",
+   "clip_noi_theo_asr": "Sơ đồ đủ rồi. Em điền đáp số bên dưới nhé.",
+   "trang_in": "Sơ đồ đủ rồi, cô khóa lại nhé. Em điền đáp số bên dưới.",
+   "ty_le_giong_nhau": 100,
+   "clip_noi_ma_trang_khong_ghi": [],
+   "trang_ghi_ma_clip_khong_noi": [
+    "khoa",
+    "lai"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "khung-hieu-thu-tu",
+   "clip_noi_theo_asr": "Số lớn đứng trước, số bè đứng sau. Em kéo lại nhé.",
+   "trang_in": "Khung HIỆU là số lớn trừ số bé, nên ô này phải là số lớn hơn. Em nhìn lại đề rồi kéo đúng số nhé.",
+   "ty_le_giong_nhau": 80,
+   "clip_noi_ma_trang_khong_ghi": [
+    "truoc",
+    "sau"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "khung",
+    "hieu",
+    "la",
+    "tru",
+    "nen",
+    "phai",
+    "hon",
+    "nhin",
+    "de"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "khung-hieu",
+   "clip_noi_theo_asr": "Cũng hiệu để sau mình làm khung tổng trước nhé.",
+   "trang_in": "Ô này thuộc khung HIỆU, số lớn trừ số bé. Thẻ em đang cầm là của khung TỔNG, mình ghép khung TỔNG trước nhé.",
+   "ty_le_giong_nhau": 60,
+   "clip_noi_ma_trang_khong_ghi": [
+    "cung",
+    "de",
+    "sau",
+    "lam"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "thuoc",
+    "so",
+    "lon",
+    "tru",
+    "be",
+    "the",
+    "dang",
+    "cam",
+    "la",
+    "cua",
+    "ghep"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "khung-tong",
+   "clip_noi_theo_asr": "Công tổng chưa xong, bình gép khung tổng trước nhé!",
+   "trang_in": "Ô này thuộc khung TỔNG, hai số cộng lại. Thẻ em đang cầm là của khung HIỆU, mình làm khung TỔNG trước nhé.",
+   "ty_le_giong_nhau": 56,
+   "clip_noi_ma_trang_khong_ghi": [
+    "chua",
+    "xong",
+    "binh",
+    "gep"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "thuoc",
+    "hai",
+    "so",
+    "lai",
+    "the",
+    "dang",
+    "cam",
+    "la",
+    "cua",
+    "hieu",
+    "minh",
+    "lam"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "kiem-hieu",
+   "clip_noi_theo_asr": "Chưa đúng đâu, em đọc lại đề, tìm chỗ nói hơn nhé!",
+   "trang_in": "Chưa đúng đâu em. Em đọc lại đề, tìm chỗ nói hơn hoặc kém nhé. Phần hơn đó chính là HIỆU, mình kéo vào đoạn cam.",
+   "ty_le_giong_nhau": 100,
+   "clip_noi_ma_trang_khong_ghi": [],
+   "trang_ghi_ma_clip_khong_noi": [
+    "hoac",
+    "kem",
+    "phan",
+    "chinh",
+    "la",
+    "hieu",
+    "minh",
+    "keo",
+    "vao",
+    "doan",
+    "cam"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "kiem-tong",
+   "clip_noi_theo_asr": "Chưa đúng đâu, em tìm trong để chỗ nói cả hai nhất.",
+   "trang_in": "Chưa đúng đâu em. Em tìm trong đề chỗ nói tất cả, hoặc cả hai nhé. Số đó mới là TỔNG.",
+   "ty_le_giong_nhau": 92,
+   "clip_noi_ma_trang_khong_ghi": [
+    "nhat"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "tat",
+    "hoac",
+    "so",
+    "moi",
+    "la",
+    "tong"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "nham-hieu",
+   "clip_noi_theo_asr": "Số này là hiệu phần hơn, tréo vào đoạn cam nhé.",
+   "trang_in": "Gần đúng rồi em. Số này là HIỆU, tức là phần hơn, nên nó nằm ở đoạn cam tô màu. Em kéo lại nhé.",
+   "ty_le_giong_nhau": 82,
+   "clip_noi_ma_trang_khong_ghi": [
+    "treo",
+    "vao"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "gan",
+    "dung",
+    "tuc",
+    "nen",
+    "nam",
+    "to",
+    "mau",
+    "keo",
+    "lai"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "nham-tong",
+   "clip_noi_theo_asr": "Suyết đúng rồi, số này là tổng của cả hai gục lại. Kéo sang hoặc tím nhé!",
+   "trang_in": "Suýt đúng rồi em. Số này là TỔNG, tức là cả hai gộp lại, nên nó phải nằm trong ngoặc tím. Em kéo sang đó nhé.",
+   "ty_le_giong_nhau": 76,
+   "clip_noi_ma_trang_khong_ghi": [
+    "suyet",
+    "cua",
+    "guc",
+    "hoac"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "suyt",
+    "tuc",
+    "gop",
+    "nen",
+    "phai",
+    "nam",
+    "trong",
+    "ngoac"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "nhan-ten-khung",
+   "clip_noi_theo_asr": "Chỗ này chỉ ghi tên thôi em. Số thì kéo xuống khung tính nhé.",
+   "trang_in": "Ở đây mình chỉ ghi tên thôi em nhé. Số thì em kéo xuống khung tính ở dưới hai thanh.",
+   "ty_le_giong_nhau": 86,
+   "clip_noi_ma_trang_khong_ghi": [
+    "cho",
+    "nay"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "minh",
+    "duoi",
+    "hai",
+    "thanh"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "nhan-ten",
+   "clip_noi_theo_asr": "Chỗ này chỉ ghi tên thôi em. Số thì kéo xuống dưới nhé.",
+   "trang_in": "Ở đây mình chỉ ghi tên thôi em nhé. Số thì em kéo xuống đoạn cam, đó là HIỆU, hoặc lên ngoặc tím, đó là TỔNG.",
+   "ty_le_giong_nhau": 77,
+   "clip_noi_ma_trang_khong_ghi": [
+    "cho",
+    "nay",
+    "duoi"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "minh",
+    "doan",
+    "cam",
+    "la",
+    "hieu",
+    "hoac",
+    "len",
+    "ngoac",
+    "tim",
+    "tong"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "o-hieu",
+   "clip_noi_theo_asr": "Ô này là hiệu. Em tìm thấy hiệu nhé!",
+   "trang_in": "Ô này là HIỆU, tức là phần hơn. Em kéo thẻ HIỆU vào đây nhé, đừng kéo tên.",
+   "ty_le_giong_nhau": 71,
+   "clip_noi_ma_trang_khong_ghi": [
+    "tim",
+    "thay"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "tuc",
+    "phan",
+    "hon",
+    "keo",
+    "the",
+    "vao",
+    "dung",
+    "ten"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "o-so",
+   "clip_noi_theo_asr": "tên thì kéo lên đầu thanh nhát.",
+   "trang_in": "Ô này để ghi số, không phải ghi tên đâu em. Em kéo tên lên nhãn ở đầu hai thanh nhé.",
+   "ty_le_giong_nhau": 71,
+   "clip_noi_ma_trang_khong_ghi": [
+    "thi",
+    "nhat"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "de",
+    "ghi",
+    "so",
+    "khong",
+    "phai",
+    "nhan",
+    "hai"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "o-tong",
+   "clip_noi_theo_asr": "Ô này là tùng. Em tìm thể tùng nhất.",
+   "trang_in": "Ô này là TỔNG, tức là cả hai gộp lại. Em kéo thẻ TỔNG vào đây nhé, đừng kéo tên.",
+   "ty_le_giong_nhau": 57,
+   "clip_noi_ma_trang_khong_ghi": [
+    "tung",
+    "tim",
+    "nhat"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "tong",
+    "tuc",
+    "ca",
+    "hai",
+    "gop",
+    "lai",
+    "keo",
+    "vao",
+    "dung",
+    "ten"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "san-du-ten",
+   "clip_noi_theo_asr": "Sơ đồ đủ hai tên, tổng và hiệu rồi. Em kéo tiếp vào hai công thức nhé.",
+   "trang_in": "Sơ đồ đủ hai tên, TỔNG và HIỆU rồi. Em kéo tiếp dữ kiện vào hai công thức nhé.",
+   "ty_le_giong_nhau": 100,
+   "clip_noi_ma_trang_khong_ghi": [],
+   "trang_ghi_ma_clip_khong_noi": [
+    "kien"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "san-du",
+   "clip_noi_theo_asr": "Sờ đồ đủ rồi, cô khóa lại nhé! Em xuống phần công thức.",
+   "trang_in": "Sơ đồ đủ rồi, cô khóa lại nhé. Em cuộn xuống phần công thức bên dưới.",
+   "ty_le_giong_nhau": 100,
+   "clip_noi_ma_trang_khong_ghi": [],
+   "trang_ghi_ma_clip_khong_noi": [
+    "cuon",
+    "ben",
+    "duoi"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "ten-sai-dai",
+   "clip_noi_theo_asr": "chưa đúng rồi em. Thanh dài là bên nhiều hơn, thanh ngắn là bên ít hơn. Kéo lại tên nhé.",
+   "trang_in": "Ơ, chưa đúng rồi em. Thanh dài là của bạn nhiều hơn, thanh ngắn là của bạn ít hơn. Em kéo lại tên nhé.",
+   "ty_le_giong_nhau": 94,
+   "clip_noi_ma_trang_khong_ghi": [
+    "ben"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "cua",
+    "ban"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "ten-sai-thanh",
+   "clip_noi_theo_asr": "Lên này chưa đúng thanh. Em xem thanh nào dài hơn rồi kéo lại nhất.",
+   "trang_in": "Tên này chưa đúng thanh rồi. Em xem thanh nào dài hơn, thanh nào ngắn hơn, rồi kéo tên lên đúng đầu thanh nhé.",
+   "ty_le_giong_nhau": 86,
+   "clip_noi_ma_trang_khong_ghi": [
+    "lai",
+    "nhat"
+   ],
+   "trang_ghi_ma_clip_khong_noi": [
+    "ten",
+    "ngan",
+    "dau"
+   ],
+   "ket_luan": "LECH"
+  },
+  {
+   "khoa": "the-ten",
+   "clip_noi_theo_asr": "Thế tên chỉ đi lên đầu 2 thanh thôi em.",
+   "trang_in": "Thẻ tên chỉ đi lên nhãn ở đầu hai thanh thôi em. Kéo xuống khung tính là không vào được đâu.",
+   "ty_le_giong_nhau": 100,
+   "clip_noi_ma_trang_khong_ghi": [],
+   "trang_ghi_ma_clip_khong_noi": [
+    "nhan",
+    "hai",
+    "keo",
+    "xuong",
+    "khung",
+    "tinh",
+    "la",
+    "khong",
+    "vao",
+    "duoc"
+   ],
+   "ket_luan": "LECH"
+  }
+ ]
+}
