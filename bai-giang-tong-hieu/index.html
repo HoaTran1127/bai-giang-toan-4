@@ -188,6 +188,14 @@
 
   /* ---------- MỤC 3: SĂN TỔNG · HIỆU ---------- */
   .de-box { background: var(--bg-cream); border: 2px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 14px; }
+  .san-keo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0 4px; }
+  .san-keo .nhan, .san-f-row .nhan { font-size: 13px; font-weight: 900; color: #6B6152; }
+  .san-f-wrap { margin-top: 12px; padding-top: 10px; border-top: 2px solid var(--line); }
+  .san-f-row { background: #fff; border: 2px solid var(--line); border-radius: 12px; padding: 9px 10px; margin-top: 8px; }
+  .san-f-row.done { border-color: var(--green); background: #F3FBF6; }
+  .san-f-eq { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-weight: 900; }
+  .san-f-eq .drop { min-width: 70px; }
+  .san-f-result { margin-top: 6px; font-size: 15px; font-weight: 900; color: var(--green); }
   #de-list .sodo { align-items: center; }
   #de-list .khol { max-width: 400px; }
   .de-van { font-size: 17px; font-weight: 800; line-height: 1.9; margin-bottom: 8px; }
@@ -1404,6 +1412,7 @@ function sdTha(i, el) {
 function veMuc3() {
   var g = document.getElementById('de-list'), html = '';
   DE.forEach(function (de, i) {
+    var s = doiSo(de.dk);
     var van = '';
     de.van.forEach(function (ph, j) {
       var chu = dienVan(ph.s, de.dk);
@@ -1412,8 +1421,14 @@ function veMuc3() {
     });
     html += '<div class="de-box" id="de-item-' + i + '">' +
       '<div class="de-van">' + van + '</div>' +
-      '<div class="de-hd">Điền <b>HIỆU</b> vào ô trong đoạn cam · điền <b>TỔNG</b> vào ngoặc tím, rồi bấm Kiểm tra:</div>' +
-      veDeDien(i) +
+      '<div class="de-hd">Kéo hai dữ kiện số vào sơ đồ: <b>HIỆU</b> vào đoạn cam · <b>TỔNG</b> vào ngoặc tím.</div>' +
+      '<div class="san-bai" id="san-bai-' + i + '">' +
+        '<div class="san-keo"><span class="nhan">Dữ kiện để kéo:</span>' +
+          '<span class="keo" id="san-keo-' + i + '-h" draggable="true" data-gia="' + s.hieu + '" data-loai="hieu" data-txt="HIỆU ' + s.hieu + '">HIỆU ' + s.hieu + '</span>' +
+          '<span class="keo" id="san-keo-' + i + '-t" draggable="true" data-gia="' + s.tong + '" data-loai="tong" data-txt="TỔNG ' + s.tong + '">TỔNG ' + s.tong + '</span>' +
+        '</div>' +
+        veDeDien(i) +
+      '</div>' +
       '<div class="sd2-row"><button class="btn pri" id="de-btn-' + i + '">Kiểm tra</button>' +
       '<span class="cap" id="san-kq-' + i + '"></span></div>' +
       '<div id="san-ved-' + i + '"></div>' +
@@ -1422,10 +1437,7 @@ function veMuc3() {
   g.innerHTML = html;
   DE.forEach(function (de, i) {
     document.getElementById('de-btn-' + i).onclick = function () { kiemSan(i); };
-    ['de-' + i + '-hieu', 'de-' + i + '-tong'].forEach(function (id) {
-      var el = document.getElementById(id);
-      el.onkeydown = function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); kiemSan(i); } };
-    });
+    ganKeoTha('san-bai-' + i, function (el) { sanTha(i, el); });
   });
 }
 // Sơ đồ hình dáng vẽ sẵn theo tỉ lệ thật: ô GÕ HIỆU nằm TRONG đoạn cam (dưới cam có ngoặc chú
@@ -1435,10 +1447,70 @@ function veDeDien(i) {
   var k = kichThuoc({ dai: 1, le: String(s.hieu), gao: String(s.tong), be: s.be, lon: s.lon });
   var t = de.ten || ['số bé', 'số lớn'];
   return soDo2({
-    P: k.P, dai: 1, lech: true, ten0: t[0], ten1: t[1], so: k.so,
-    hieuO: '<input class="slot" id="de-' + i + '-hieu" type="number" aria-label="Điền HIỆU">',
-    tongO: 'TỔNG <input class="slot" id="de-' + i + '-tong" type="number" aria-label="Điền TỔNG">'
+    P: k.P, dai: 1, lech: true, ten0: t[0], ten1: t[1], so: null,
+    hieuO: '<span class="drop" id="de-' + i + '-hieu" data-loai="hieu" data-dap="' + s.hieu + '">?</span>',
+    tongO: 'TỔNG <span class="drop" id="de-' + i + '-tong" data-loai="tong" data-dap="' + s.tong + '">?</span>'
   });
+}
+
+function sanTha(i, el) {
+  var keo = KEO, cap = document.getElementById('san-kq-' + i);
+  if (!keo || !el || el.classList.contains('ok')) return;
+  if (String(keo.gia) !== el.getAttribute('data-dap')) {
+    rungVaBao(el, cap, el.getAttribute('data-loai') === 'hieu'
+      ? '✕ Đây là ô HIỆU — kéo thẻ HIỆU, tức phần hơn hoặc phần lệch.'
+      : '✕ Đây là ô TỔNG — kéo thẻ TỔNG, tức số của cả hai gộp lại.');
+    return;
+  }
+  thaDung(el, keo, cap);
+  var box = document.getElementById('san-bai-' + i);
+  if (box.querySelectorAll('.drop.ok').length === 2) {
+    cap.innerHTML = '✓ Đã đặt đúng TỔNG và HIỆU. Tiếp theo, kéo dữ kiện vào hai công thức.';
+    cap.className = 'cap ok';
+    moCongThuc(i);
+  }
+}
+
+function moCongThuc(i) {
+  var de = DE[i], s = doiSo(de.dk), host = document.getElementById('san-ved-' + i);
+  if (!host || host.querySelector('.san-f-wrap')) return;
+  function dong(row, nhan, dau, ketQua, ten) {
+    return '<div class="san-f-row" id="san-f-' + i + '-' + row + '">' +
+      '<div class="san-f-eq"><span class="nhan">' + nhan + ' = (</span>' +
+      '<span class="keo" id="san-f-keo-' + i + '-' + row + '-t" draggable="true" data-gia="' + s.tong + '" data-loai="tong" data-txt="TỔNG ' + s.tong + '">TỔNG ' + s.tong + '</span>' +
+      '<span class="drop" id="san-f-' + i + '-' + row + '-t" data-loai="tong" data-dap="' + s.tong + '">?</span>' +
+      '<b>' + dau + '</b>' +
+      '<span class="keo" id="san-f-keo-' + i + '-' + row + '-h" draggable="true" data-gia="' + s.hieu + '" data-loai="hieu" data-txt="HIỆU ' + s.hieu + '">HIỆU ' + s.hieu + '</span>' +
+      '<span class="drop" id="san-f-' + i + '-' + row + '-h" data-loai="hieu" data-dap="' + s.hieu + '">?</span>) ÷ 2</div>' +
+      '<div class="san-f-result" id="san-f-kq-' + i + '-' + row + '">Kéo đủ TỔNG và HIỆU vào công thức.</div></div>';
+  }
+  host.innerHTML = '<div class="san-f-wrap"><b>Kéo tiếp dữ kiện vào công thức để tìm hai số:</b>' +
+    dong('be', 'SỐ BÉ', '−', s.be, 'bé') + dong('lon', 'SỐ LỚN', '+', s.lon, 'lớn') + '</div>';
+  ['be', 'lon'].forEach(function (row) {
+    ganKeoTha('san-f-' + i + '-' + row, function (el) { sanFormulaTha(i, row, el); });
+  });
+}
+
+function sanFormulaTha(i, row, el) {
+  var keo = KEO, cap = document.getElementById('san-kq-' + i);
+  if (!keo || !el || el.classList.contains('ok')) return;
+  if (String(keo.gia) !== el.getAttribute('data-dap')) {
+    rungVaBao(el, cap, '✕ Kéo đúng số vào chỗ tương ứng: TỔNG vào ô trước dấu, HIỆU vào ô sau dấu.');
+    return;
+  }
+  thaDung(el, keo, cap);
+  var root = document.getElementById('san-f-' + i + '-' + row);
+  if (root.querySelectorAll('.drop.ok').length !== 2) return;
+  var s = doiSo(DE[i].dk), value = row === 'be' ? s.be : s.lon;
+  root.classList.add('done');
+  document.getElementById('san-f-kq-' + i + '-' + row).innerHTML =
+    '✓ ' + (row === 'be' ? 'Số bé' : 'Số lớn') + ' = (' + s.tong + ' ' + (row === 'be' ? '−' : '+') + ' ' + s.hieu + ') ÷ 2 = <b>' + value + '</b>' + (DE[i].dv ? ' ' + DE[i].dv : '');
+  var all = document.querySelectorAll('#san-ved-' + i + ' .san-f-row.done').length === 2;
+  if (all) {
+    cap.innerHTML = '✓ Hoàn thành: em đã kéo dữ kiện vào sơ đồ và cả hai công thức.';
+    cap.className = 'cap ok';
+    document.getElementById('de-item-' + i).classList.add('ok');
+  }
 }
 
 // Bấm chữ in đậm → chỉ GỢI Ý, không tự điền số. Bé phải tự tính rồi tự gõ.
@@ -1453,25 +1525,21 @@ function goiY(i, j) {
 
 function kiemSan(i) {
   var de = DE[i], s = doiSo(de.dk);
-  var okT = Number(giaTri('de-' + i + '-tong')) === s.tong;
-  var okH = Number(giaTri('de-' + i + '-hieu')) === s.hieu;
-  datClass('de-' + i + '-tong', okT);
-  datClass('de-' + i + '-hieu', okH);
+  var okT = document.getElementById('de-' + i + '-tong').classList.contains('ok');
+  var okH = document.getElementById('de-' + i + '-hieu').classList.contains('ok');
   var kq = document.getElementById('san-kq-' + i);
   if (okT && okH) {
     kq.className = 'cap ok';
-    kq.innerHTML = '✓ Săn được cả TỔNG = ' + s.tong + ' và HIỆU = ' + s.hieu + '. Sơ đồ và lời giải đây:';
-    document.getElementById('san-ved-' + i).innerHTML =
-      veSoDo({ dai: 1, le: String(s.hieu), gao: String(s.tong), be: s.be, lon: s.lon }, 'số bé', 'số lớn') +
-      '<div class="cap">Số bé = (' + s.tong + ' − ' + s.hieu + ') ÷ 2 = <b>' + s.be + '</b> · Số lớn = (' + s.tong + ' + ' + s.hieu + ') ÷ 2 = <b>' + s.lon + '</b>' + (de.dv ? ' ' + de.dv : '') + '</div>';
+    kq.innerHTML = '✓ Săn được cả TỔNG và HIỆU. Kéo tiếp hai số vào công thức.';
+    moCongThuc(i);
     document.getElementById('de-item-' + i).classList.add('ok');
   } else {
     kq.className = 'cap bad';
     kq.innerHTML = '✕ ' + (!okT && !okH
-      ? 'cả hai ô chưa đúng — bấm từng chữ in đậm trong đề để nghe gợi ý, rồi tính lại.'
+      ? 'cả hai dữ kiện chưa được kéo đúng — hãy kéo thẻ HIỆU vào đoạn cam và thẻ TỔNG vào ngoặc tím.'
       : !okT
-        ? 'TỔNG chưa đúng — tìm chữ báo CẢ HAI (đừng quên đổi trung bình cộng, chu vi, "sau .. năm").'
-        : 'HIỆU chưa đúng — tìm chữ báo phần LỆCH (nhớ đổi số cho, số liên tiếp).');
+        ? 'TỔNG chưa đúng — kéo đúng thẻ TỔNG vào ngoặc tím.'
+        : 'HIỆU chưa đúng — kéo đúng thẻ HIỆU vào đoạn cam.');
     document.getElementById('de-item-' + i).classList.remove('ok');
   }
 }
@@ -2398,7 +2466,8 @@ function tuKiem() {
   var ten0 = document.getElementById('tu-0-ten0');
   if (ten0 && ten0.closest('.lech')) err.push('Ô kéo tên rơi vào đoạn cam — tên phải ở đầu đoạn thẳng');
   n++;
-  if (document.querySelectorAll('#de-list .lech .slot').length !== DE.length) err.push('Mục 3: mỗi đoạn cam phải có ô điền số HIỆU');
+  if (document.querySelectorAll('#de-list .lech .drop').length !== DE.length) err.push('Mục 3: mỗi đoạn cam phải có ô kéo số HIỆU');
+  if (document.querySelectorAll('#de-list .ngoac .drop').length !== DE.length) err.push('Mục 3: mỗi ngoặc tím phải có ô kéo số TỔNG');
   n++;
   // MỤC 4: mỗi bước phải là sơ đồ như mọi bước khác — cam chứa số, ngoặc HIỆU ôm đúng cam,
   // và ở B1·B2 các thanh cột 1 phải dài ĐÚNG BẰNG nhau.
