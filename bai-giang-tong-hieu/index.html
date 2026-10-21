@@ -484,13 +484,8 @@
         <p class="hint">Máy cắt thanh tự chạy B1 → B4 khi em cuộn tới — mỗi bước một hình, hiển thị dần dần. Muốn xem lại thì bấm từng nút.</p>
       </div>
     </div>
-    <div class="step-cap" id="may-cap">Bấm <b>B1</b> để bắt đầu. Số của máy: TỔNG 120 · HIỆU 20.</div>
-    <div class="may-steps">
-      <button class="btn" data-b="1">B1 · Vẽ hai thanh</button>
-      <button class="btn" data-b="2">B2 · Cắt phần hơn</button>
-      <button class="btn" data-b="3">B3 · Chia đôi</button>
-      <button class="btn" data-b="4">B4 · Ghép lại số lớn</button>
-    </div>
+    <div class="step-cap" id="may-cap">Máy sẽ tự giải thích từng bước. Số của máy: TỔNG 120 · HIỆU 20.</div>
+    <div class="may-steps" aria-live="polite">Em chỉ cần nhìn và nghe: máy tự vẽ, cắt phần HIỆU, ghép hai thanh bằng nhau rồi tìm số bé.</div>
     <div id="may-board"></div>
     <div id="may-ket" class="hidden">
       <div class="congthuc">
@@ -1726,15 +1721,18 @@ function kiemSan(i) {
    MỤC 4 — MÁY CẮT THANH
    ===================================================================== */
 var may = { t: 120, h: 20, b: 0 };
-// Mỗi bấm một nút chỉ hiện ĐÚNG một bước của máy — không trút hết một lượt.
+// Máy tự chạy từng bước; không bắt bé phải bấm để xem lời giải.
 function veMay() {
   var s = doiSo({ tong: may.t, hieu: may.h });
   var board = document.getElementById('may-board'), cap = document.getElementById('may-cap');
   var ket = document.getElementById('may-ket');
   if (may.b === 0) {
     board.innerHTML = '';
-    ket.classList.add('hidden');
-    cap.innerHTML = 'Máy sẽ tự chạy từng bước B1 → B4 khi em cuộn tới. Số của máy: TỔNG ' + may.t + ' · HIỆU ' + may.h + '.';
+    ket.classList.remove('hidden');
+    document.getElementById('ct-be-f').innerText = '(' + may.t + ' − ' + may.h + ') ÷ 2 = ' + s.be;
+    document.getElementById('ct-lon-f').innerText = '(' + may.t + ' + ' + may.h + ') ÷ 2 = ' + s.lon;
+    document.getElementById('may-lenh').innerHTML = '<b>Nhớ công thức:</b> lấy TỔNG trừ HIỆU rồi chia 2 để tìm SỐ BÉ; lấy TỔNG cộng HIỆU rồi chia 2 để tìm SỐ LỚN.';
+    cap.innerHTML = 'Máy sẽ tự giải thích từng bước: cắt HIỆU, ghi TỔNG − HIỆU, nhập hai thanh bằng nhau thành 2 × SỐ BÉ rồi tìm SỐ LỚN. Số của máy: TỔNG ' + may.t + ' · HIỆU ' + may.h + '.';
     return;
   }
   document.getElementById('ct-be-f').innerText = '(' + may.t + ' − ' + may.h + ') ÷ 2' + (s.be == null ? '' : ' = ' + s.be);
@@ -1755,22 +1753,22 @@ function veMay() {
     document.getElementById('ct-be').classList.remove('on');
     document.getElementById('ct-lon').classList.remove('on');
   } else if (may.b === 2) {
-    html = soDoCot({ cw: cw, tongO: 'TỔNG mới = ' + (may.t - may.h), rows: [
+    html = soDoCot({ cw: cw, tongO: 'TỔNG − HIỆU = ' + may.t + ' − ' + may.h + ' = ' + (may.t - may.h), rows: [
       { ten: 'thanh 1' }, { ten: 'thanh 2', b2: true },
       { ten: '✂️ cắt ra', thanh: false, cam: camSo }
     ] });
-    cap.innerHTML = 'B2 · Cắt đoạn HIỆU = ' + may.h + ' ra khỏi thanh dài. TỔNG mới = ' +
-      may.t + ' − ' + may.h + ' = <b>' + (may.t - may.h) + '</b> — hai thanh còn lại <b>bằng nhau</b>.';
-    ket.classList.add('hidden');
+    cap.innerHTML = 'B2 · Cắt đoạn HIỆU = ' + may.h + ' ra khỏi thanh dài. Phía TỔNG ghi <b>TỔNG − HIỆU = ' +
+      may.t + ' − ' + may.h + ' = ' + (may.t - may.h) + '</b> — hai thanh còn lại <b>bằng nhau</b>.';
+    ket.classList.remove('hidden');
     document.getElementById('ct-be').classList.add('on');
     document.getElementById('ct-lon').classList.remove('on');
   } else if (may.b === 3) {
     html = soDoCot({ rows: [
       { ten: 'chia đôi', o: '<span class="doi"><span class="bar"><span class="so">' + s.be + '</span></span>' +
         '<span class="bar b2"><span class="so">' + s.be + '</span></span></span>' }
-    ] });
-    cap.innerHTML = 'B3 · Chia đôi ' + (may.t - may.h) + ' ⇒ mỗi nửa = <b>' + s.be + '</b> = SỐ BÉ. Đây là vì sao phải chia 2.';
-    ket.classList.add('hidden');
+    ], tongO: 'TỔNG − HIỆU = ' + (may.t - may.h) + ' = 2 × SỐ BÉ' });
+    cap.innerHTML = 'B3 · Hai thanh còn lại bằng nhau nên nhập thành <b>2 × SỐ BÉ</b>. Vì vậy SỐ BÉ = (TỔNG − HIỆU) ÷ 2 = <b>' + s.be + '</b>.';
+    ket.classList.remove('hidden');
     document.getElementById('ct-be').classList.add('on');
   } else {
     html = soDoCot({ cw: cw, rows: [
@@ -2669,7 +2667,7 @@ function tuKiem() {
     may.b = b; veMay();
     var hb = document.getElementById('may-board').innerHTML;
     kiemSoDo('Mục 4 B' + b, hb, { so: true });
-    if (b === 2 && hb.indexOf('TỔNG mới') < 0) err.push('Mục 4 B2: thiếu TỔNG mới = hai thanh bằng nhau');
+    if (b === 2 && hb.indexOf('TỔNG − HIỆU') < 0) err.push('Mục 4 B2: thiếu TỔNG − HIỆU = hai thanh bằng nhau');
     if (b !== 4) {
       var bars = document.querySelectorAll('#may-board .lech-cot .bar'), w0 = -1;
       for (var q = 0; q < bars.length; q++) {
@@ -3107,14 +3105,6 @@ function khoiDong() {
       may.b += 1; veMay();
       mayTimer = setTimeout(tick, 2400);
     }, 600);
-  }
-  var st = document.querySelectorAll('[data-b]');
-  for (var j = 0; j < st.length; j++) {
-    st[j].onclick = function () {
-      mayThoai = true;
-      if (mayTimer) { clearTimeout(mayTimer); mayTimer = null; }
-      may.b = Number(this.getAttribute('data-b')); veMay();
-    };
   }
   // Tự chạy khi mục 4 vào tầm nhìn: IntersectionObserver + dự phòng cuộn.
   var muc4El = document.getElementById('muc-4');
