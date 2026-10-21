@@ -216,6 +216,12 @@
   .san-f-eq { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-weight: 900; }
   .san-f-eq .drop { min-width: 70px; }
   .san-f-result { margin-top: 6px; font-size: 15px; font-weight: 900; color: var(--green); }
+  .san-locked .drop.ok { pointer-events: none; opacity: .9; }
+  .san-answer { margin-top: 12px; padding: 10px; border: 2px solid var(--purple); border-radius: 12px; background: #fff; }
+  .san-answer-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+  .san-answer input { width: 82px; min-height: 36px; border: 2px solid var(--blue); border-radius: 8px; text-align: center; font: 900 16px inherit; }
+  .san-answer input.ok { border-color: var(--green); background: #F3FBF6; }
+  .san-answer input.bad { border-color: var(--red); background: #FDF2F2; }
   #de-list .sodo { align-items: center; }
   #de-list .khol { max-width: 400px; }
   .de-van { font-size: 17px; font-weight: 800; line-height: 1.9; margin-bottom: 8px; }
@@ -843,37 +849,41 @@ var SD = [
 var DE = [
   {
     dk: { tong: 120, hieu: 10 }, dv: 'lít', ten: ['thùng bé', 'thùng to'],
+    hoi: [{ label: 'thùng bé', value: 55 }, { label: 'thùng to', value: 65 }],
     van: [
       { s: 'Hai thùng có ' }, { s: 'tất cả {t} lít', loai: 'tong', slot: 't', ly: 'Gộp hai thùng ⇒ TỔNG.' },
-      { s: '. Thùng to ' }, { s: 'nhiều hơn', loai: 'nhan' },
-      { s: ' thùng bé ' }, { s: '{h} lít', loai: 'hieu', slot: 'h', ly: 'Phần lệch ⇒ HIỆU.' },
+      { s: '. ' }, { s: 'Thùng to', loai: 'ten', slot: 'ten1' }, { s: ' ' }, { s: 'nhiều hơn', loai: 'nhan' },
+      { s: ' ' }, { s: 'thùng bé', loai: 'ten', slot: 'ten0' }, { s: ' ' }, { s: '{h} lít', loai: 'hieu', slot: 'h', ly: 'Phần lệch ⇒ HIỆU.' },
       { s: '. Hỏi ' }, { s: 'mỗi thùng', loai: 'ruh', ly: 'Đó là câu hỏi, không phải một con số.' },
       { s: ' bao nhiêu lít?' }
     ]
   },
   {
     dk: { tb: 45, hieu: 8 }, dv: 'đơn vị', ten: ['số bé', 'số lớn'],
+    hoi: [{ label: 'số bé', value: 41 }, { label: 'số lớn', value: 49 }],
     van: [
       { s: 'Trung bình cộng của hai số là ' }, { s: '{tb}', loai: 'mid', slot: 't', ly: 'Chưa phải TỔNG: phải nhân đôi.' },
-      { s: '. Số lớn ' }, { s: 'hơn', loai: 'nhan' },
-      { s: ' số bé ' }, { s: '{h} đơn vị', loai: 'hieu', slot: 'h', ly: 'Phần lệch ⇒ HIỆU.' },
+      { s: '. ' }, { s: 'Số lớn', loai: 'ten', slot: 'ten1' }, { s: ' ' }, { s: 'hơn', loai: 'nhan' },
+      { s: ' ' }, { s: 'số bé', loai: 'ten', slot: 'ten0' }, { s: ' ' }, { s: '{h} đơn vị', loai: 'hieu', slot: 'h', ly: 'Phần lệch ⇒ HIỆU.' },
       { s: '. Tìm ' }, { s: 'hai số', loai: 'ruh', ly: 'Câu hỏi, không phải dữ kiện.' },
       { s: '.' }
     ]
   },
   {
     dk: { tong: 60, cho: 6 }, dv: 'viên bi', ten: ['Bình', 'An'],
+    hoi: [{ label: 'Bình', value: 24 }, { label: 'An', value: 36 }],
     van: [
       { s: 'Cả hai bạn có ' }, { s: '{t} viên bi', loai: 'tong', slot: 't', ly: 'Gộp hai bạn ⇒ TỔNG.' },
-      { s: '. An ' }, { s: 'cho Bình {cho} viên', loai: 'mid', slot: 'h', ly: 'Chưa phải HIỆU: hiệu gấp đôi số cho.' },
+      { s: '. ' }, { s: 'An', loai: 'ten', slot: 'ten1' }, { s: ' ' }, { s: 'cho ' }, { s: 'Bình', loai: 'ten', slot: 'ten0' }, { s: ' {cho} viên', loai: 'mid', slot: 'h', ly: 'Chưa phải HIỆU: hiệu gấp đôi số cho.' },
       { s: ' thì ' }, { s: 'bằng nhau', loai: 'nhan' },
       { s: '. Hỏi An có bao nhiêu viên? ' }, { s: '{cho} viên', loai: 'ruh', ly: 'Đó là số cho, không phải số hơn nhau.' }
     ]
   },
   {
     dk: { hieu: 28, tongSau: 60, namSau: 3 }, dv: 'tuổi', ten: ['con', 'mẹ'],
+    hoi: [{ label: 'con', value: 13 }, { label: 'mẹ', value: 41 }],
     van: [
-      { s: 'Mẹ ' }, { s: 'hơn con {h} tuổi', loai: 'hieu', slot: 'h', ly: 'Hiệu tuổi không bao giờ đổi ⇒ HIỆU.' },
+      { s: '' }, { s: 'Mẹ', loai: 'ten', slot: 'ten1' }, { s: ' ' }, { s: 'hơn ' }, { s: 'con', loai: 'ten', slot: 'ten0' }, { s: ' {h} tuổi', loai: 'hieu', slot: 'h', ly: 'Hiệu tuổi không bao giờ đổi ⇒ HIỆU.' },
       { s: '. Sau ' }, { s: '{namSau} năm nữa', loai: 'ruh', ly: 'Mỗi người lớn thêm 3 ⇒ TỔNG đổi, HIỆU giữ nguyên.' },
       { s: ', ' }, { s: 'tổng số tuổi hai mẹ con là {tongSau} tuổi', loai: 'mid', slot: 't', ly: 'Là TỔNG của 3 năm sau, chưa phải bây giờ.' },
       { s: '. Hỏi hiện nay con bao nhiêu tuổi?' }
@@ -1577,29 +1587,40 @@ function veMuc3() {
     de.van.forEach(function (ph, j) {
       var chu = dienVan(ph.s, de.dk);
       if (!ph.loai) { van += chu; return; }
-      van += '<button class="cum" id="cum-' + i + '-' + j + '" onclick="goiY(' + i + ',' + j + ')">' + chu + '</button> ';
+      if (!ph.slot || ph.loai === 'nhan' || ph.loai === 'ruh') {
+        van += '<button class="cum" id="cum-' + i + '-' + j + '" onclick="goiY(' + i + ',' + j + ')">' + chu + '</button> ';
+        return;
+      }
+      var gia, loai, txt;
+      if (ph.slot === 'ten0' || ph.slot === 'ten1') {
+        loai = 'ten';
+        gia = de.ten[ph.slot === 'ten0' ? 0 : 1];
+        txt = gia;
+      } else if (ph.slot === 't') {
+        loai = 'tong';
+        gia = s.tong;
+        txt = 'TỔNG ' + s.tong;
+      } else if (ph.slot === 'h') {
+        loai = 'hieu';
+        gia = s.hieu;
+        txt = 'HIỆU ' + s.hieu;
+      }
+      van += '<span class="keo" id="de-keo-' + i + '-' + j + '" draggable="true" data-gia="' + gia +
+        '" data-loai="' + loai + '" data-txt="' + txt + '">' + chu + '</span>';
     });
     html += '<div class="de-box" id="de-item-' + i + '">' +
       '<div class="de-van">' + van + '</div>' +
-      '<div class="de-hd">Kéo 4 thẻ vào sơ đồ: tên vào đầu thanh · <b>HIỆU</b> vào đoạn cam · <b>TỔNG</b> vào ngoặc tím.</div>' +
+      '<div class="de-hd">Kéo trực tiếp các từ và số trong đề xuống sơ đồ: tên vào đầu thanh · HIỆU vào đoạn cam · TỔNG vào ngoặc tím.</div>' +
       '<div class="san-bai" id="san-bai-' + i + '">' +
-        '<div class="san-keo"><span class="nhan">Dữ kiện để kéo:</span>' +
-          '<span class="keo" id="san-keo-' + i + '-be" draggable="true" data-gia="' + de.ten[0] + '" data-loai="ten" data-txt="' + de.ten[0] + '">' + de.ten[0] + '</span>' +
-          '<span class="keo" id="san-keo-' + i + '-lon" draggable="true" data-gia="' + de.ten[1] + '" data-loai="ten" data-txt="' + de.ten[1] + '">' + de.ten[1] + '</span>' +
-          '<span class="keo" id="san-keo-' + i + '-h" draggable="true" data-gia="' + s.hieu + '" data-loai="hieu" data-txt="HIỆU ' + s.hieu + '">HIỆU ' + s.hieu + '</span>' +
-          '<span class="keo" id="san-keo-' + i + '-t" draggable="true" data-gia="' + s.tong + '" data-loai="tong" data-txt="TỔNG ' + s.tong + '">TỔNG ' + s.tong + '</span>' +
-        '</div>' +
         veDeDien(i) +
       '</div>' +
-      '<div class="sd2-row"><button class="btn pri" id="de-btn-' + i + '">Kiểm tra</button>' +
-      '<span class="cap" id="san-kq-' + i + '"></span></div>' +
+      '<div class="sd2-row"><span class="cap" id="san-kq-' + i + '"></span></div>' +
       '<div id="san-ved-' + i + '"></div>' +
     '</div>';
   });
   g.innerHTML = html;
   DE.forEach(function (de, i) {
-    document.getElementById('de-btn-' + i).onclick = function () { kiemSan(i); };
-    ganKeoTha('san-bai-' + i, function (el) { sanTha(i, el); });
+    ganKeoTha('de-item-' + i, function (el) { sanTha(i, el); });
   });
 }
 // Sơ đồ hình dáng vẽ sẵn theo tỉ lệ thật: ô GÕ HIỆU nằm TRONG đoạn cam (dưới cam có ngoặc chú
@@ -1634,8 +1655,9 @@ function sanTha(i, el) {
   thaDung(el, keo, cap);
   var box = document.getElementById('san-bai-' + i);
   if (box.querySelectorAll('.drop.ok').length === 4) {
-    cap.innerHTML = '✓ Đã đặt đúng 2 tên, TỔNG và HIỆU. Tiếp theo, kéo dữ kiện vào hai công thức.';
+    cap.innerHTML = '✓ Sơ đồ đã đủ dữ liệu và đã khóa. Mở phần công thức bên dưới.';
     cap.className = 'cap ok';
+    box.classList.add('san-locked');
     moCongThuc(i);
   }
 }
@@ -1676,10 +1698,40 @@ function sanFormulaTha(i, row, el) {
     '✓ ' + (row === 'be' ? 'Số bé' : 'Số lớn') + ' = (' + s.tong + ' ' + (row === 'be' ? '−' : '+') + ' ' + s.hieu + ') ÷ 2 = <b>' + value + '</b>' + (DE[i].dv ? ' ' + DE[i].dv : '');
   var all = document.querySelectorAll('#san-ved-' + i + ' .san-f-row.done').length === 2;
   if (all) {
-    cap.innerHTML = '✓ Hoàn thành: em đã kéo dữ kiện vào sơ đồ và cả hai công thức.';
+    cap.innerHTML = '✓ Hoàn thành hai công thức. Em điền đáp số vào ô bên dưới.';
     cap.className = 'cap ok';
     document.getElementById('de-item-' + i).classList.add('ok');
+    moDapSo(i);
   }
+}
+
+function moDapSo(i) {
+  var host = document.getElementById('san-ved-' + i), de = DE[i];
+  if (!host || host.querySelector('.san-answer')) return;
+  var rows = de.hoi.map(function (x, j) {
+    return '<label>' + x.label + ' <input id="san-dap-' + i + '-' + j + '" type="number" inputmode="numeric" aria-label="Đáp số ' + x.label + '"></label>';
+  }).join('');
+  host.insertAdjacentHTML('beforeend', '<div class="san-answer"><b>Đáp số:</b><div class="san-answer-row">' + rows +
+    '</div><div class="cap" id="san-dap-kq-' + i + '">Điền đủ các ô để máy kiểm tra.</div></div>');
+  de.hoi.forEach(function (_, j) {
+    document.getElementById('san-dap-' + i + '-' + j).addEventListener('input', function () { kiemDapSo(i); });
+  });
+}
+
+function kiemDapSo(i) {
+  var de = DE[i], dung = true, du = true;
+  de.hoi.forEach(function (x, j) {
+    var el = document.getElementById('san-dap-' + i + '-' + j);
+    var value = el.value.trim();
+    if (!value) { du = false; el.classList.remove('ok', 'bad'); return; }
+    var ok = Number(value) === x.value;
+    el.classList.toggle('ok', ok); el.classList.toggle('bad', !ok);
+    dung = dung && ok;
+  });
+  var kq = document.getElementById('san-dap-kq-' + i);
+  if (!du) { kq.className = 'cap'; kq.textContent = 'Điền đủ các ô để máy kiểm tra.'; return; }
+  kq.className = 'cap ' + (dung ? 'ok' : 'bad');
+  kq.textContent = dung ? '✓ Đáp số đúng.' : '✕ Xem lại phép tính từ hai công thức.';
 }
 
 // Bấm chữ in đậm → chỉ GỢI Ý, không tự điền số. Bé phải tự tính rồi tự gõ.
@@ -2467,13 +2519,16 @@ function tuKiem() {
     }
     de.van.forEach(function (ph, j) {
       if (!ph.loai || ph.loai === 'nhan') return;
-      if (ph.loai !== 'tong' && ph.loai !== 'hieu' && ph.loai !== 'mid' && ph.loai !== 'ruh') {
-        err.push('Đề săn ' + (i + 1) + '.' + (j + 1) + ': nhãn loại bấm được không hợp lệ');
+      if (ph.loai !== 'tong' && ph.loai !== 'hieu' && ph.loai !== 'mid' && ph.loai !== 'ten' && ph.loai !== 'ruh') {
+        err.push('Đề săn ' + (i + 1) + '.' + (j + 1) + ': nhãn dữ kiện không hợp lệ');
       }
-      if ((ph.loai === 'tong' || ph.loai === 'hieu' || ph.loai === 'mid') && !ph.slot) {
-        err.push('Đề săn ' + (i + 1) + '.' + (j + 1) + ': ô bấm thiếu slot để đổ vào');
+      if ((ph.loai === 'tong' || ph.loai === 'hieu' || ph.loai === 'mid') && ph.slot !== 't' && ph.slot !== 'h') {
+        err.push('Đề săn ' + (i + 1) + '.' + (j + 1) + ': dữ kiện thiếu slot TỔNG/HIỆU');
       }
-      if (!ph.ly) err.push('Đề săn ' + (i + 1) + '.' + (j + 1) + ': ô bấm thiếu lý do giải thích');
+      if (ph.loai === 'ten' && ph.slot !== 'ten0' && ph.slot !== 'ten1') {
+        err.push('Đề săn ' + (i + 1) + '.' + (j + 1) + ': nhãn tên thiếu slot đầu thanh');
+      }
+      if (ph.loai !== 'ten' && !ph.ly) err.push('Đề săn ' + (i + 1) + '.' + (j + 1) + ': dữ kiện thiếu lý do giải thích');
     });
   });
 
@@ -2658,7 +2713,7 @@ function tuKiem() {
   if (document.querySelectorAll('#de-list .ten .drop').length !== DE.length * 2) err.push('Mục 3: mỗi sơ đồ phải có 2 ô kéo tên ở đầu thanh');
   if (document.querySelectorAll('#de-list .lech .drop').length !== DE.length) err.push('Mục 3: mỗi đoạn cam phải có ô kéo số HIỆU');
   if (document.querySelectorAll('#de-list .ngoac .drop').length !== DE.length) err.push('Mục 3: mỗi ngoặc tím phải có ô kéo số TỔNG');
-  if (document.querySelectorAll('#de-list .san-keo .keo').length !== DE.length * 4) err.push('Mục 3: mỗi bài phải có 2 chip tên + chip HIỆU + chip TỔNG');
+  if (document.querySelectorAll('#de-list .de-van .keo').length !== DE.length * 4) err.push('Mục 3: mỗi đề phải có 4 chip dữ liệu kéo trực tiếp từ câu chữ');
   n++;
   // MỤC 4: mỗi bước phải là sơ đồ như mọi bước khác — cam chứa số, ngoặc HIỆU ôm đúng cam,
   // và ở B1·B2 các thanh cột 1 phải dài ĐÚNG BẰNG nhau.
