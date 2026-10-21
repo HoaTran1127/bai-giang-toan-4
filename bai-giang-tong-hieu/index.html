@@ -1312,7 +1312,7 @@ function ganKeoTha(rootId, hamTha) {
     chips[i]._ganKeo = 1;
     chips[i].addEventListener('dragstart', function (ev) {
       boChonKeo(root);
-      KEO = { id: this.id, gia: this.getAttribute('data-gia'), loai: this.getAttribute('data-loai') };
+      KEO = { id: this.id, rootId: rootId, gia: this.getAttribute('data-gia'), loai: this.getAttribute('data-loai'), txt: this.getAttribute('data-txt') || this.textContent };
       toSang();
       if (ev.dataTransfer) ev.dataTransfer.setData('text/plain', KEO.gia);
     });
@@ -1321,7 +1321,7 @@ function ganKeoTha(rootId, hamTha) {
       if (KEO && KEO.id === this.id) { boChonKeo(root); tin('Đã trả thẻ về, không thả nữa.'); return; }
       var c = root.querySelector('.keo.chon');
       if (c) { c.classList.remove('chon'); c.setAttribute('aria-pressed', 'false'); }
-      KEO = { id: this.id, gia: this.getAttribute('data-gia'), loai: this.getAttribute('data-loai') };
+      KEO = { id: this.id, rootId: rootId, gia: this.getAttribute('data-gia'), loai: this.getAttribute('data-loai'), txt: this.getAttribute('data-txt') || this.textContent };
       this.classList.add('chon'); this.setAttribute('aria-pressed', 'true');
       toSang();
       var noidung = 'Đang cầm thẻ "' + this.textContent + '" — Tab tới ô sáng viền rồi bấm Enter.';
@@ -1341,12 +1341,12 @@ function ganKeoTha(rootId, hamTha) {
     drops[j].addEventListener('dragover', function (ev) { ev.preventDefault(); });
     drops[j].addEventListener('drop', function (ev) {
       ev.preventDefault();
-      if (KEO) tha(this);
+      if (KEO && KEO.rootId === rootId) tha(this);
     });
-    drops[j].addEventListener('click', function () { if (KEO) tha(this); });
+    drops[j].addEventListener('click', function () { if (KEO && KEO.rootId === rootId) tha(this); });
     drops[j].addEventListener('keydown', function (ev) {
       if (ev.key === 'Escape') {
-        if (KEO) { ev.preventDefault(); boChonKeo(root); tin('Đã trả thẻ về, không thả nữa.'); }
+        if (KEO && KEO.rootId === rootId) { ev.preventDefault(); boChonKeo(root); tin('Đã trả thẻ về, không thả nữa.'); }
         return;
       }
       if (ev.key !== 'Enter' && ev.key !== ' ' && ev.key !== 'Spacebar') return;
@@ -1366,13 +1366,13 @@ function ganKeoTha(rootId, hamTha) {
     vungs[v].addEventListener('dragover', function (ev) { ev.preventDefault(); });
     vungs[v].addEventListener('drop', function (ev) {
       ev.preventDefault();
-      if (!KEO) return;
+      if (!KEO || KEO.rootId !== rootId) return;
       if (ev.target && ev.target.closest && ev.target.closest('.drop')) return;
       var o = this.querySelector('.drop');
       if (o) tha(o);
     });
     vungs[v].addEventListener('click', function (ev) {
-      if (!KEO) return;
+      if (!KEO || KEO.rootId !== rootId) return;
       if (ev.target && ev.target.closest && ev.target.closest('.drop')) return;
       var o = this.querySelector('.drop');
       if (o) tha(o);
@@ -1402,7 +1402,7 @@ function rungVaBao(el, cap, msg) {
   baoTieng(msg);
 }
 function thaDung(el, keo, cap) {
-  el.innerHTML = keo.gia;
+  el.innerHTML = keo.loai === 'ten' ? keo.txt : keo.gia;
   el.classList.add('ok');
   el.setAttribute('aria-label', 'Ô ' + loaiTu(el.getAttribute('data-loai')) + ' đã điền ' + keo.gia + '.');
   var chipEl = document.getElementById(keo.id);
@@ -1586,9 +1586,11 @@ function veMuc3() {
     });
     html += '<div class="de-box" id="de-item-' + i + '">' +
       '<div class="de-van">' + van + '</div>' +
-      '<div class="de-hd">Kéo hai dữ kiện số vào sơ đồ: <b>HIỆU</b> vào đoạn cam · <b>TỔNG</b> vào ngoặc tím.</div>' +
+      '<div class="de-hd">Kéo 4 thẻ vào sơ đồ: tên vào đầu thanh · <b>HIỆU</b> vào đoạn cam · <b>TỔNG</b> vào ngoặc tím.</div>' +
       '<div class="san-bai" id="san-bai-' + i + '">' +
         '<div class="san-keo"><span class="nhan">Dữ kiện để kéo:</span>' +
+          '<span class="keo" id="san-keo-' + i + '-be" draggable="true" data-gia="' + de.ten[0] + '" data-loai="ten" data-txt="' + de.ten[0] + '">' + de.ten[0] + '</span>' +
+          '<span class="keo" id="san-keo-' + i + '-lon" draggable="true" data-gia="' + de.ten[1] + '" data-loai="ten" data-txt="' + de.ten[1] + '">' + de.ten[1] + '</span>' +
           '<span class="keo" id="san-keo-' + i + '-h" draggable="true" data-gia="' + s.hieu + '" data-loai="hieu" data-txt="HIỆU ' + s.hieu + '">HIỆU ' + s.hieu + '</span>' +
           '<span class="keo" id="san-keo-' + i + '-t" draggable="true" data-gia="' + s.tong + '" data-loai="tong" data-txt="TỔNG ' + s.tong + '">TỔNG ' + s.tong + '</span>' +
         '</div>' +
@@ -1611,8 +1613,11 @@ function veDeDien(i) {
   var de = DE[i], s = doiSo(de.dk);
   var k = kichThuoc({ dai: 1, le: String(s.hieu), gao: String(s.tong), be: s.be, lon: s.lon });
   var t = de.ten || ['số bé', 'số lớn'];
+  function nhan(row) {
+    return '<span class="drop" id="de-' + i + '-ten' + row + '" data-loai="ten" data-dap="' + t[row] + '">?</span>';
+  }
   return soDo2({
-    P: k.P, dai: 1, lech: true, ten0: t[0], ten1: t[1], so: null,
+    P: k.P, dai: 1, lech: true, ten0: nhan(0), ten1: nhan(1), so: null,
     hieuO: '<span class="drop" id="de-' + i + '-hieu" data-loai="hieu" data-dap="' + s.hieu + '">?</span>',
     tongO: 'TỔNG <span class="drop" id="de-' + i + '-tong" data-loai="tong" data-dap="' + s.tong + '">?</span>'
   });
@@ -1622,15 +1627,19 @@ function sanTha(i, el) {
   var keo = KEO, cap = document.getElementById('san-kq-' + i);
   if (!keo || !el || el.classList.contains('ok')) return;
   if (String(keo.gia) !== el.getAttribute('data-dap')) {
-    rungVaBao(el, cap, el.getAttribute('data-loai') === 'hieu'
-      ? '✕ Đây là ô HIỆU — kéo thẻ HIỆU, tức phần hơn hoặc phần lệch.'
-      : '✕ Đây là ô TỔNG — kéo thẻ TỔNG, tức số của cả hai gộp lại.');
+    var loai = el.getAttribute('data-loai');
+    var msg = loai === 'ten'
+      ? '✕ Tên chưa đúng — kéo đúng tên vào đầu thanh tương ứng.'
+      : loai === 'hieu'
+        ? '✕ Đây là ô HIỆU — kéo thẻ HIỆU, tức phần hơn hoặc phần lệch.'
+        : '✕ Đây là ô TỔNG — kéo thẻ TỔNG, tức số của cả hai gộp lại.';
+    rungVaBao(el, cap, msg);
     return;
   }
   thaDung(el, keo, cap);
   var box = document.getElementById('san-bai-' + i);
-  if (box.querySelectorAll('.drop.ok').length === 2) {
-    cap.innerHTML = '✓ Đã đặt đúng TỔNG và HIỆU. Tiếp theo, kéo dữ kiện vào hai công thức.';
+  if (box.querySelectorAll('.drop.ok').length === 4) {
+    cap.innerHTML = '✓ Đã đặt đúng 2 tên, TỔNG và HIỆU. Tiếp theo, kéo dữ kiện vào hai công thức.';
     cap.className = 'cap ok';
     moCongThuc(i);
   }
@@ -1649,9 +1658,9 @@ function moCongThuc(i) {
       '<span class="drop" id="san-f-' + i + '-' + row + '-h" data-loai="hieu" data-dap="' + s.hieu + '">?</span>) ÷ 2</div>' +
       '<div class="san-f-result" id="san-f-kq-' + i + '-' + row + '">Kéo đủ TỔNG và HIỆU vào công thức.</div></div>';
   }
-  host.innerHTML = '<div class="san-f-wrap"><b>Kéo tiếp dữ kiện vào công thức để tìm hai số:</b>' +
-    dong('be', 'SỐ BÉ', '−', s.be, 'bé') + dong('lon', 'SỐ LỚN', '+', s.lon, 'lớn') + '</div>';
-  ['be', 'lon'].forEach(function (row) {
+  host.innerHTML = '<div class="san-f-wrap"><b>Kéo dữ kiện đề bài vào hai dòng:</b>' +
+    dong('lon', 'SỐ LỚN', '+', s.lon, 'lớn') + dong('be', 'SỐ BÉ', '−', s.be, 'bé') + '</div>';
+  ['lon', 'be'].forEach(function (row) {
     ganKeoTha('san-f-' + i + '-' + row, function (el) { sanFormulaTha(i, row, el); });
   });
 }
@@ -1693,18 +1702,22 @@ function kiemSan(i) {
   var okT = document.getElementById('de-' + i + '-tong').classList.contains('ok');
   var okH = document.getElementById('de-' + i + '-hieu').classList.contains('ok');
   var kq = document.getElementById('san-kq-' + i);
-  if (okT && okH) {
+  var okTen0 = document.getElementById('de-' + i + '-ten0').classList.contains('ok');
+  var okTen1 = document.getElementById('de-' + i + '-ten1').classList.contains('ok');
+  if (okT && okH && okTen0 && okTen1) {
     kq.className = 'cap ok';
-    kq.innerHTML = '✓ Săn được cả TỔNG và HIỆU. Kéo tiếp hai số vào công thức.';
+    kq.innerHTML = '✓ Sơ đồ đã đủ 2 tên, TỔNG và HIỆU. Kéo tiếp dữ kiện vào hai công thức.';
     moCongThuc(i);
     document.getElementById('de-item-' + i).classList.add('ok');
   } else {
     kq.className = 'cap bad';
-    kq.innerHTML = '✕ ' + (!okT && !okH
-      ? 'cả hai dữ kiện chưa được kéo đúng — hãy kéo thẻ HIỆU vào đoạn cam và thẻ TỔNG vào ngoặc tím.'
-      : !okT
-        ? 'TỔNG chưa đúng — kéo đúng thẻ TỔNG vào ngoặc tím.'
-        : 'HIỆU chưa đúng — kéo đúng thẻ HIỆU vào đoạn cam.');
+    kq.innerHTML = '✕ ' + (!okTen0 || !okTen1
+      ? 'hãy kéo đúng hai tên vào đầu hai thanh.'
+      : !okT && !okH
+        ? 'hãy kéo thẻ HIỆU vào đoạn cam và thẻ TỔNG vào ngoặc tím.'
+        : !okT
+          ? 'TỔNG chưa đúng — kéo đúng thẻ TỔNG vào ngoặc tím.'
+          : 'HIỆU chưa đúng — kéo đúng thẻ HIỆU vào đoạn cam.');
     document.getElementById('de-item-' + i).classList.remove('ok');
   }
 }
@@ -2644,8 +2657,10 @@ function tuKiem() {
   var ten0 = document.getElementById('tu-0-ten0');
   if (ten0 && ten0.closest('.lech')) err.push('Ô kéo tên rơi vào đoạn cam — tên phải ở đầu đoạn thẳng');
   n++;
+  if (document.querySelectorAll('#de-list .ten .drop').length !== DE.length * 2) err.push('Mục 3: mỗi sơ đồ phải có 2 ô kéo tên ở đầu thanh');
   if (document.querySelectorAll('#de-list .lech .drop').length !== DE.length) err.push('Mục 3: mỗi đoạn cam phải có ô kéo số HIỆU');
   if (document.querySelectorAll('#de-list .ngoac .drop').length !== DE.length) err.push('Mục 3: mỗi ngoặc tím phải có ô kéo số TỔNG');
+  if (document.querySelectorAll('#de-list .san-keo .keo').length !== DE.length * 4) err.push('Mục 3: mỗi bài phải có 2 chip tên + chip HIỆU + chip TỔNG');
   n++;
   // MỤC 4: mỗi bước phải là sơ đồ như mọi bước khác — cam chứa số, ngoặc HIỆU ôm đúng cam,
   // và ở B1·B2 các thanh cột 1 phải dài ĐÚNG BẰNG nhau.
