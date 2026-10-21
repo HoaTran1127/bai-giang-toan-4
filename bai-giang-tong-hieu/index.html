@@ -460,10 +460,10 @@
     <div id="may-board"></div>
     <div id="may-ket" class="hidden">
       <div class="congthuc">
-        <div class="ct be" id="ct-be"><div class="lab">Cách 1 · Tìm SỐ BÉ</div><div class="f math" id="ct-be-f">(TỔNG − HIỆU) ÷ 2</div><div class="ct-why">TỔNG gồm hai số, nhưng SỐ LỚN thừa một đoạn HIỆU. Bỏ đoạn ấy đi thì còn hai phần bằng nhau; chia đôi là ra SỐ BÉ.</div></div>
-        <div class="ct" id="ct-lon"><div class="lab">Cách 2 · Tìm SỐ LỚN</div><div class="f math" id="ct-lon-f">(TỔNG + HIỆU) ÷ 2</div><div class="ct-why">Nếu ghép thêm đoạn HIỆU vào TỔNG, ta được hai phần bằng nhau theo SỐ LỚN; chia đôi là ra SỐ LỚN.</div></div>
+        <div class="ct be" id="ct-be"><div class="lab">Cách 1 · Tìm SỐ BÉ</div><div class="f math" id="ct-be-f">(TỔNG − HIỆU) ÷ 2 = ?</div><div class="ct-why">TỔNG gồm hai số, nhưng SỐ LỚN thừa một đoạn HIỆU. Bỏ đoạn ấy đi thì còn hai phần bằng nhau; chia đôi là ra SỐ BÉ.</div></div>
+        <div class="ct" id="ct-lon"><div class="lab">Cách 2 · Tìm SỐ LỚN</div><div class="f math" id="ct-lon-f">(TỔNG + HIỆU) ÷ 2 = ?</div><div class="ct-why">Nếu ghép thêm đoạn HIỆU vào TỔNG, ta được hai phần bằng nhau theo SỐ LỚN; chia đôi là ra SỐ LỚN.</div></div>
       </div>
-      <div class="note" id="may-lenh">Hai công thức đều đúng: với TỔNG 120 và HIỆU 20, số bé = (120 − 20) ÷ 2 = 50; số lớn = (120 + 20) ÷ 2 = 70.</div>
+      <div class="note" id="may-lenh">Hai công thức đều bắt đầu từ sơ đồ. Em tự tính phần còn thiếu sau khi hiểu vì sao một cách dùng phép trừ, cách kia dùng phép cộng.</div>
     </div>
   </section>
 
@@ -1628,16 +1628,15 @@ function veMay() {
   if (may.b === 0) {
     board.innerHTML = '';
     ket.classList.remove('hidden');
-    document.getElementById('ct-be-f').innerText = '(' + may.t + ' − ' + may.h + ') ÷ 2 = ' + s.be;
-    document.getElementById('ct-lon-f').innerText = '(' + may.t + ' + ' + may.h + ') ÷ 2 = ' + s.lon;
+    document.getElementById('ct-be-f').innerText = '(' + may.t + ' − ' + may.h + ') ÷ 2 = ?';
+    document.getElementById('ct-lon-f').innerText = '(' + may.t + ' + ' + may.h + ') ÷ 2 = ?';
     document.getElementById('may-lenh').innerHTML = '<b>Điều cần nhớ:</b> muốn tìm SỐ BÉ, ta bỏ phần HIỆU khỏi TỔNG rồi chia phần còn lại thành hai phần bằng nhau. Muốn tìm SỐ LỚN, ta ghép phần HIỆU vào TỔNG rồi chia đôi.';
     cap.innerHTML = 'Ta bắt đầu từ hình vẽ: TỔNG là ' + may.t + ', phần chênh nhau là ' + may.h + '. Nhìn được hai điều này thì công thức sẽ tự nhiên hơn.';
     return;
   }
-  document.getElementById('ct-be-f').innerText = '(' + may.t + ' − ' + may.h + ') ÷ 2' + (s.be == null ? '' : ' = ' + s.be);
-  document.getElementById('ct-lon-f').innerText = '(' + may.t + ' + ' + may.h + ') ÷ 2' + (s.lon == null ? '' : ' = ' + s.lon);
-  document.getElementById('may-lenh').innerHTML = '<b>Đọc kết quả:</b> (' + may.t + ' − ' + may.h + ') ÷ 2 = ' + s.be +
-    ' nên SỐ BÉ là ' + s.be + '; còn (' + may.t + ' + ' + may.h + ') ÷ 2 = ' + s.lon + ' nên SỐ LỚN là ' + s.lon + '. Kiểm tra lại: ' + s.be + ' + ' + s.lon + ' = ' + may.t + ', và ' + s.lon + ' − ' + s.be + ' = ' + may.h + '.';
+  document.getElementById('ct-be-f').innerText = '(' + may.t + ' − ' + may.h + ') ÷ 2 = ?';
+  document.getElementById('ct-lon-f').innerText = '(' + may.t + ' + ' + may.h + ') ÷ 2 = ?';
+  document.getElementById('may-lenh').innerHTML = '<b>Đến lượt em:</b> điền kết quả vào hai công thức. Sau đó tự kiểm tra bằng cách cộng hai số và trừ số lớn cho số bé.';
 
   // MỌI bước của máy vẽ bằng cùng một máy sơ đồ (soDo2 / soDoCot): thanh ngắn các bước dài
   // đúng bằng nhau, đoạn cam luôn ở CỘT 2 chứa số HIỆU, ngoặc chữ HIỆU luôn nằm ngay dưới cam.
@@ -1652,29 +1651,28 @@ function veMay() {
     document.getElementById('ct-be').classList.remove('on');
     document.getElementById('ct-lon').classList.remove('on');
   } else if (may.b === 2) {
-    html = soDoCot({ cw: cw, tongO: 'TỔNG − HIỆU = ' + may.t + ' − ' + may.h + ' = ' + (may.t - may.h), rows: [
+    html = soDoCot({ cw: cw, tongO: 'TỔNG − HIỆU', rows: [
       { ten: 'thanh 1' }, { ten: 'thanh 2', b2: true },
       { ten: '✂️ cắt ra', thanh: false, cam: camSo }
     ] });
-    cap.innerHTML = '<b>Bỏ phần chênh nhau:</b> cắt đoạn HIỆU ' + may.h + ' khỏi thanh dài. Khi đó phần còn lại của cả hai thanh là <b>' +
-      may.t + ' − ' + may.h + ' = ' + (may.t - may.h) + '</b>, và hai phần này <b>bằng nhau</b>.';
+    cap.innerHTML = '<b>Bỏ phần chênh nhau:</b> cắt đoạn HIỆU ' + may.h + ' khỏi thanh dài. Khi đó phần còn lại của cả hai thanh là <b>TỔNG − HIỆU</b>, và hai phần này <b>bằng nhau</b>.';
     ket.classList.remove('hidden');
     document.getElementById('ct-be').classList.add('on');
     document.getElementById('ct-lon').classList.remove('on');
   } else if (may.b === 3) {
     html = soDoCot({ rows: [
-      { ten: 'chia đôi', o: '<span class="doi"><span class="bar"><span class="so">' + s.be + '</span></span>' +
-        '<span class="bar b2"><span class="so">' + s.be + '</span></span></span>' }
-    ], tongO: 'TỔNG − HIỆU = ' + (may.t - may.h) + ' = 2 × SỐ BÉ' });
-    cap.innerHTML = '<b>Chia phần còn lại:</b> hai thanh bằng nhau nên ' + (may.t - may.h) + ' chính là <b>2 × SỐ BÉ</b>. Vì vậy SỐ BÉ = (' + may.t + ' − ' + may.h + ') ÷ 2 = <b>' + s.be + '</b>.';
+      { ten: 'chia đôi', o: '<span class="doi"><span class="bar"><span class="so">?</span></span>' +
+        '<span class="bar b2"><span class="so">?</span></span></span>' }
+    ], tongO: 'TỔNG − HIỆU = 2 × SỐ BÉ' });
+    cap.innerHTML = '<b>Chia phần còn lại:</b> hai thanh bằng nhau nên <b>TỔNG − HIỆU = 2 × SỐ BÉ</b>. Vì vậy SỐ BÉ = (TỔNG − HIỆU) ÷ 2. Em tự tính kết quả.';
     ket.classList.remove('hidden');
     document.getElementById('ct-be').classList.add('on');
   } else {
     html = soDoCot({ cw: cw, rows: [
-      { ten: 'số lớn', b2: true, so: s.lon, span: true },
-      { ten: 'số bé', so: s.be, cam: camSo }
+      { ten: 'số lớn', b2: true, so: '?', span: true },
+      { ten: 'số bé', so: '?', cam: camSo }
     ], tongO: 'TỔNG ' + may.t });
-    cap.innerHTML = '<b>Tìm phần lớn hơn:</b> ghép lại đoạn HIỆU ' + may.h + ' vào SỐ BÉ: ' + s.be + ' + ' + may.h + ' = <b>' + s.lon + '</b>. Đó là SỐ LỚN.';
+    cap.innerHTML = '<b>Tìm phần lớn hơn:</b> ghép đoạn HIỆU ' + may.h + ' vào SỐ BÉ: <b>SỐ LỚN = SỐ BÉ + HIỆU</b>. Em tự tính số còn thiếu.';
     ket.classList.remove('hidden');
     document.getElementById('ct-be').classList.remove('on');
     document.getElementById('ct-lon').classList.add('on');
@@ -1705,7 +1703,7 @@ function moDang(i) {
   if (!it.dk) {
     box.innerHTML = '<div class="cap" style="text-align:left">Ví dụ: <b>số lớn gấp 1,5 lần số bé</b>, tổng hai số là <b>50</b>. Đổi 1,5 thành <b>3/2</b>: số bé gồm 2 phần, số lớn gồm 3 phần. Vậy cả hai là 5 phần; trước hết tìm 1 phần, rồi suy ra từng số. Bài này không có đoạn lệch nên không dùng công thức Tổng − Hiệu.</div>' +
       vePhan(2, 3) +
-      '<div class="ti-le-bai"><b>Em thử làm:</b> 1 phần = 50 ÷ (2 + 3) = 10. Hãy điền số bé và số lớn.' +
+      '<div class="ti-le-bai"><b>Em thử làm:</b> 1 phần = 50 ÷ (2 + 3) = ?. Hãy điền số bé và số lớn.' +
       '<div class="ti-le-row"><label for="gap15-be">Số bé</label><input id="gap15-be" type="number" inputmode="numeric" aria-label="Số bé trong bài gấp một phẩy năm lần">' +
       '<label for="gap15-lon">Số lớn</label><input id="gap15-lon" type="number" inputmode="numeric" aria-label="Số lớn trong bài gấp một phẩy năm lần">' +
       '<button class="btn pri" type="button" onclick="kiemTraGap15()">Kiểm tra</button></div><div id="gap15-kq" class="ti-le-kq"></div></div>';
