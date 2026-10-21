@@ -45,7 +45,7 @@
   }
   .title { font-size: 30px; font-weight: 900; color: var(--blue); line-height: 1.2; }
   .subtitle { font-size: 17px; font-weight: 700; color: var(--ink); margin-top: 6px; }
-  .card { background: var(--white); border: 2px solid var(--line); border-radius: 20px; padding: 22px; box-shadow: 0 4px 12px rgba(46,42,36,.05); }
+  .card { background: var(--white); border: 2px solid var(--line); border-radius: 20px; padding: 22px; box-shadow: 0 4px 12px rgba(46,42,36,.05); scroll-margin-top: 82px; }
   .card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--line); }
   .num {
     width: 42px; height: 42px; border-radius: 12px; background: var(--blue); color: #fff; font-weight: 900; font-size: 21px;
@@ -209,6 +209,12 @@
   .ct .f { font-size: 21px; font-weight: 900; color: var(--blue); margin-top: 4px; }
   .ct.be .f { color: var(--teal); }
   .ct.on { box-shadow: 0 0 0 4px #FEF3C7; }
+  .ct-why { margin-top: 7px; font-size: 14px; line-height: 1.45; font-weight: 800; color: #6B6152; }
+  .ti-le-bai { margin-top: 10px; padding: 10px 12px; border: 2px solid var(--purple); border-radius: 12px; background: #fff; }
+  .ti-le-bai .ti-le-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+  .ti-le-bai input { width: 92px; min-height: 42px; border: 2px solid var(--line); border-radius: 10px; padding: 6px 8px; font: 900 17px inherit; text-align: center; }
+  .ti-le-bai input:focus { outline: none; border-color: var(--purple); }
+  .ti-le-kq { margin-top: 8px; font-weight: 900; min-height: 22px; }
 
   /* ---------- MỤC 5: THẺ DẠNG ---------- */
   .card-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; }
@@ -425,7 +431,7 @@
       <div class="num red">4</div>
       <div>
         <h2 class="h2 red">TỪ SƠ ĐỒ RA CÔNG THỨC — VÌ SAO PHẢI CHIA 2</h2>
-        <p class="hint">Máy cắt thanh tự chạy B1 → B4 khi em cuộn tới — mỗi bước một hình, hiển thị dần dần. Muốn xem lại thì bấm từng nút.</p>
+        <p class="hint">Máy cắt thanh tự chạy B1 → B4 khi em cuộn tới. Hai cách tính số bé và số lớn luôn hiện bên dưới để em đối chiếu, không cần bấm nút.</p>
       </div>
     </div>
     <div class="step-cap" id="may-cap">Bấm <b>B1</b> để bắt đầu. Số của máy: TỔNG 120 · HIỆU 20.</div>
@@ -438,10 +444,10 @@
     <div id="may-board"></div>
     <div id="may-ket" class="hidden">
       <div class="congthuc">
-        <div class="ct be" id="ct-be"><div class="lab">Số bé</div><div class="f math" id="ct-be-f">(TỔNG − HIỆU) ÷ 2</div></div>
-        <div class="ct" id="ct-lon"><div class="lab">Số lớn</div><div class="f math" id="ct-lon-f">(TỔNG + HIỆU) ÷ 2</div></div>
+        <div class="ct be" id="ct-be"><div class="lab">Cách 1 · Tìm số bé trước</div><div class="f math" id="ct-be-f">(TỔNG − HIỆU) ÷ 2</div><div class="ct-why">Bớt phần hơn ra khỏi TỔNG thì còn hai phần bằng nhau; chia 2 được SỐ BÉ.</div></div>
+        <div class="ct" id="ct-lon"><div class="lab">Cách 2 · Tìm số lớn trước</div><div class="f math" id="ct-lon-f">(TỔNG + HIỆU) ÷ 2</div><div class="ct-why">Gộp thêm phần HIỆU vào TỔNG để có hai phần của SỐ LỚN; chia 2 được SỐ LỚN.</div></div>
       </div>
-      <div class="note" id="may-lenh"></div>
+      <div class="note" id="may-lenh">Hai công thức đều đúng: với TỔNG 120 và HIỆU 20, số bé = (120 − 20) ÷ 2 = 50; số lớn = (120 + 20) ÷ 2 = 70.</div>
     </div>
   </section>
 
@@ -864,7 +870,7 @@ var DANG = [
     van: 'Chu vi một hình chữ nhật là {chuVi} m. Chiều dài hơn chiều rộng {h} m. Hỏi chiều dài.'
   },
   {
-    ico: '🚧', t: 'BẪY · "GẤP 3 LẦN" KHÔNG PHẢI TỔNG – HIỆU', dau: 'gấp .. lần · bằng .. phần',
+    ico: '🚧', t: 'BẪY · "GẤP 1,5 LẦN" KHÔNG PHẢI TỔNG – HIỆU', dau: 'gấp .. lần · bằng .. phần',
     mat: 'Chữ "lần" báo toán TỔNG – TỈ: vẽ phần bằng nhau, không có ô lệch.',
     dk: null, dv: '',
     van: ''
@@ -1162,14 +1168,14 @@ function ganKeoTha(rootId, hamTha) {
   for (var i = 0; i < chips.length; i++) {
     chips[i].addEventListener('dragstart', function (ev) {
       var c = root.querySelector('.keo.chon'); if (c) c.classList.remove('chon');
-      KEO = { id: this.id, gia: this.getAttribute('data-gia'), loai: this.getAttribute('data-loai') };
+      KEO = { id: this.id, rootId: rootId, gia: this.getAttribute('data-gia'), loai: this.getAttribute('data-loai') };
       if (ev.dataTransfer) ev.dataTransfer.setData('text/plain', KEO.gia);
     });
     chips[i].addEventListener('dragend', function () { boChonKeo(root); });
     chips[i].addEventListener('click', function () {
       if (KEO && KEO.id === this.id) { boChonKeo(root); return; }
       var c = root.querySelector('.keo.chon'); if (c) c.classList.remove('chon');
-      KEO = { id: this.id, gia: this.getAttribute('data-gia'), loai: this.getAttribute('data-loai') };
+      KEO = { id: this.id, rootId: rootId, gia: this.getAttribute('data-gia'), loai: this.getAttribute('data-loai') };
       this.classList.add('chon');
     });
   }
@@ -1178,7 +1184,7 @@ function ganKeoTha(rootId, hamTha) {
     drops[j].addEventListener('dragover', function (ev) { ev.preventDefault(); });
     drops[j].addEventListener('drop', function (ev) {
       ev.preventDefault();
-      if (KEO) hamTha(this);
+      if (KEO && KEO.rootId === rootId) hamTha(this);
     });
     drops[j].addEventListener('click', function () { if (KEO) hamTha(this); });
   }
@@ -1189,13 +1195,13 @@ function ganKeoTha(rootId, hamTha) {
     vungs[v].addEventListener('dragover', function (ev) { ev.preventDefault(); });
     vungs[v].addEventListener('drop', function (ev) {
       ev.preventDefault();
-      if (!KEO) return;
+      if (!KEO || KEO.rootId !== rootId) return;
       if (ev.target && ev.target.closest && ev.target.closest('.drop')) return;
       var o = this.querySelector('.drop');
       if (o) hamTha(o);
     });
     vungs[v].addEventListener('click', function (ev) {
-      if (!KEO) return;
+      if (!KEO || KEO.rootId !== rootId) return;
       if (ev.target && ev.target.closest && ev.target.closest('.drop')) return;
       var o = this.querySelector('.drop');
       if (o) hamTha(o);
@@ -1481,7 +1487,10 @@ function veMay() {
   var ket = document.getElementById('may-ket');
   if (may.b === 0) {
     board.innerHTML = '';
-    ket.classList.add('hidden');
+    ket.classList.remove('hidden');
+    document.getElementById('ct-be-f').innerText = '(' + may.t + ' − ' + may.h + ') ÷ 2 = ' + s.be;
+    document.getElementById('ct-lon-f').innerText = '(' + may.t + ' + ' + may.h + ') ÷ 2 = ' + s.lon;
+    document.getElementById('may-lenh').innerHTML = '<b>Nhớ công thức:</b> lấy TỔNG trừ HIỆU rồi chia 2 để tìm SỐ BÉ; lấy TỔNG cộng HIỆU rồi chia 2 để tìm SỐ LỚN.';
     cap.innerHTML = 'Máy sẽ tự chạy từng bước B1 → B4 khi em cuộn tới. Số của máy: TỔNG ' + may.t + ' · HIỆU ' + may.h + '.';
     return;
   }
@@ -1499,7 +1508,7 @@ function veMay() {
   if (may.b === 1) {
     html = soDo2({ P: k.P, dai: 1, lech: true, ten0: 'số bé', ten1: 'số lớn', so: k.so, hieuO: camSo, tongO: 'TỔNG ' + may.t });
     cap.innerHTML = 'B1 · Thanh dưới dài hơn đúng một đoạn cam = <b>HIỆU ' + may.h + '</b>. Ngoặc tím ôm cả hai thanh = TỔNG ' + may.t + '.';
-    ket.classList.add('hidden');
+    ket.classList.remove('hidden');
     document.getElementById('ct-be').classList.remove('on');
     document.getElementById('ct-lon').classList.remove('on');
   } else if (may.b === 2) {
@@ -1509,7 +1518,7 @@ function veMay() {
     ] });
     cap.innerHTML = 'B2 · Cắt đoạn HIỆU = ' + may.h + ' ra khỏi thanh dài. TỔNG mới = ' +
       may.t + ' − ' + may.h + ' = <b>' + (may.t - may.h) + '</b> — hai thanh còn lại <b>bằng nhau</b>.';
-    ket.classList.add('hidden');
+    ket.classList.remove('hidden');
     document.getElementById('ct-be').classList.add('on');
     document.getElementById('ct-lon').classList.remove('on');
   } else if (may.b === 3) {
@@ -1518,7 +1527,7 @@ function veMay() {
         '<span class="bar b2"><span class="so">' + s.be + '</span></span></span>' }
     ] });
     cap.innerHTML = 'B3 · Chia đôi ' + (may.t - may.h) + ' ⇒ mỗi nửa = <b>' + s.be + '</b> = SỐ BÉ. Đây là vì sao phải chia 2.';
-    ket.classList.add('hidden');
+    ket.classList.remove('hidden');
     document.getElementById('ct-be').classList.add('on');
   } else {
     html = soDoCot({ cw: cw, rows: [
@@ -1554,10 +1563,12 @@ function moDang(i) {
   if (!box.classList.contains('hidden')) return;
   box.classList.remove('hidden');
   if (!it.dk) {
-    box.innerHTML = '<div class="cap" style="text-align:left">Đề "<b>số bé gấp lên 3 lần thì được số lớn</b>" vẽ <b>phần bằng nhau</b>: ' +
-      'số bé 1 phần, số lớn 3 phần ⇒ tổng là 4 phần. Không có ô lệch nào cả, nên KHÔNG dùng công thức (TỔNG − HIỆU) ÷ 2 — ' +
-      'mà tìm 1 phần trước: 1 phần = TỔNG ÷ 4.</div>' +
-      vePhan(1, 3);
+    box.innerHTML = '<div class="cap" style="text-align:left">Ví dụ: <b>số lớn gấp 1,5 lần số bé</b>, tổng hai số là <b>50</b>. Vì 1,5 = 3/2 nên vẽ số bé <b>2 phần</b>, số lớn <b>3 phần</b>. Tổng là 5 phần, không có ô lệch; vì vậy <b>không dùng</b> (TỔNG − HIỆU) ÷ 2.</div>' +
+      vePhan(2, 3) +
+      '<div class="ti-le-bai"><b>Em thử làm:</b> 1 phần = 50 ÷ (2 + 3) = 10. Hãy điền số bé và số lớn.' +
+      '<div class="ti-le-row"><label for="gap15-be">Số bé</label><input id="gap15-be" type="number" inputmode="numeric" aria-label="Số bé trong bài gấp một phẩy năm lần">' +
+      '<label for="gap15-lon">Số lớn</label><input id="gap15-lon" type="number" inputmode="numeric" aria-label="Số lớn trong bài gấp một phẩy năm lần">' +
+      '<button class="btn pri" type="button" onclick="kiemTraGap15()">Kiểm tra</button></div><div id="gap15-kq" class="ti-le-kq"></div></div>';
   } else {
     var s = doiSo(it.dk);
     var van = dienVan(it.van, it.dk);
@@ -1565,6 +1576,18 @@ function moDang(i) {
     box.innerHTML = '<div style="font-weight:800;font-size:15px;margin-bottom:6px">' + van + '</div>' +
       veSoDo({ dai: 1, le: String(s.hieu), gao: String(s.tong), be: s.be, lon: s.lon }, 'bé', 'lớn') +
       loiGiai(q).map(function (l) { return '<div class="cachgiai">' + l + '</div>'; }).join('');
+  }
+}
+function kiemTraGap15() {
+  var be = Number(document.getElementById('gap15-be').value);
+  var lon = Number(document.getElementById('gap15-lon').value);
+  var kq = document.getElementById('gap15-kq');
+  if (be === 20 && lon === 30) {
+    kq.className = 'ti-le-kq cap ok';
+    kq.innerHTML = '✓ Đúng! 20 + 30 = 50 và 30 = 20 × 1,5. 1 phần = 10; số bé = 2 × 10, số lớn = 3 × 10.';
+  } else {
+    kq.className = 'ti-le-kq cap bad';
+    kq.innerHTML = 'Chưa đúng. Tính 1 phần = 50 ÷ 5 = 10, rồi số bé = 2 × 10 và số lớn = 3 × 10.';
   }
 }
 
