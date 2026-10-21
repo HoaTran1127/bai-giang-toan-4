@@ -39,6 +39,15 @@ const MUT = [
     "c.push({ giai: doiGiai ? 2 : 1, loai: 'hieu'", "c.push({ giai: 1, loai: 'hieu'"],
   ["M14", "nhãn khay thẻ luôn hứa \"tính\" dù khung chỉ có một ô số lấy thẳng từ đề",
     "var tinh = khu.tokens.some(function (t) { return t.d != null; }) || khu.so.length > 1;", "var tinh = true;"],
+  ["M15", "ô công thức MỤC 4 in luôn đáp số ở nhánh b = 0 (bé chẳng còn gì để tính)",
+    "\n    document.getElementById('ct-be-f').innerText = '(' + may.t + ' − ' + may.h + ') ÷ 2 = ?';",
+    "\n    document.getElementById('ct-be-f').innerText = '(' + may.t + ' − ' + may.h + ') ÷ 2 = ' + s.be;"],
+  ["M16", "ô công thức MỤC 4 in luôn đáp số ở nhánh b > 0",
+    "\n  document.getElementById('ct-be-f').innerText = '(' + may.t + ' − ' + may.h + ') ÷ 2 = ?';",
+    "\n  document.getElementById('ct-be-f').innerText = '(' + may.t + ' − ' + may.h + ') ÷ 2 = ' + s.be;"],
+  ["M17", "#may-lenh bị đổi thành lời nhắc, mất công thức chung",
+    "    document.getElementById('may-lenh').innerHTML = CONG_THUC_CHUNG;",
+    "    document.getElementById('may-lenh').innerHTML = '<b>Đến lượt em:</b> điền kết quả vào hai công thức.';"],
 ];
 
 const PROBE = String.raw`
