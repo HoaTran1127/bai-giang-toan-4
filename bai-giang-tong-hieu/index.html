@@ -1250,6 +1250,11 @@ function rungVaBao(el, cap, msg) {
   cap.className = 'cap bad';
   baoTieng(msg);
 }
+function baoSaiTen(el, keo) {
+  var can = el.getAttribute('data-dap') || 'tên còn lại';
+  var dangCam = keo && (keo.txt || keo.gia) ? (keo.txt || keo.gia) : 'tên này';
+  return '✕ Ô này cần tên "' + can + '". Thẻ "' + dangCam + '" đặt vào ô còn lại của sơ đồ.';
+}
 function thaDung(el, keo, cap) {
   el.innerHTML = keo.loai === 'ten' ? keo.txt : keo.gia;
   el.classList.add('ok');
@@ -1322,7 +1327,7 @@ function tuTha(i, el) {
     var msg;
     if (loaiO === 'ten') {
       msg = laTen
-        ? '✕ Tên chưa đúng — thanh DÀI là bạn nhiều hơn, thanh ngắn là bạn ít hơn.'
+        ? baoSaiTen(el, keo)
         : '✕ Nhãn này ghi TÊN — số thì kéo vào đoạn cam (HIỆU) hoặc ngoặc tím (TỔNG).';
     } else if (laTen) {
       msg = '✕ Ô này ghi SỐ — tên thì kéo vào nhãn bên trái của hai thanh.';
@@ -1405,7 +1410,7 @@ function sdTha(i, el) {
     var msg;
     if (loaiO === 'ten') {
       msg = laTen
-        ? '✕ Tên chưa đúng — thanh DÀI là người nhiều hơn, thanh ngắn là người ít hơn.'
+        ? baoSaiTen(el, keo)
         : '✕ Nhãn này ghi TÊN — số thì kéo vào đoạn cam (HIỆU) hoặc ngoặc tím (TỔNG).';
     } else if (laTen) {
       msg = '✕ Ô này ghi SỐ — tên thì kéo vào nhãn bên trái của hai thanh.';
@@ -1487,7 +1492,7 @@ function sanTha(i, el) {
   if (String(keo.gia) !== el.getAttribute('data-dap')) {
     var loai = el.getAttribute('data-loai');
     var msg = loai === 'ten'
-      ? '✕ Tên chưa đúng — kéo đúng tên vào đầu thanh tương ứng.'
+      ? baoSaiTen(el, keo)
       : loai === 'hieu'
         ? '✕ Đây là ô HIỆU — kéo thẻ HIỆU, tức phần hơn hoặc phần lệch.'
         : '✕ Đây là ô TỔNG — kéo thẻ TỔNG, tức số của cả hai gộp lại.';
@@ -2030,7 +2035,7 @@ function quizTha(i, j, el) {
   }
   if (String(keo.gia) !== el.getAttribute('data-dap')) {
     rungVaBao(el, cap, keo.loai === 'ten'
-      ? '✕ Tên chưa đúng — thanh DÀI là bạn có số lớn hơn.'
+      ? baoSaiTen(el, keo)
       : '✕ Số chưa đúng — em tính lại phép ' + (loai === 'tong' ? 'CỘNG' : 'TRỪ') + ' rồi nhìn lại thẻ.');
     return;
   }
