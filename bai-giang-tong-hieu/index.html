@@ -327,6 +327,29 @@
     font-size: 16px; color: var(--blue); font-family: inherit; }
   .cum:hover { background: #DCE9F7; }
   .cum.hien { background: #FEF3C7; border-color: #D9A514; color: #7A5803; }
+  /* BẢNG BIẾN ĐỔI — bật ra ngay khi bé kéo con số CHƯA PHẢI TỔNG/HIỆU vào ô.
+     Bảng hiện TRONG lời đề, sát chỗ vừa thả, để bé thấy luôn số nào cần tính lại. */
+  .bd-slot:empty { display: none; }
+  .bd-panel { background: #FFFBEB; border: 2px dashed #D9A514; border-radius: 12px;
+    padding: 10px 12px; margin: 0 0 10px; }
+  .bd-ly { font-size: 15px; font-weight: 800; color: #7A5803; margin-bottom: 8px; line-height: 1.5; }
+  .bd-tranh { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .bd-tranh span { background: #fff; border: 2px solid #E7D8AE; border-radius: 999px;
+    padding: 2px 10px; font-size: 13px; font-weight: 800; color: #6B6152; }
+  .bd-tranh span:last-child { border-color: #D9A514; background: #FEF3C7; color: #7A5803; }
+  .bd-tinh { display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    font-size: 20px; font-weight: 900; color: var(--ink); }
+  .bd-dau { font-size: 15px; font-weight: 900; color: #7A5803; }
+  .bd-so { background: #fff; border: 2px solid #B45309; color: #92400E; border-radius: 8px; padding: 1px 10px; }
+  .bd-phep { color: #92400E; }
+  .bd-o { width: 64px; font: inherit; text-align: center; border: 3px solid var(--blue);
+    border-radius: 10px; padding: 2px 4px; background: #fff; color: var(--ink); }
+  .bd-o:focus-visible { outline: 3px solid #92400E; outline-offset: 2px; }
+  .bd-o.rung { animation: rungThe .6s ease-in-out 2; border-color: var(--red); }
+  .bd-dv { font-size: 15px; font-weight: 800; color: #6B6152; }
+  .bd-goi { margin-top: 6px; font-size: 13px; font-weight: 800; color: #6B6152; }
+  .bd-goi.sai { color: var(--red); }
+  @media (prefers-reduced-motion: reduce) { .bd-o.rung { animation: nhapNhan 1.2s ease-in-out 3; } }
 
   /* ---------- MỤC 4: MÁY CẮT THANH ---------- */
   .may-steps { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 12px 0; }
@@ -1241,7 +1264,10 @@ var DE = [
     dk: { tb: 45, hieu: 8 }, dv: 'đơn vị', ten: ['số bé', 'số lớn'],
     hoi: [{ label: 'số bé', value: 41 }, { label: 'số lớn', value: 49 }],
     van: [
-      { s: 'Trung bình cộng của hai số là ' }, { s: '{tb}', loai: 'mid', slot: 't', ly: 'Chưa phải TỔNG: phải nhân đôi.' },
+      { s: 'Trung bình cộng của hai số là ' }, { s: '{tb}', loai: 'mid', slot: 't', ly: 'Chưa phải TỔNG: phải cộng hai lần trung bình cộng.',
+        bd: { tr: 45, phep: '+', phu: 45, dap: 90, don: 'đơn vị',
+              dau: 'TỔNG của hai số là',
+              tranh: ['San hai số bằng nhau ⇒ mỗi phần 45', 'Cả hai số: 45 + 45'] } },
       { s: '. ' }, { s: 'Số lớn', loai: 'ten', slot: 'ten1' }, { s: ' ' }, { s: 'hơn', loai: 'nhan' },
       { s: ' ' }, { s: 'số bé', loai: 'ten', slot: 'ten0' }, { s: ' ' }, { s: '{h} đơn vị', loai: 'hieu', slot: 'h', ly: 'Phần lệch ⇒ HIỆU.' },
       { s: '. Tìm ' }, { s: 'hai số', loai: 'ruh', ly: 'Đây là câu hỏi, không phải một con số.' },
@@ -1253,7 +1279,10 @@ var DE = [
     hoi: [{ label: 'Bình', value: 24 }, { label: 'An', value: 36 }],
     van: [
       { s: 'Cả hai bạn có ' }, { s: '{t} viên bi', loai: 'tong', slot: 't', ly: 'Gộp hai bạn ⇒ TỔNG.' },
-      { s: '. ' }, { s: 'An', loai: 'ten', slot: 'ten1' }, { s: ' ' }, { s: 'cho ' }, { s: 'Bình', loai: 'ten', slot: 'ten0' }, { s: ' {cho} viên', loai: 'mid', slot: 'h', ly: 'Chưa phải HIỆU: hiệu gấp đôi số cho.' },
+      { s: '. ' }, { s: 'An', loai: 'ten', slot: 'ten1' }, { s: ' ' }, { s: 'cho ' }, { s: 'Bình', loai: 'ten', slot: 'ten0' }, { s: ' {cho} viên', loai: 'mid', slot: 'h', ly: 'Chưa phải HIỆU: một bạn mất 6, một bạn được 6, nên hai bạn hơn nhau gấp đôi.',
+        bd: { tr: 6, phep: '+', phu: 6, dap: 12, don: 'viên bi',
+              dau: 'HIỆU hai bạn là',
+              tranh: ['An mất 6 viên', 'Bình được 6 viên', 'Hơn nhau: 6 + 6'] } },
       { s: ' thì ' }, { s: 'bằng nhau', loai: 'nhan' },
       { s: '. Hỏi An có bao nhiêu viên? ' }, { s: '{cho} viên', loai: 'ruh', ly: 'Đó là số cho, không phải số hơn nhau.' }
     ]
@@ -1264,7 +1293,11 @@ var DE = [
     van: [
       { s: '' }, { s: 'Mẹ', loai: 'ten', slot: 'ten1' }, { s: ' ' }, { s: 'hơn ' }, { s: 'con', loai: 'ten', slot: 'ten0' }, { s: ' {h} tuổi', loai: 'hieu', slot: 'h', ly: 'Hiệu tuổi không bao giờ đổi ⇒ HIỆU.' },
       { s: '. Sau ' }, { s: '{namSau} năm nữa', loai: 'ruh', ly: 'Mỗi người thêm {namSau} tuổi, nên tổng cũng đổi. Hiệu tuổi thì không đổi.' },
-      { s: ', ' }, { s: 'tổng số tuổi là {tongSau}', loai: 'mid', slot: 't', ly: 'Là TỔNG của 3 năm sau, chưa phải bây giờ.' }
+      { s: ', ' }, { s: 'tổng số tuổi là {tongSau}', loai: 'mid', slot: 't',
+        ly: '{tongSau} là TỔNG tuổi hai mẹ con lúc {namSau} năm sau, chưa phải bây giờ.',
+        bd: { tr: 60, phep: '−', phu: 6, dap: 54, don: 'tuổi',
+              dau: 'TỔNG số tuổi hiện nay là',
+              tranh: ['Mẹ thêm 3 tuổi', 'Con thêm 3 tuổi', 'Cả hai thêm: 3 + 3'] } }
     ]
   }
 ];
@@ -1754,7 +1787,7 @@ function ganKeoTha(rootId, hamTha) {
     chips[i].addEventListener('dragstart', function (ev) {
       if (this.classList.contains('cho')) { ev.preventDefault(); return; }
       boChonKeo(root);
-      KEO = { id: this.id, rootId: rootId, gia: this.getAttribute('data-gia'), loai: this.getAttribute('data-loai'), txt: this.getAttribute('data-txt') || this.textContent };
+      KEO = { id: this.id, rootId: rootId, gia: this.getAttribute('data-gia'), loai: this.getAttribute('data-loai'), txt: this.getAttribute('data-txt') || this.textContent, mid: this.getAttribute('data-mid') };
       toSang();
       if (ev.dataTransfer) ev.dataTransfer.setData('text/plain', KEO.gia);
     });
@@ -1764,7 +1797,7 @@ function ganKeoTha(rootId, hamTha) {
       if (KEO && KEO.id === this.id) { boChonKeo(root); tin('Thẻ đã về chỗ cũ. Em kéo thẻ khác nhé.'); return; }
       var c = root.querySelector('.keo.chon');
       if (c) { c.classList.remove('chon'); c.setAttribute('aria-pressed', 'false'); }
-      KEO = { id: this.id, rootId: rootId, gia: this.getAttribute('data-gia'), loai: this.getAttribute('data-loai'), txt: this.getAttribute('data-txt') || this.textContent };
+      KEO = { id: this.id, rootId: rootId, gia: this.getAttribute('data-gia'), loai: this.getAttribute('data-loai'), txt: this.getAttribute('data-txt') || this.textContent, mid: this.getAttribute('data-mid') };
       this.classList.add('chon'); this.setAttribute('aria-pressed', 'true');
       toSang();
       tin('Đang cầm thẻ "' + this.textContent + '" — Tab tới ô sáng viền rồi bấm Enter.');
@@ -1861,6 +1894,11 @@ var CO_FILE = {
   'cong-thuc-xong': 'cong-thuc-xong.mp3',
   'khoa-so-do': 'khoa-so-do.mp3',
   'khoa-so-do-b2': 'khoa-so-do-b2.mp3',
+  'bd-tinh-tong': 'bd-tinh-tong.mp3',
+  'bd-tinh-hieu': 'bd-tinh-hieu.mp3',
+  'chia-buoc-2': 'chia-buoc-2.mp3',
+  'chia-keo-sang-binh': 'chia-keo-sang-binh.mp3',
+  'chia-xong': 'chia-xong.mp3',
   'co-doi-em': 'co-doi-em.mp3'
 };
 var CO_TAT = false;
@@ -2413,7 +2451,7 @@ function chuyenChoSang(i, el, cap) {
   boChonKeo(item);
   var cam = item.querySelector('.lech.kep');
   if (cam) { cam.classList.remove('co-the'); cam.classList.add('da-cho'); }
-  var loi = 'Hay quá! An cho đi 6, Bình nhận 6 — hai thanh bằng nhau rồi.';
+  var loi = 'Hay quá! An cho đi 6, Bình nhận 6. Hai thanh bằng nhau rồi.';
   if (cap) { cap.className = 'cap ok'; cap.innerHTML = '✓ ' + loi; }
   coNoiSau('chia-xong', loi, 'ok');
   kiemXongTu(i, it, item, cap);
@@ -2519,7 +2557,7 @@ function veMuc3() {
         van += '<button class="cum" id="cum-' + i + '-' + j + '" onclick="goiY(' + i + ',' + j + ')">' + chu + '</button> ';
         return;
       }
-      var gia, loai, txt;
+      var gia, loai, txt, mid = '';
       if (ph.slot === 'ten0' || ph.slot === 'ten1') {
         loai = 'ten';
         gia = de.ten[ph.slot === 'ten0' ? 0 : 1];
@@ -2533,11 +2571,19 @@ function veMuc3() {
         gia = s.hieu;
         txt = 'HIỆU ' + s.hieu;
       }
+      /* Thẻ CHƯA PHẢI TỔNG/HIỆU (giấu sau trung bình cộng, số cho, tuổi năm sau):
+         trên tay bé vẫn là đúng con số in trong đề — 60, 45, 6 — chứ không phải
+         kết quả đã tính hộ. Kết quả chỉ hiện ra SAU KHI bé tự điền ô trống. */
+      if (ph.loai === 'mid') {
+        mid = ' data-mid="' + j + '"';
+        gia = ph.bd.tr;
+      }
       van += '<span class="keo" id="de-keo-' + i + '-' + j + '" draggable="true" data-gia="' + gia +
-        '" data-loai="' + loai + '" data-txt="' + txt + '">' + chu + '</span>';
+        '" data-loai="' + loai + '" data-txt="' + txt + '"' + mid + '>' + chu + '</span>';
     });
     html += '<div class="de-box" id="de-item-' + i + '">' +
       '<div class="de-van">' + van + '</div>' +
+      '<div class="bd-slot" id="de-bd-' + i + '"></div>' +
       '<div class="de-hd">Kéo từ và số trong đề xuống sơ đồ.</div>' +
       '<div class="san-bai" id="san-bai-' + i + '">' +
         veDeDien(i) +
@@ -2570,6 +2616,13 @@ function veDeDien(i) {
 function sanTha(i, el) {
   var keo = KEO, cap = document.getElementById('san-kq-' + i);
   if (!keo || !el || el.classList.contains('ok')) return;
+  /* Thẻ mang con số CHƯA PHẢI TỔNG/HIỆU (giấu sau trung bình cộng, số cho nhau,
+     tuổi năm sau): đừng từ chối, cũng đừng điền hộ kết quả. Mở ngay bảng gợi ý
+     để bé tự tính — số chỉ vào sơ đồ sau khi bé tự điền đúng ô trống. */
+  if (keo.mid != null && el.getAttribute('data-loai') === keo.loai) {
+    moBienDoi(i, el, Number(keo.mid), cap);
+    return;
+  }
   if (String(keo.gia) !== el.getAttribute('data-dap')) {
     var loai = el.getAttribute('data-loai');
     var msg, khoa;
@@ -2587,15 +2640,76 @@ function sanTha(i, el) {
     return;
   }
   thaDung(el, keo, cap);
+  kiemSanDu(i, cap);
+}
+
+function kiemSanDu(i, cap) {
   var box = document.getElementById('san-bai-' + i);
-  if (box.querySelectorAll('.drop.ok').length === 4) {
-    cap.innerHTML = '✓ Sơ đồ đủ rồi, cô khóa lại nhé. Em xuống phần công thức.';
-    cap.className = 'cap ok';
-    coNoi('san-du', 'Sơ đồ đủ rồi, cô khóa lại nhé. Em xuống phần công thức.', 'ok');
-    box.classList.add('san-locked');
-    moCongThuc(i);
-    if (document.querySelectorAll('#de-list .san-bai.san-locked').length >= DE.length) chucMungPhan('muc-3');
+  if (!box || box.querySelectorAll('.drop.ok').length !== 4) return;
+  cap.innerHTML = '✓ Sơ đồ đủ rồi, cô khóa lại nhé. Em xuống phần công thức.';
+  cap.className = 'cap ok';
+  coNoi('san-du', 'Sơ đồ đủ rồi, cô khóa lại nhé. Em xuống phần công thức.', 'ok');
+  box.classList.add('san-locked');
+  moCongThuc(i);
+  if (document.querySelectorAll('#de-list .san-bai.san-locked').length >= DE.length) chucMungPhan('muc-3');
+}
+
+/* Bảng biến đổi: hiện đúng con số in trong đề + vì sao nó chưa phải TỔNG/HIỆU
+   + phép tính có Ô TRỐNG bé tự điền. Điền đúng thì số mới chạy vào sơ đồ. */
+function moBienDoi(i, o, j, cap) {
+  var de = DE[i], ph = de.van[j], bd = ph && ph.bd, chip = document.getElementById('de-keo-' + i + '-' + j);
+  var host = document.getElementById('de-bd-' + i);
+  if (!bd || !host || !o) return;
+  if (host.getAttribute('data-mo') === String(j)) {   // bảng đang mở: đừng vẽ lại, giữ số bé đang gõ
+    var daMo = document.getElementById('de-bd-o-' + i);
+    if (daMo) { try { daMo.focus(); } catch (e) {} }
+    return;
   }
+  host.setAttribute('data-mo', String(j));
+  var laTong = o.getAttribute('data-loai') === 'tong';
+  var ten = laTong ? 'TỔNG' : 'HIỆU';
+  if (chip) chip.classList.add('chon');
+  host.innerHTML = '<div class="bd-panel">' +
+    '<div class="bd-ly">💡 ' + dienVan(ph.ly, de.dk) + '</div>' +
+    '<div class="bd-tranh">' + bd.tranh.map(function (c) { return '<span>' + c + '</span>'; }).join('') + '</div>' +
+    '<div class="bd-tinh"><b class="bd-dau">' + bd.dau + '</b>' +
+      '<span class="bd-so">' + bd.tr + '</span>' +
+      '<span class="bd-phep">' + bd.phep + '</span>' +
+      '<span class="bd-so">' + bd.phu + '</span>' +
+      '<span class="bd-phep">=</span>' +
+      '<input class="bd-o" id="de-bd-o-' + i + '" inputmode="numeric" autocomplete="off" maxlength="4" ' +
+        'placeholder="?" aria-label="Điền ' + ten + ' vừa tính ra">' +
+      '<span class="bd-dv">' + bd.don + '</span></div>' +
+    '<div class="bd-goi" id="de-bd-goi-' + i + '">Em tính rồi gõ vào ô trống nhé.</div>' +
+    '</div>';
+  var inp = document.getElementById('de-bd-o-' + i), goi = document.getElementById('de-bd-goi-' + i);
+  function thu() {
+    var v = String(inp.value || '').replace(/\D/g, '');
+    if (!v) return;
+    if (Number(v) === bd.dap) {
+      if (chip) chip.classList.remove('chon');
+      host.innerHTML = '';
+      host.removeAttribute('data-mo');
+      thaDung(o, { id: 'de-keo-' + i + '-' + j, gia: bd.dap, loai: o.getAttribute('data-loai'),
+                   txt: ten + ' ' + bd.dap }, cap);
+      kiemSanDu(i, cap);
+      return;
+    }
+    inp.classList.remove('rung'); void inp.offsetWidth; inp.classList.add('rung');
+    inp.select();
+    goi.innerHTML = '✕ Em tính lại ' + bd.tr + ' ' + bd.phep + ' ' + bd.phu + ' xem nào.';
+    goi.className = 'bd-goi sai';
+  }
+  inp.addEventListener('input', function () {
+    goi.className = 'bd-goi';
+    if (String(inp.value).replace(/\D/g, '').length >= String(bd.dap).length) thu();
+  });
+  inp.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Enter') { ev.preventDefault(); thu(); }
+  });
+  coNoi(laTong ? 'bd-tinh-tong' : 'bd-tinh-hieu',
+        'Số này chưa phải ' + ten + ' đâu em. Em tính ra ' + ten + ' rồi điền vào ô trống nhé.', '');
+  setTimeout(function () { try { inp.focus(); } catch (e) {} }, 80);
 }
 
 function moCongThuc(i) {
@@ -3886,6 +4000,31 @@ function tuKiem() {
         err.push('Đề săn ' + (i + 1) + '.' + (j + 1) + ': nhãn tên thiếu slot đầu thanh');
       }
       if (ph.loai !== 'ten' && !ph.ly) err.push('Đề săn ' + (i + 1) + '.' + (j + 1) + ': dữ kiện thiếu lý do giải thích');
+      /* Thẻ CHƯA PHẢI TỔNG/HIỆU phải có bảng biến đổi với phép tính thật sự đúng.
+         Viết sai một con số ở đây là bé học luôn cái sai, nên máy tính lại. */
+      if (ph.loai === 'mid') {
+        var bd = ph.bd, nhe = 'Đề săn ' + (i + 1) + '.' + (j + 1) + ' bảng biến đổi';
+        if (!bd) err.push(nhe + ': thiếu — bé sẽ bị điền hộ kết quả, không được tự tính');
+        else {
+          if (bd.tr == null || bd.phu == null || bd.dap == null || !bd.phep)
+            err.push(nhe + ': thiếu số của phép tính');
+          else {
+            var ra = bd.phep === '+' ? bd.tr + bd.phu : bd.phep === '−' ? bd.tr - bd.phu
+                 : bd.phep === '×' ? bd.tr * bd.phu : bd.phep === '÷' ? bd.tr / bd.phu : NaN;
+            if (ra !== bd.dap)
+              err.push(nhe + ': ' + bd.tr + ' ' + bd.phep + ' ' + bd.phu + ' ra ' + ra + ', khác kết quả ghi ' + bd.dap);
+          }
+          var dung = ph.slot === 't' ? s.tong : s.hieu;
+          if (bd.dap !== dung) err.push(nhe + ': kết quả ' + bd.dap + ' khác ' + (ph.slot === 't' ? 'TỔNG' : 'HIỆU') + ' của đề ' + dung);
+          if (!Array.isArray(bd.tranh) || bd.tranh.length < 2)
+            err.push(nhe + ': thiếu hình giải thích (≥2 ý) — bé không hiểu vì sao phải tính lại');
+          if (!bd.dau || bd.dau.indexOf(ph.slot === 't' ? 'TỔNG' : 'HIỆU') < 0)
+            err.push(nhe + ': dòng hỏi phải ghi đủ chữ TỔNG / HIỆU, không viết tắt');
+          if (bd.don !== de.dv) err.push(nhe + ': đơn vị "' + bd.don + '" khác đơn vị đề "' + de.dv + '"');
+          if (String(dienVan(ph.s, de.dk)).indexOf(String(bd.tr)) < 0)
+            err.push(nhe + ': bảng tính ' + bd.tr + ' nhưng lời đề in số khác — hai chỗ phải cùng một số');
+        }
+      }
     });
   });
 
@@ -4199,6 +4338,50 @@ function tuKiem() {
   if (document.querySelectorAll('#de-list .lech .drop').length !== DE.length) err.push('Mục 3: mỗi đoạn cam phải có ô kéo số HIỆU');
   if (document.querySelectorAll('#de-list .ngoac .drop').length !== DE.length) err.push('Mục 3: mỗi ngoặc tím phải có ô kéo số TỔNG');
   if (document.querySelectorAll('#de-list .de-van .keo').length !== DE.length * 4) err.push('Mục 3: mỗi đề phải có 4 chip dữ liệu kéo trực tiếp từ câu chữ');
+  n++;
+  if (typeof moBienDoi !== 'function' || String(sanTha).indexOf('moBienDoi(') < 0)
+    err.push('Mục 3: chỗ thả không nối với bảng biến đổi — thẻ số chưa đúng sẽ bị báo sai thay vì mở gợi ý');
+  /* THẺ CHƯA PHẢI TỔNG/HIỆU: trên tay bé phải là ĐÚNG số in trong đề, ô sơ đồ phải
+     còn trống để bé tự điền sau khi tính. Máy chặn mọi kiểu điền hộ. */
+  DE.forEach(function (de, i) {
+    de.van.forEach(function (ph, j) {
+      if (ph.loai !== 'mid') return;
+      var nhe = 'Mục 3 đề ' + (i + 1) + '.' + (j + 1), bd = ph.bd;
+      var chip = document.getElementById('de-keo-' + i + '-' + j);
+      var o = document.getElementById('de-' + i + '-' + (ph.slot === 't' ? 'tong' : 'hieu'));
+      var cho = document.getElementById('de-bd-' + i);
+      if (!chip) { err.push(nhe + ': thẻ dữ liệu không có trong trang'); return; }
+      if (!bd) return;   // đã báo ở luật tĩnh
+      if (chip.getAttribute('data-mid') === null)
+        err.push(nhe + ': thẻ thiếu data-mid — thả vào ô sẽ bị báo sai thay vì mở gợi ý tính');
+      if (String(chip.getAttribute('data-gia')) !== String(bd.tr))
+        err.push(nhe + ': thẻ đang mang ' + chip.getAttribute('data-gia') + ', phải mang đúng số in trong đề là ' + bd.tr);
+      if (!o) err.push(nhe + ': sơ đồ thiếu ô để nhận số');
+      else {
+        if (o.classList.contains('ok')) err.push(nhe + ': ô ' + (ph.slot === 't' ? 'TỔNG' : 'HIỆU') + ' đã có số sẵn — bé không còn được tự tính');
+        if (String(o.getAttribute('data-dap')) !== String(bd.dap))
+          err.push(nhe + ': ô chờ ' + o.getAttribute('data-dap') + ' khác kết quả bảng biến đổi ' + bd.dap);
+      }
+      if (!cho || !cho.classList.contains('bd-slot')) err.push(nhe + ': thiếu chỗ đặt bảng biến đổi ngay trong lời đề');
+    });
+  });
+  n++;
+  /* MỌI lời cô nói phải có file tiếng. Quét từng chỗ gọi trong mã nguồn: nếu gặp một
+     khoá dạng chữ-thường-gạch-ngang mà CO_FILE không có thì cô sẽ rơi về giọng robot. */
+  (function () {
+    var thu = document.querySelectorAll('script'), tho = [], KEY = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+    for (var si = 0; si < thu.length; si++) tho.push(thu[si].textContent || '');
+    var nguoi = { coNoi: 1, coNoiSau: 1, baoTieng: 1, rungVaBao: 1 };
+    tho.join('\n').split('\n').forEach(function (dong, ln) {
+      var m = dong.match(/\b(coNoi|coNoiSau|baoTieng|rungVaBao)\((.*)$/);
+      if (!m) return;
+      dong.replace(/'([^']*)'/g, function (_, s) {
+        if (KEY.test(s) && s.indexOf('data-') !== 0 && !nguoi[s] && s !== 'ok' && s !== 'bad' && !CO_FILE[s])
+          err.push('Dòng ' + (ln + 1) + ': cô nói khoá "' + s + '" nhưng CO_FILE không có file — cô sẽ thành giọng robot');
+        return _;
+      });
+    });
+  })();
   n++;
   // MỤC 4: mỗi bước phải là sơ đồ như mọi bước khác — cam chứa số, ngoặc HIỆU ôm đúng cam,
   // và ở B1·B2 các thanh cột 1 phải dài ĐÚNG BẰNG nhau.
@@ -4730,7 +4913,7 @@ function tuKiem() {
       err.push('Pháo bông chưa tôn trọng prefers-reduced-motion');
     if (!/requestAnimationFrame/.test(maPhao) || !/cancelAnimationFrame/.test(maPhao))
       err.push('Pháo bông phải tự dọn vòng vẽ (requestAnimationFrame/cancelAnimationFrame)');
-    var maGoi7 = String(tuTha) + String(kiemXongTu) + String(sdTha) + String(sanTha) + String(thuKiem) + String(nopBai);
+    var maGoi7 = String(tuTha) + String(kiemXongTu) + String(sdTha) + String(sanTha) + String(kiemSanDu) + String(thuKiem) + String(nopBai);
     [['muc-1', 'Mục 1'], ['muc-2', 'Mục 2'], ['muc-3', 'Mục 3'], ['muc-6', 'Mục 6'], ['muc-7', 'Mục 7']].forEach(function (p) {
       if (maGoi7.indexOf("chucMungPhan('" + p[0] + "')") < 0)
         err.push('Thiếu pháo bông khi làm xong ' + p[1]);
