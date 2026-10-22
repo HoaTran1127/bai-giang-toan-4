@@ -1988,6 +1988,11 @@ var CO_FILE = {
   'khen-4': 'khen-4.mp3',
   'khen-5': 'khen-5.mp3',
   'khen-6': 'khen-6.mp3',
+  'xac-ten': 'xac-ten.mp3',
+  'xac-dau-vao-tong': 'xac-dau-vao-tong.mp3',
+  'xac-dau-vao-hieu': 'xac-dau-vao-hieu.mp3',
+  'xac-la-tong': 'xac-la-tong.mp3',
+  'xac-la-hieu': 'xac-la-hieu.mp3',
   'san-du': 'san-du.mp3',
   'san-du-ten': 'san-du-ten.mp3',
   'cong-thuc-xong': 'cong-thuc-xong.mp3',
@@ -2003,6 +2008,7 @@ var CO_FILE = {
 var CO_TAT = false;
 try { CO_TAT = localStorage.getItem('coGiaoTat') === '1'; } catch (e) { CO_TAT = false; }
 var coAm = null, coHenAn = null, coHenNoi = null, coCauCuoi = null;
+var coHangDai = [], coDangNoi = false, coHenUong = null;
 
 function coChuSach(s) {
   return String(s == null ? '' : s).replace(/^\s*[✕✓]\s*/, '').replace(/\s+/g, ' ').trim();
@@ -2023,6 +2029,8 @@ function coThu() {
 }
 function coDungTieng() {
   clearTimeout(coHenNoi); coHenNoi = null;
+  clearTimeout(coHenUong); coHenUong = null;
+  coDangNoi = false;
   if (coAm) { try { coAm.pause(); } catch (e) {} coAm = null; }
   try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
 }
@@ -2086,20 +2094,40 @@ function coRanh() {
   }, 9000 + Math.random() * 7000);
 }
 // khoa: tên file trong tro-giang/ · chu: câu hiện trong bong bóng · loai: ok | bad
+/* XẾP HÀNG GIỌNG NÓI (cô chốt 22/10): câu nhắc SAI là lời dạy, còn khen/xác nhận/mốc chỉ là
+   phản hồi. Trước đây mỗi câu mới đều gọi coDungTieng() nên một thẻ đúng 1,5 giây đã cắt ngang
+   câu cô đang giải thích 3 giây — chữ giữa câu mất hẳn. Từ đây:
+     · 'bad' ⇒ cắt lời đang nói (coPhat gọi coDungTieng) và nói NGAY, hàng đợi giữ nguyên;
+     · 'ok'  ⇒ không chen, xếp hàng chờ câu đang nói dứt.
+   Sở dĩ 'bad' KHÔNG được xoá hàng nữa: ngày xưa hàng đợi toàn lời khen nên xoá cho khỏi khen dồn,
+   nhưng từ 22/10 nó chứa CHÍNH LỜI DẠY (cô nói ô vừa ghép là gì). Đo thật 2026-10-22: một câu nhắc
+   SAI xoá phăng "Số này thuộc phép tính tìm TỔNG." — mà daXacNhan đã đánh dấu nên cả cấp đó bé
+   không bao giờ nghe lại được. Lời dạy tới tai trước, lời dạy xếp sau vẫn còn nguyên.
+   Không dùng coNoiSau cho thẻ ghép: một mình nó chỉ giữ ĐÚNG MỘT câu hẹn giờ, bé thả hai thẻ
+   liên tiếp là câu trước bị xoá mất — đo thật 2026-10-22: "xac-ten" bị nuốt vì thẻ số xuống ngay. */
 function coNoi(khoa, chu, loai) {
   var chuSach = coChuSach(chu);
   if (!chuSach) return;
   clearTimeout(coHenNoi); coHenNoi = null;
-  coCauCuoi = { khoa: khoa, chu: chuSach, loai: loai || '' };
+  if (loai === 'bad') { coPhat(khoa, chuSach, loai); return; }
+  if (coDangNoi || coHangDai.length) {
+    if (coHangDai.length < 5) coHangDai.push([khoa, chuSach, loai]);
+    return;
+  }
+  coPhat(khoa, chuSach, loai);
+}
+function coPhat(khoa, chu, loai) {
+  coCauCuoi = { khoa: khoa, chu: chu, loai: loai || '' };
   coDungTieng();
-  coMo(chuSach, loai);
+  coMo(chu, loai);
   // Nét mặt khớp lời: khen thì mắt cười, nhắc nhẹ thì cô buồn một nhịp.
-  // Câu khen của ô cuối phát sau 90ms — nhường màn nhảy mừng vừa bật, đừng cắt ngang.
   if (loai === 'bad') coDongTac('buon');
   else if (loai === 'ok') {
     if (!(coDongCuoi === 'dai-vui' && Date.now() - coDongLuc < 700)) coDongTac('vui');
   }
-  if (CO_TAT) return;
+  if (CO_TAT) { coRutHang(); return; }
+  coDangNoi = true;
+  coHenUong = setTimeout(coRutHang, Math.min(9000, 2000 + chu.length * 90));
   var f = khoa && CO_FILE[khoa];
   if (f && typeof Audio === 'function') {
     try {
@@ -2108,20 +2136,28 @@ function coNoi(khoa, chu, loai) {
       a.onended = function () {
         if (coAm === a) coAm = null;
         clearTimeout(coHenAn); coHenAn = setTimeout(coThu, 2600);
+        coRutHang();
       };
       a.onerror = function () {
         if (coAm === a) coAm = null;
-        coDocMay(chuSach);
+        coDocMay(chu);
       };
       var p = a.play();
-      if (p && p.catch) p.catch(function () { if (coAm === a) coAm = null; coDocMay(chuSach); });
+      if (p && p.catch) p.catch(function () { if (coAm === a) coAm = null; coDocMay(chu); });
       return;
     } catch (e) { /* rơi xuống giọng máy */ }
   }
-  coDocMay(chuSach);
+  coDocMay(chu);
+}
+function coRutHang() {
+  clearTimeout(coHenUong); coHenUong = null;
+  coDangNoi = false;
+  var x = coHangDai.shift();
+  if (x) coPhat(x[0], x[1], x[2]);
 }
 // Hoãn 90ms: câu "Đúng rồi!" nhường chỗ cho câu hoàn thành ngay sau đó,
-// nhờ vậy không bị cắt giữa chữ khi vừa đúng ô cuối cùng.
+// nhờ vậy không bị cắt giữa chữ khi vừa đúng ô cuối cùng. CHỈ dùng cho lời khen ở mốc,
+// đừng dùng cho thẻ ghép — một mình nó giữ đúng MỘT câu hẹn giờ nên thẻ liền sau sẽ xoá mất.
 function coNoiSau(khoa, chu, loai, ms) {
   clearTimeout(coHenNoi);
   coHenNoi = setTimeout(function () { coHenNoi = null; coNoi(khoa, chu, loai); }, ms || 90);
@@ -2137,7 +2173,7 @@ function coDatTat(tat) {
     b.setAttribute('aria-label', nhan);
     b.title = nhan;
   }
-  if (CO_TAT) coDungTieng();
+  if (CO_TAT) { coHangDai = []; coDungTieng(); }
 }
 // Mỗi câu báo lỗi là câu cố định ⇒ mỗi lời nhắc có một mã clip riêng.
 // Truyền thẳng mã, không dò chữ: sửa lời on-screen không làm lạc giọng đọc.
@@ -2303,6 +2339,11 @@ function chucMungPhan(ma) {
   coDongTac('dai-vui');
   var tin = document.getElementById('keo-tin');
   if (tin) tin.textContent = 'Cô bắn pháo bông chúc mừng em đã hoàn thành tốt phần này!';
+  // CÔ CHỐT 22/10: lời khen chỉ nói khi xong hẳn một phần (cả lớp + pháo bông), không khen
+  // từng thẻ — 207 thẻ một vòng mà thẻ nào cũng "đúng rồi" thì bé không còn phân biệt được
+  // câu nào là cô thật sự mừng, câu nào chỉ là tiếng nền.
+  var k = khenNgauNhien();
+  coNoiSau(k[0], k[1], 'ok', 420);
 }
 
 function rungVaBao(el, cap, msg, khoa) {
@@ -2314,7 +2355,9 @@ function rungVaBao(el, cap, msg, khoa) {
   cap.className = 'cap bad';
   baoTieng(khoa, msg);
 }
-// Câu khen đổi phiên cho đỡ chán: lần nào đúng cũng đổi câu, không lặp lại câu vừa rồi.
+/* LỜI KHEN CHỈ Ở MỐC (cô chốt 22/10) — 6 câu này từ đây chỉ bật khi XONG HẲN một phần
+   (kèm pháo bông + cô nhảy mừng), không bật ở từng thẻ nữa. Sở dĩ vẫn giữ 6 câu và vẫn chặn
+   lặp câu vừa nói: một vòng luyện tập có 5 mốc, câu nào cũng "Đúng rồi" thì mốc cuối vẫn nhàm. */
 var KHEN = [
   ['dung-roi', 'Đúng rồi, giỏi quá!'],
   ['khen-2', 'Chuẩn rồi em!'],
@@ -2329,6 +2372,48 @@ function khenNgauNhien() {
   if (i === khenCu) i = (i + 1) % KHEN.length;
   khenCu = i;
   return KHEN[i];
+}
+/* TIẾNG "TÍP" CHO MỖI THẺ ĐÚNG — tự sinh bằng WebAudio, không có file giọng, không có chữ nào.
+   Một vòng luyện tập có 207 thẻ: thẻ nào cũng được một câu thì bé nghe nhàm và không còn phân
+   biệt câu nào cô thật sự mừng. Hai cao độ để bé còn biết mình vừa ghép loại ô gì:
+   thẻ TÊN (880Hz) khác thẻ SỐ (660Hz). */
+var coNg = null;
+function tipVang(cao) {
+  if (CO_TAT) return;
+  try {
+    var Lo = window.AudioContext || window.webkitAudioContext;
+    if (!Lo) return;
+    if (!coNg) coNg = new Lo();
+    if (coNg.state === 'suspended' && coNg.resume) coNg.resume();
+    var t = coNg.currentTime, f = cao ? 880 : 660,
+        o = coNg.createOscillator(), b = coNg.createOscillator(), g = coNg.createGain();
+    o.type = 'triangle'; o.frequency.value = f;
+    b.type = 'sine'; b.frequency.value = f * 2;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.13, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.17);
+    o.connect(g); b.connect(g); g.connect(coNg.destination);
+    o.start(t); b.start(t); o.stop(t + 0.19); b.stop(t + 0.19);
+  } catch (e) { /* trình duyệt chưa cho tiếng: ô vẫn sáng xanh, bé vẫn thấy mình vừa đúng */ }
+}
+/* CÔ NÓI Ô VỪA GHÉP LÀ GÌ, không nói "đúng rồi": mỗi LOẠI Ô chỉ được nói LẦN ĐẦU trong một cấp,
+   các thẻ sau chỉ có ✓ + tiếng tip. Chữ trong bảng này PHẢI đúng bằng chữ đã thu trong clip
+   (luật tự kiểm đo cả hai), nên sửa lời là phải thu lại tiếng.
+   Ô số nằm TRONG khung tính (.tinh) là ĐẦU VÀO của phép tính ⇒ không được gọi nó là "số TỔNG/
+   số HIỆU" (cô chốt 22/10); ô số NGOÀI khung tính mới thật sự là kết quả gộp/lệch. */
+var XAC_NHAN = {
+  ten:            ['xac-ten', 'Đây là tên của mỗi thanh.'],
+  'tong-dau-vao': ['xac-dau-vao-tong', 'Số này thuộc phép tính tìm TỔNG.'],
+  'hieu-dau-vao': ['xac-dau-vao-hieu', 'Số này thuộc phép tính tìm HIỆU.'],
+  tong:           ['xac-la-tong', 'Đây là TỔNG của hai số.'],
+  hieu:           ['xac-la-hieu', 'Đây là HIỆU phần hơn giữa hai thanh.']
+};
+var daXacNhan = {};
+function loaiO(keoLoai, el) {
+  var l = loaiDich(keoLoai);
+  if (l === 'ten') return 'ten';
+  if (l !== 'tong' && l !== 'hieu') return null;
+  return trongTinh(el) ? l + '-dau-vao' : l;
 }
 function thaDung(el, keo, cap) {
   el.innerHTML = keo.loai === 'ten' ? keo.txt : keo.gia;
@@ -2349,9 +2434,21 @@ function thaDung(el, keo, cap) {
   }
   KEO = null;
   var c = document.querySelector('.keo.chon'); if (c) c.classList.remove('chon');
-  var k = khenNgauNhien();
-  if (cap) { cap.innerHTML = '✓ ' + k[1]; cap.className = 'cap ok'; }
-  coNoiSau(k[0], k[1], 'ok');
+  // Thẻ đúng = một tiếng tip + ô sáng + cô cười NHẸ. Cô chỉ mở miệng khi bé vừa gặp một
+  // loại ô lần đầu trong cấp này; câu sau đó là câu nói về ô, không phải lời khen.
+  var nk = loaiO(keo.loai, el);
+  tipVang(nk === 'ten');
+  if (!(coDongCuoi === 'dai-vui' && Date.now() - coDongLuc < 700)) coDongTac('vui');
+  if (nk && XAC_NHAN[nk] && !daXacNhan[nk]) {
+    // Đánh dấu NGAY LÚC NHẬN LỜI, không đợi lúc phát: bé thả hai thẻ cùng loại liên tiếp mà
+    // chưa chờ câu trước xong thì câu thứ hai không được chen thêm một lần nữa.
+    daXacNhan[nk] = 1;
+    var x = XAC_NHAN[nk];
+    if (cap) { cap.innerHTML = '✓ ' + x[1]; cap.className = 'cap ok'; }
+    coNoi(x[0], x[1], 'ok');
+  } else if (cap && cap.className.indexOf('bad') < 0) {
+    cap.innerHTML = '✓'; cap.className = 'cap ok';
+  }
 }
 
 /* =====================================================================
@@ -3773,6 +3870,8 @@ function phanHoi(q, val, ok) {
 }
 
 function veDanhSach() {
+  // Đổi cấp = đổi bộ câu cô sẽ nói: mỗi cấp bé được nghe lại một lần các câu xác nhận loại ô.
+  daXacNhan = {};
   var cham = laCapCham(activeCap), html = '';
   CAP[activeCap].ds.forEach(function (q, j) { html += veCau(activeCap, j); });
   document.getElementById('quiz-container').innerHTML =
@@ -5232,6 +5331,92 @@ function tuKiem() {
       err.push('khenNgauNhien phải chặn lặp: chọn câu khác câu vừa nói (thiếu nhánh i === khenCu)');
     if (!/KHEN\.length/.test(maKhen)) err.push('khenNgauNhien phải quay vòng trên đúng mảng KHEN (không hardcode số câu)');
   } else err.push('Thiếu hàm khenNgauNhien() — lời khen đang bị đóng băng một câu');
+  /* --- PHẢN HỒI CÓ NHIỀU BẬC (cô chốt 22/10): một vòng luyện tập có 207 thẻ đúng. Thẻ nào cũng
+         được một câu "đúng rồi" thì lời cô thành tiếng nền: bé không phân biệt được câu nào quan
+         trọng, câu nhắc SAI lại bị cắt giữa chữ. Bậc mới: thẻ lẻ = ✓ + tiếng tip; loại ô lần đầu
+         trong cấp = cô nói ô đó LÀ GÌ; xong phần = một lời khen thật + pháo bông. --- */
+  if (typeof thaDung !== 'function') err.push('Thiếu hàm thaDung() — không đo được phản hồi mỗi thẻ');
+  else {
+    var maTha = String(thaDung);
+    if (maTha.indexOf('khenNgauNhien') >= 0)
+      err.push('thaDung lại khen từng thẻ rồi — lời khen phải nằm ở mốc xong phần (chucMungPhan)');
+    if (maTha.indexOf('tipVang(') < 0)
+      err.push('Bỏ lời khen mà quên tiếng tip thì thẻ đúng IM LẶNG, bé không biết mình vừa ghép đạt');
+  }
+  if (typeof chucMungPhan !== 'function' || String(chucMungPhan).indexOf('khenNgauNhien') < 0)
+    err.push('Xong cả phần mà cô không nói lời khen nào — mốc duy nhất được khen đã bị xoá');
+  if (typeof tipVang !== 'function') err.push('Thiếu tipVang() — phản hồi tức thì cho mỗi thẻ đúng');
+  else {
+    var maTip = String(tipVang);
+    if (maTip.indexOf('AudioContext') < 0)
+      err.push('tipVang phải tự sinh âm bằng AudioContext — tiếng tip không có file, không có lời');
+    if (maTip.indexOf('CO_TAT') < 0) err.push('tipVang phải tôn trọng nút tắt tiếng cô giáo');
+  }
+  var dsXN = (typeof XAC_NHAN !== 'undefined' && XAC_NHAN) || {};
+  ['ten', 'tong-dau-vao', 'hieu-dau-vao', 'tong', 'hieu'].forEach(function (loai) {
+    var x = dsXN[loai];
+    if (!x) { err.push('Thiếu câu xác nhận cho loại ô "' + loai + '" — bé ghép đúng mà cô không nói ô đó LÀ GÌ'); return; }
+    if (!x[0] || !x[1]) { err.push('XAC_NHAN["' + loai + '"] thiếu [khoá tiếng, chữ]'); return; }
+    if (typeof CO_FILE === 'undefined' || !CO_FILE[x[0]])
+      err.push('XAC_NHAN["' + loai + '"] mang khoá "' + x[0] + '" không có trong CO_FILE — cô sẽ thành giọng robot');
+    if (/đúng rồi|chuẩn rồi/i.test(x[1]))
+      err.push('XAC_NHAN["' + loai + '"] vẫn là lời khen trừu tượng ("' + x[1] + '") — câu loại ô phải nói NỘI DUNG');
+    var soTu = String(x[1]).split(/[\s,.;:]+/).filter(function (w) { return w; }).length;
+    if (soTu > 9) err.push('Câu xác nhận "' + x[1] + '" có ' + soTu + ' chữ — quá dài so với quy định ≤9 cho bé lớp 4');
+  });
+  var daXnK = {}, daXnC = {};
+  Object.keys(dsXN).forEach(function (loai) {
+    var x = dsXN[loai]; if (!x || !x[0]) return;
+    if (daXnK[x[0]]) err.push('Hai loại ô dùng trùng khoá tiếng "' + x[0] + '" — một trong hai câu sẽ không bao giờ phát');
+    if (daXnC[x[1]]) err.push('Hai loại ô cùng một chữ "' + x[1] + '" — xác nhận mà không phân biệt được ô nào');
+    daXnK[x[0]] = 1; daXnC[x[1]] = 1;
+  });
+  if (typeof loaiO !== 'function') err.push('Thiếu hàm loaiO() — không biết thẻ vừa ghép thuộc loại ô nào');
+  else {
+    if (String(loaiO).indexOf('trongTinh') < 0)
+      err.push('loaiO phải tách ô ĐẦU VÀO trong khung tính khỏi ô KẾT QUẢ — gọi số của đề là "số TỔNG/HIỆU" là sai (cô chốt 22/10)');
+    var oNgoai = document.createElement('span');
+    if (loaiO('tong', oNgoai) !== 'tong') err.push('loaiO: số NGOÀI khung tính phải ra loại "tong" (đây là TỔNG), đo trên DOM thật');
+    var khung = document.createElement('span'), oTrong = document.createElement('span');
+    khung.className = 'tinh'; khung.appendChild(oTrong); document.body.appendChild(khung);
+    if (loaiO('tong', oTrong) !== 'tong-dau-vao') err.push('loaiO: số nằm TRONG .tinh phải ra loại "tong-dau-vao" (đầu vào của phép tính)');
+    if (loaiO('hieu', oTrong) !== 'hieu-dau-vao') err.push('loaiO: số nằm TRONG .tinh phải ra loại "hieu-dau-vao"');
+    document.body.removeChild(khung);
+    if (loaiO('n0', oNgoai) !== 'ten') err.push('loaiO phải quy loại ngắn (n0/be/lon) về ten qua loaiDich');
+  }
+  if (typeof veDanhSach === 'function' && String(veDanhSach).indexOf('daXacNhan = {}') < 0)
+    err.push('Đổi cấp phải mở lại các câu xác nhận (veDanhSach thiếu daXacNhan = {}) — không thì cả 7 cấp bé chỉ nghe được một lần');
+  n++;
+  /* --- HÀNG ĐỢI GIỌNG NÓI: câu nhắc SAI là lời dạy nên phải tới tai bé NGAY; câu ok (xác nhận,
+         mốc, khen) không được chen. thiếu hàng đợi thì một thẻ thả 1,5 giây đã xén giữa câu cô
+         đang giải thích 3 giây — chữ mất, nghĩa mất. --- */
+  var maNoi = String(coNoi);
+  if (maNoi.indexOf('coDungTieng') >= 0)
+    err.push('coNoi lại tự cắt câu đang nói — phản hồi nhỏ không được phép xén lời dạy');
+  // Luật phải đo ĐÚNG NHÁNH 'bad', không chỉ đo sự có mặt của hai chữ: bản cũ chỉ indexOf
+  // 'coHangDai' nên bỏ hẳn lệnh nói ngay ở nhánh sai vẫn lọt (probe đột biến đo 22/10).
+  if (!/loai === 'bad'[\s\S]{0,60}?coPhat\(/.test(maNoi))
+    err.push('Câu nhắc SAI phải được coPhat nói NGAY trong nhánh loai === \'bad\' — không thì lời dạy xếp hàng sau lời khen, bé nghe muộn cả chuỗi');
+  // Nhánh 'bad' KHÔNG được xoá hàng đợi: hàng đợi giờ chứa CHÍNH LỜI DẠY (cô nói ô vừa ghép là
+  // gì). Đo thật 2026-10-22: xoá hàng làm mất hẳn "Số này thuộc phép tính tìm TỔNG." cả cấp.
+  if (/loai === 'bad'[\s\S]{0,60}?coHangDai\s*=\s*\[\]/.test(maNoi))
+    err.push('Nhánh loai === \'bad\' xoá coHangDai ⇒ nuốt lời dạy bé chưa kịp nghe (daXacNhan đã đánh dấu nên cả cấp mất câu). Chỉ được cắt lời đang nói, giữ nguyên hàng đợi');
+  if (maNoi.indexOf("loai === 'bad'") < 0 || maNoi.indexOf('coHangDai.push') < 0)
+    err.push('Thiếu quy tiên: câu sai phải nói ngay, câu ok phải xếp hàng vào coHangDai');
+  if (!/coHangDai\.length\s*<\s*5/.test(maNoi))
+    err.push('Hàng đợi phải có nấc tràn (coHangDai.length < 5) — bé thả liên tiếp 10 thẻ là cô nói dồn một tràng không dứt');
+  if (typeof thaDung === 'function') {
+    var maTha2 = String(thaDung);
+    if (maTha2.indexOf('daXacNhan[nk] = 1') < 0)
+      err.push('Câu xác nhận phải được đánh dấu NGAY LÚC NHẬN LỜI trong thaDung — không thì hai thẻ cùng loại liên tiếp gọi cô nói hai câu giống hệt nhau');
+    if (maTha2.indexOf('coNoiSau') >= 0)
+      err.push('ThaDung không được hẹn giờ bằng coNoiSau: nó chỉ giữ MỘT câu hẹn, thẻ liền sau xoá mất câu trước (đo thật 22/10: "xac-ten" bị nuốt) — đi thẳng vào coNoi để vào hàng đợi');
+    if (maTha2.indexOf('coNoi(') < 0) err.push('Câu xác nhận loại ô không được coNoi phát (thaDung thiếu lời gọi coNoi)');
+  }
+  if (typeof coRutHang !== 'function' || String(coRutHang).indexOf('coHangDai.shift') < 0)
+    err.push('Câu xếp hàng không bao giờ được phát (coRutHang phải lấy kế tiếp từ coHangDai)');
+  if (String(coDatTat).indexOf('coHangDai = []') < 0)
+    err.push('Bấm tắt tiếng mà hàng đợi còn câu thì cô vẫn nói lén ngay sau đó — coDatTat phải dọn coHangDai');
   n++;
   /* PHÁO BÔNG: mỗi phần xong tốt phải bắn đúng một phát; canvas không được chặn kéo thả;
      máy chọn giảm chuyển động phải có nhánh tĩnh. Kiểm cả chỗ GỌI, không chỉ chỗ ĐỊNH NGHĨA. */
@@ -5326,10 +5511,12 @@ function tuKiem() {
       if (typeof CO_DONG === 'undefined' || !CO_DONG[k])
         err.push('Điệu "' + k + '" chưa có trong CO_DONG — cô sẽ đứng im');
     });
-    if (String(coNoi).indexOf("coDongTac('buon')") < 0) err.push('Cô chưa buồn khi bé kéo nhầm');
-    if (String(coNoi).indexOf("coDongTac('vui')") < 0) err.push('Cô chưa vui khi bé làm đúng');
-    if (String(coNoi).indexOf('coDongCuoi') < 0)
-      err.push('Lời khen phát sau 90ms sẽ cắt màn nhảy mừng — thiếu nhường "dai-vui"');
+    if (String(coPhat).indexOf("coDongTac('buon')") < 0) err.push('Cô chưa buồn khi bé kéo nhầm');
+    if (String(coPhat).indexOf("coDongTac('vui')") < 0) err.push('Cô chưa vui khi bé làm đúng');
+    if (String(coPhat).indexOf('coDongCuoi') < 0)
+      err.push('Câu phát sau dễ cắt màn nhảy mừng — coPhat phải nhường "dai-vui"');
+    if (String(thaDung).indexOf('coDongTac') < 0)
+      err.push('Thẻ đúng không còn lời khen thì cô phải CƯỜI bằng hình (coDongTac trong thaDung), không được đứng im');
     if (String(chucMungPhan).indexOf("coDongTac('dai-vui')") < 0) err.push('Cô chưa nhảy mừng khi xong một phần');
     if (typeof coRanh !== 'function' || String(coRanh).indexOf('coGiamChuyenDong()') < 0 || String(coRanh).indexOf('coDongTac') < 0)
       err.push('Cô chưa tự đổi dáng lúc rảnh (hoặc chưa tôn trọng giảm chuyển động)');
