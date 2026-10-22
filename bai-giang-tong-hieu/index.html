@@ -367,6 +367,15 @@
   .ct.be .f { color: var(--teal); }
   .ct.on { box-shadow: 0 0 0 4px #FEF3C7; }
   .ct-why { margin-top: 7px; font-size: 14px; line-height: 1.45; font-weight: 800; color: #6B6152; }
+  /* MỤC 4: MỖI CÔNG THỨC MỘT KHUNG (cô chốt 22/10). Viết liền bốn phép thành một dải chữ thì
+     bé không phân biệt được công thức nào tìm số, công thức nào chỉ để thử lại. */
+  .ct-nhom + .ct-nhom { margin-top: 10px; }
+  .ct-nhom-lab { font-size: 13px; font-weight: 900; text-transform: uppercase; color: var(--purple); }
+  .ct-df { display: grid; grid-template-columns: minmax(0,1fr); gap: 8px; margin-top: 6px; }
+  @media (min-width: 720px) { .ct-df { grid-template-columns: 1fr 1fr; } }
+  .ct-df-o { background: #fff; border: 2px solid var(--purple); border-radius: 10px; padding: 7px 8px;
+    text-align: center; font-weight: 900; color: var(--ink); white-space: nowrap;
+    font-size: clamp(13px, 4.2vw, 17px); }
   .ti-le-bai { margin-top: 10px; padding: 10px 12px; border: 2px solid var(--purple); border-radius: 12px; background: #fff; }
   .ti-le-bai .ti-le-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
   .ti-le-bai input { width: 92px; min-height: 42px; border: 2px solid var(--line); border-radius: 10px; padding: 6px 8px; font: 900 17px inherit; text-align: center; }
@@ -843,7 +852,7 @@
         <div class="ct be" id="ct-be"><div class="lab">Cách 1 · Tìm số bé trước</div><div class="f math" id="ct-be-f">(TỔNG − HIỆU) ÷ 2</div><div class="ct-why">Xoá đoạn cam (phần hơn) khỏi TỔNG thì hai thanh còn lại dài bằng nhau — mỗi thanh đúng bằng SỐ BÉ, nên phải chia 2.</div></div>
         <div class="ct" id="ct-lon"><div class="lab">Cách 2 · Tìm số lớn trước</div><div class="f math" id="ct-lon-f">(TỔNG + HIỆU) ÷ 2</div><div class="ct-why">Nối thêm đoạn cam vào thanh ngắn thì hai thanh đều dài bằng SỐ LỚN, nên phải chia 2.</div></div>
       </div>
-      <div class="note" id="may-lenh">Hai công thức đều đúng: với TỔNG 120 và HIỆU 20, số bé = (120 − 20) ÷ 2 = 50; số lớn = (120 + 20) ÷ 2 = 70.</div>
+      <div class="note ct-bo" id="may-lenh"><div class="ct-nhom"><div class="ct-nhom-lab">Công thức chung</div><div class="ct-df"><div class="ct-df-o">SỐ BÉ = (TỔNG − HIỆU) ÷ 2</div><div class="ct-df-o">SỐ LỚN = (TỔNG + HIỆU) ÷ 2</div></div></div><div class="ct-nhom"><div class="ct-nhom-lab">Thử lại</div><div class="ct-df"><div class="ct-df-o">SỐ BÉ + SỐ LỚN = TỔNG</div><div class="ct-df-o">SỐ LỚN − SỐ BÉ = HIỆU</div></div></div></div>
     </div>
   </section>
 
@@ -2916,8 +2925,23 @@ function kiemSan(i) {
    ===================================================================== */
 var may = { t: 120, h: 20, b: 0 };
 // Công thức CHUNG, không gắn với thế số nào của máy — thế số cụ thể chỉ nằm trong hai thẻ Cách 1 / Cách 2.
-var CONG_THUC_CHUNG = '<b>Công thức chung:</b> SỐ BÉ = (TỔNG − HIỆU) ÷ 2 · SỐ LỚN = (TỔNG + HIỆU) ÷ 2. ' +
-  'Thử lại: SỐ BÉ + SỐ LỚN = TỔNG · SỐ LỚN − SỐ BÉ = HIỆU.';
+// MỖI CÔNG THỨC MỘT KHUNG RIÊNG: bốn phép viết liền một dải thì trẻ lớp 4 không biết phép nào để tính,
+// phép nào chỉ để thử lại.
+var CT_TINH = String((document.getElementById('may-lenh') || {}).innerHTML || '');  // bản in sẵn trong HTML, máy chưa ghi đè
+var CT_BO = [
+  ['Công thức chung', ['SỐ BÉ = (TỔNG − HIỆU) ÷ 2', 'SỐ LỚN = (TỔNG + HIỆU) ÷ 2']],
+  ['Thử lại', ['SỐ BÉ + SỐ LỚN = TỔNG', 'SỐ LỚN − SỐ BÉ = HIỆU']]
+];
+function veCtBo() {
+  var html = '';
+  for (var g = 0; g < CT_BO.length; g++) {
+    html += '<div class="ct-nhom"><div class="ct-nhom-lab">' + CT_BO[g][0] + '</div><div class="ct-df">';
+    for (var o = 0; o < CT_BO[g][1].length; o++) html += '<div class="ct-df-o">' + CT_BO[g][1][o] + '</div>';
+    html += '</div></div>';
+  }
+  return html;
+}
+var CONG_THUC_CHUNG = veCtBo();
 // Máy tự chạy từng bước; không bắt bé phải bấm để xem lời giải.
 function veMay() {
   var s = doiSo({ tong: may.t, hieu: may.h });
@@ -4889,6 +4913,73 @@ function tuKiem() {
     err.push('Thẻ ĐẦU VÀO bị gọi là "' + chipNhan('52', 'hieu', true) + '" — đề chỉ cho số, chưa cho tên kết quả');
   if (!/số HIỆU/.test(oDanh('hieu', false)) || !/số HIỆU/.test(chipNhan('10', 'hieu', false)))
     err.push('Ô/thẻ NGOÀI khung tính (Mục 1·2·3 — số ấy CHÍNH là HIỆU) bị mất tên "số HIỆU", bé không biết kéo gì');
+  /* --- MỖI CÔNG THỨC MỘT KHUNG (cô chốt 22/10 ở Mục 4): bốn phép viết liền một dải chữ thì
+         không biết phép nào để TÍNH, phép nào để THỬ LẠI. Đóng khung từng công thức,
+         một công thức = một khung = một hàng, không vỡ chữ, không tràn ra khỏi khung. --- */
+  (function kiemCtBo() {
+    var doi = document.getElementById('may-lenh');
+    if (!doi) { err.push('Mục 4 mất khối #may-lenh — không còn chỗ dựng công thức'); return; }
+    var nhom = doi.querySelectorAll('.ct-nhom'), o = doi.querySelectorAll('.ct-df-o');
+    if (o.length !== 4) err.push('#may-lenh có ' + o.length + ' công thức, phải là 4 — mỗi công thức một khung');
+    if (nhom.length !== 2) err.push('#may-lenh gộp ' + o.length + ' công thức vào ' + nhom.length +
+      ' nhóm, phải tách 2 nhóm "Công thức chung" và "Thử lại"');
+    var van = [], k;
+    for (k = 0; k < o.length; k++) van.push(o[k].textContent.replace(/\s+/g, ' ').trim());
+    var dinh = [];
+    for (k = 0; k < CT_BO.length; k++) dinh = dinh.concat(CT_BO[k][1]);
+    if (van.join('|') !== dinh.join('|'))
+      err.push('Công thức hiện trên trang khác máy dựng: "' + van.join(' · ') + '" ≠ "' + dinh.join(' · ') + '"');
+    if (/·/.test(doi.textContent))
+      err.push('#may-lenh vẫn nối nhiều công thức bằng dấu "·" trong một dòng chữ — phải rời nhau thành từng khung');
+    var nhan = [];
+    for (k = 0; k < nhom.length; k++) nhan.push(nhom[k].querySelector('.ct-nhom-lab').textContent.replace(/\s+/g, ' ').trim());
+    if (nhan.join('|') !== 'Công thức chung|Thử lại')
+      err.push('Hai nhóm công thức mang tên "' + nhan.join('" · "') + '" — phải là "Công thức chung" (để tính) và "Thử lại" (để kiểm tra)');
+    // HTML TĨNH và máy dựng phải cho cùng một nội dung: máy có ghi đè thì bản tĩnh vẫn là thứ
+    // trẻ nhìn thấy trước tiên (và duy nhất khi máy chưa chạy).
+    function vanHoa(h) { var p = document.createElement('div'); p.innerHTML = h; return p.textContent.replace(/\s+/g, ' ').trim(); }
+    if (!/ct-df-o/.test(CT_TINH) || vanHoa(CT_TINH) !== vanHoa(CONG_THUC_CHUNG))
+      err.push('#may-lenh in trong HTML ("' + vanHoa(CT_TINH).slice(0, 60) + '…") lệch với khung công thức máy dựng ("' +
+        vanHoa(CONG_THUC_CHUNG).slice(0, 60) + '…") — hai bản phải một kiểu');
+    var host = document.createElement('div');
+    host.style.cssText = 'position:absolute;left:-3000px;top:0';
+    host.className = 'note ct-bo';
+    host.innerHTML = veCtBo();
+    document.body.appendChild(host);
+    /* Đo ở HÀNG ĐÔI: media query 720px canh theo MÀN HÌNH THẬT, còn host đo thì nằm ngoài
+       khung đó — để .ct-df về một cột thì khung nào cũng chiếm hết bề ngang, đúng như
+       điện thoại 320px. Không có bước này thì luật chỉ đo được bố cục máy tính. */
+    var df = host.querySelectorAll('.ct-df');
+    for (k = 0; k < df.length; k++) df[k].style.display = 'block';
+    [320, 420, 760, 1000].forEach(function (w) {
+      host.style.width = w + 'px';
+      var box = host.querySelectorAll('.ct-df-o');
+      if (box.length !== 4) { err.push('Công thức @' + w + 'px: dựng được ' + box.length + ' khung, phải 4'); return; }
+      for (var b = 0; b < box.length; b++) {
+        var r = box[b].getBoundingClientRect(), cs = getComputedStyle(box[b]);
+        var chu = box[b].textContent.replace(/\s+/g, ' ').trim();
+        var bao = '';
+        if (!r.height) bao = 'không hiện ra';
+        else {
+          // Số HÀNG CHỮ đếm bằng Range trên chính chữ: 1 hình chữ nhật = 1 hàng.
+          // Cao độ hộp không dùng được — chữ to lên thì hộp cao lên mà vẫn một hàng.
+          var rg = document.createRange(); rg.selectNodeContents(box[b]);
+          var hang = rg.getClientRects().length;
+          if (hang > 1) bao = 'vỡ thành ' + hang + ' hàng — một công thức phải đúng một hàng';
+          else if (box[b].scrollWidth > box[b].clientWidth + 1)
+            bao = 'tràn khỏi khung (chữ cần ' + box[b].scrollWidth + 'px, khung ' + box[b].clientWidth +
+              'px) — bị cắt chữ';
+          else if (parseFloat(cs.borderTopWidth) < 1 || cs.borderTopStyle === 'none' ||
+                   cs.visibility === 'hidden' || cs.display === 'none')
+            bao = 'không có khung bao (border ' + cs.borderTopWidth + ' ' + cs.borderTopStyle +
+              ') — vẫn là chữ viết tràn lan';
+        }
+        if (bao) { err.push('Công thức @' + w + 'px: "' + chu + '" ' + bao); break; }   // một lỗi / khổ là đủ đọc
+      }
+    });
+    document.body.removeChild(host);
+    n++;
+  })();
   for (var c7 = 1; c7 <= 7; c7++) CAP[c7].ds.forEach(function (q, j) {
     var s = doiSo(q.dk), nh = 'Bài ' + c7 + '.' + (j + 1), van = lamVan(q).text;
     var html = veCau(c7, j), id = c7 + '-' + j;
