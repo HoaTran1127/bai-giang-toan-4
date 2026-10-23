@@ -196,6 +196,16 @@
      outline vẽ ngồi ngoài lề nên không ăn vào bề rộng ô — số đo sơ đồ không đổi. */
   .keo:focus, .drop:focus { outline: 3px solid var(--teal); outline-offset: 2px; }
   .keo.chon:focus { outline-color: #B45309; }
+  /* Ô NHẬN ĐÚNG LOẠI sáng viền khi em nhấc một thẻ lên. Không có cái này thì em phải đọc
+     hết chữ trên sơ đồ để đoán ô nào là của mình; outline/box-shadow vẽ ngồi ngoài lề nên
+     số đo ô không đổi (các luật hình học trong tuKiem() vẫn chạy đúng). */
+  .drop.nham { border-color: #F59E0B; background: #FFFBEB; animation: nhapNhan 1.2s ease-in-out infinite; }
+  [data-thavung].nham { outline: 3px dashed #F59E0B; outline-offset: 2px; }
+  @keyframes nhapNhan { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,.5); }
+    50% { box-shadow: 0 0 0 5px rgba(245,158,11,.22); } }
+  /* Vùng cho MÁY ĐỌC MÀN HÌNH: cùng chữ với dòng chú thích vàng nhưng nằm ngoài màn hình,
+     em không nhìn thấy mà vẫn nghe được "đang cầm thẻ gì, đổ vào ô chưa". */
+  .keo-tin { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
   @keyframes shakeX { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-5px); }
     40% { transform: translateX(5px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
   .shake { animation: shakeX .4s ease; border-color: var(--red) !important; color: var(--red) !important; }
@@ -602,6 +612,7 @@
   </section>
 
   <footer class="footer" id="footer-stamp">Đang tự kiểm tra đáp số...</footer>
+  <div id="keo-tin" class="keo-tin" role="status" aria-live="polite"></div>
 </div>
 
 <script>
@@ -921,8 +932,37 @@ function choPhepPhim(el, moTa) {
 }
 function boChonKeo(root) {
   KEO = null;
-  var c = root.querySelector('.keo.chon');
+  var c = (root || document).querySelector('.keo.chon');
   if (c) c.classList.remove('chon');
+  boNham();
+}
+/* Cùng một câu chuyện với dòng chú thích vàng nhưng dành cho MÁY ĐỌC MÀN HÌNH: em không
+   nhìn thì phải NGHE được mình đang cầm thẻ nào, đổ vào ô chưa, vì sao bị từ chối. */
+function tin(msg) {
+  var t = document.getElementById('keo-tin');
+  if (t) t.textContent = String(msg).replace(/[✕✓↩🖐]/g, '').replace(/\s+/g, ' ').trim();
+}
+/* Nhấc thẻ lên thì đúng những Ô CHƯA ĐỔ nhận loại đó sáng viền — em nhìn thấy chỗ của mình
+   mà không phải đọc lại cả sơ đồ. Trả về số ô sáng để tuKiem() đo được. */
+function oNham(loai, root) {
+  boNham();
+  if (!loai) return 0;
+  var dem = 0, ds = (root || document).querySelectorAll('.drop');
+  for (var i = 0; i < ds.length; i++) {
+    // Ô không ghi data-loai thì máy thả (trong ganKeoTha) vẫn coi là "phan" — phải soi giống nhau.
+    if ((ds[i].getAttribute('data-loai') || 'phan') !== loai) continue;
+    if (ds[i].classList.contains('ok')) continue;
+    ds[i].classList.add('nham'); dem++;
+  }
+  var vs = (root || document).querySelectorAll('[data-thavung]');
+  for (var v = 0; v < vs.length; v++) {
+    if (vs[v].querySelector('.drop.nham')) vs[v].classList.add('nham');
+  }
+  return dem;
+}
+function boNham() {
+  var n = document.querySelectorAll('.drop.nham, [data-thavung].nham');
+  for (var i = 0; i < n.length; i++) n[i].classList.remove('nham');
 }
 var LOAI_KEO = { phan: 'số PHẦN', tong: 'TỔNG', ten: 'TÊN hàng' };
 function phimKeo(ev, lam) {
@@ -935,6 +975,7 @@ function phimKeo(ev, lam) {
 function baoKeo(root, msg) {
   var cap = root.querySelector('.cap');
   if (cap) { cap.innerHTML = msg; cap.className = 'cap'; }
+  tin(msg);
   baoTieng(msg);
 }
 function chonKeo(el, root) {
@@ -943,6 +984,7 @@ function chonKeo(el, root) {
   var c = root.querySelector('.keo.chon'); if (c) c.classList.remove('chon');
   KEO = { id: el.id, gia: el.getAttribute('data-gia'), loai: el.getAttribute('data-loai') };
   el.classList.add('chon');
+  oNham(KEO.loai, root);
   return '🖐 Đang nhấc thẻ "' + (el.getAttribute('data-txt') || el.textContent) +
     '" — Tab tới ô cần đổ rồi bấm Enter.';
 }
@@ -967,6 +1009,7 @@ function ganKeoTha(rootId, hamTha) {
     chips[i].addEventListener('dragstart', function (ev) {
       var c = root.querySelector('.keo.chon'); if (c) c.classList.remove('chon');
       KEO = { id: this.id, gia: this.getAttribute('data-gia'), loai: this.getAttribute('data-loai') };
+      oNham(KEO.loai, root);
       if (ev.dataTransfer) ev.dataTransfer.setData('text/plain', KEO.gia);
     });
     chips[i].addEventListener('dragend', function () { boChonKeo(root); });
@@ -1040,17 +1083,21 @@ function rungVaBao(el, cap, msg) {
   setTimeout(function () { tg.classList.remove('shake'); }, 450);
   cap.innerHTML = msg;
   cap.className = 'cap bad';
+  tin(msg);
   baoTieng(msg);
 }
 function thaDung(el, keo, cap) {
   el.innerHTML = keo.gia;
   el.classList.add('ok');
   var chipEl = document.getElementById(keo.id);
-  if (chipEl) chipEl.outerHTML = '<b>' + (chipEl.getAttribute('data-txt') || keo.gia) + '</b>';
+  var tenThe = chipEl ? (chipEl.getAttribute('data-txt') || keo.gia) : keo.gia;
+  if (chipEl) chipEl.outerHTML = '<b>' + tenThe + '</b>';
   KEO = null;
   var c = document.querySelector('.keo.chon'); if (c) c.classList.remove('chon');
+  boNham();
   cap.innerHTML = '✓ Đúng ô!';
   cap.className = 'cap ok';
+  tin('✓ Đúng ô — đã đổ thẻ "' + tenThe + '" vào chỗ của nó.');
 }
 
 /* =====================================================================
@@ -1190,6 +1237,7 @@ function tuTha(i, el) {
     item.classList.add('ok');
     cap.innerHTML = '✓ Tách ô rồi — đếm xem: hàng trên ' + s.a + ' ô, hàng dưới ' + s.b + ' ô, tất cả ' + s.n + ' ô bằng nhau.';
     cap.className = 'cap ok';
+    tin(cap.innerHTML);
   }
   ganKeoTha('tu-' + i, function (el2) { tuTha(i, el2); });
   veTuScore();
@@ -1686,6 +1734,7 @@ function quizTha(i, j, el) {
   if (card.querySelectorAll('.drop.ok').length === 4) {
     cap.innerHTML = '✓ Sơ đồ đủ hai hàng ô, TỔNG và số phần — giờ lấy TỔNG chia cho số phần.';
     cap.className = 'cap ok';
+    tin(cap.innerHTML);
   }
 }
 
@@ -2628,6 +2677,91 @@ function tuKiem() {
       if (!theDom.length || !oDom.length)
         err.push('Trang không còn thẻ / ô kéo thả nào để kiểm đường phím (thẻ ' + theDom.length + ' · ô ' + oDom.length + ')');
       if (thieu) err.push(thieu + ' thẻ/ô kéo thả KHÔNG Tab tới được — đứng ở đó mà bấm Enter chẳng có tác dụng gì');
+    }
+  }
+
+  /* MÁY ĐỌC MÀN HÌNH + Ô SÁNG VIỀN — hai thứ đó làm thành đường dùng kéo–thả mà KHÔNG cần
+     nhìn chữ trên sơ đồ. Luật dựng thật một sơ đồ nhỏ trong sandbox rồi bấm Enter vào thẻ:
+     ai bỏ tính năng này (hoặc bỏ đúng một nhánh phân biệt loại) là trang báo ngay, không chờ
+     em học sinh than. */
+  n++;
+  var tinVung = document.getElementById('keo-tin');
+  if (!tinVung) err.push('Thiếu vùng #keo-tin ⇒ máy đọc màn hình không nhắc lại trạng thái kéo thả');
+  else {
+    if (tinVung.getAttribute('aria-live') !== 'polite')
+      err.push('#keo-tin phải aria-live="polite" — đọc chen (assertive) là hai câu chồng lên nhau, em mất câu trước');
+    if (tinVung.getAttribute('role') !== 'status')
+      err.push('#keo-tin thiếu role="status" ⇒ nhiều máy đọc không coi nó là vùng thông báo');
+  }
+  if (typeof tin !== 'function') err.push('Mất hàm tin() — không chỗ nào viết vào vùng thông báo');
+  else {
+    [['baoKeo', baoKeo], ['rungVaBao', rungVaBao], ['thaDung', thaDung]].forEach(function (p) {
+      if (String(p[1]).indexOf('tin(') < 0)
+        err.push(p[0] + ' không ghi vào #keo-tin ⇒ em không dùng chuột thì không biết mình vừa làm được gì');
+    });
+  }
+  if (coHinh) {
+    n++;
+    var coCSSNham = false;
+    try {
+      for (var ssc = 0; ssc < document.styleSheets.length; ssc++) {
+        var rs = document.styleSheets[ssc].cssRules; if (!rs) continue;
+        for (var rrc = 0; rrc < rs.length; rrc++) {
+          var sel = String(rs[rrc].selectorText || '');
+          // PHAI khop ca selector: so chuoi con thi ".drop.nhamKhongDung" cung "dat" (dot bien M1 din that).
+          if (sel.split(',').some(function (p) { return p.trim() === '.drop.nham'; })) coCSSNham = true;
+        }
+      }
+    } catch (e) { /* stylesheet khác gốc: đọc cssRules là ném lỗi, bỏ qua là đủ */ }
+    if (!coCSSNham)
+      err.push('Stylesheet đang chạy KHÔNG có luật ".drop.nham" — class sáng viền chỉ là chữ vô hình, em không nhìn thấy gì');
+    var srcNham = String(ganKeoTha);
+    if (srcNham.indexOf('oNham(KEO.loai, root)') < 0)
+      err.push('Đường KÉO CHUỘT (dragstart) không gọi oNham ⇒ kéo chuột thì chẳng ô nào sáng, chỉ đường Enter mới sáng');
+    if (String(boChonKeo).indexOf('boNham()') < 0)
+      err.push('boChonKeo không tắt sáng ⇒ Escape đặt thẻ xuống mà viền sáng vẫn nằm lại trên sơ đồ');
+    var keoCu = KEO, khu = document.createElement('div');
+    khu.id = 'kt-nham';
+    khu.innerHTML = '<span class="keo" id="kt-nham-phan" draggable="true" data-gia="3" data-loai="phan" data-txt="3 phần">3 phần</span>' +
+      '<span class="keo" id="kt-nham-ten" draggable="true" data-gia="Bi" data-loai="ten" data-txt="Bi">Bi</span>' +
+      '<span class="drop" id="kt-nham-o1" data-loai="phan" data-dap="3">?</span>' +
+      '<span class="drop ok" id="kt-nham-o2" data-loai="phan" data-dap="4">4</span>' +
+      '<span class="drop" id="kt-nham-o3" data-loai="ten" data-dap="Bi">?</span>';
+    document.body.appendChild(khu);
+    try {
+      if (oNham('phan', khu) !== 1)
+        err.push('Thẻ "… phần" phải làm sáng ĐÚNG 1 ô (ô còn trống cùng loại), hiện ' + khu.querySelectorAll('.drop.nham').length);
+      if (!document.getElementById('kt-nham-o1').classList.contains('nham'))
+        err.push('oNham("phan") không sáng ô trống loại "phan" — sáng chỗ khác, tô sáng đang đánh lừa em');
+      if (document.getElementById('kt-nham-o2').classList.contains('nham'))
+        err.push('Ô ĐÃ ĐỔ rồi vẫn sáng viền ⇒ em bấm vào đó là đổ trùng, mất chỗ đúng');
+      if (document.getElementById('kt-nham-o3').classList.contains('nham'))
+        err.push('Ô NHÃN sáng khi cầm thẻ số ⇒ tô sáng không phân biệt loại, em vẫn phải đoán');
+      if (oNham('ten', khu) !== 1) err.push('Thẻ TÊN phải làm sáng đúng 1 ô nhãn còn trống');
+      if (oNham(null, khu) !== 0) err.push('Bỏ nhấc thẻ mà vẫn còn ô sáng');
+      chonKeo(document.getElementById('kt-nham-phan'), khu);
+      if (khu.querySelectorAll('.drop.nham').length !== 1)
+        err.push('Đường BẤM / Enter (chonKeo) không làm sáng ô — chỉ mỗi đường kéo chuột được tô sáng');
+      boChonKeo(khu);
+      if (document.querySelectorAll('.drop.nham').length)
+        err.push('Thử xong vẫn còn ô sáng viền trên trang thật');
+      /* MỖI LOẠI THẺ phải có Ô NHẬN của chính nó, và ngược lại — loại thừa thì không đổ được,
+         loại thiếu thì sơ đồ không bao giờ ghép kín. */
+      var demGoc = 0, lacLoai = [];
+      [].forEach.call(document.querySelectorAll('.tu-item, .qcard'), function (goc) {
+        var the = goc.querySelectorAll('.keo');
+        if (!the.length) return;                       // sơ đồ đã ghép kín thì không còn thẻ
+        demGoc++;
+        var coThe = {}, coO = {}, d;
+        [].forEach.call(the, function (el) { coThe[el.getAttribute('data-loai') || 'phan'] = 1; });
+        [].forEach.call(goc.querySelectorAll('.drop'), function (el) { coO[el.getAttribute('data-loai') || 'phan'] = 1; });
+        for (d in coThe) if (!coO[d]) lacLoai.push('#' + goc.id + ': thẻ loại "' + d + '" không có ô nhận nào');
+        for (d in coO) if (!coThe[d]) lacLoai.push('#' + goc.id + ': ô nhận loại "' + d + '" nhưng không có thẻ nào loại đó');
+      });
+      if (!demGoc) err.push('Trang không còn sơ đồ kéo–thả nào để đo ô nhận theo loại');
+      if (lacLoai.length) err.push(lacLoai.join(' · '));
+    } finally {
+      KEO = keoCu; boNham(); khu.remove();
     }
   }
 
