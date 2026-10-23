@@ -1506,9 +1506,15 @@ var ROSTER = [
   { key: 'gia-linh', label: 'Gia Linh', alias: ['gia linh', 'linh'], anh: 'anh-avatar/gia-linh-tinh-tinh.png' },
   { key: 'tra-giang', label: 'Trà Giang', alias: ['tra giang', 'giang'], anh: 'anh-avatar/tra-giang-ho-ca.png' }
 ];
-// nơi nhận kết quả: điền URL /formResponse của Google Form vào FORM_ENDPOINT rồi mở lại trang
-var FORM_ENDPOINT = '';
-var ENTRY = { ten: '', ngay: '', dung: '', tong: '', sao: '', loiSai: '', phanTram: '', dapAnCuaEm: '' };
+// Form: "Bảng điểm Đổi đơn vị - lop 4" (tài khoản minhtien07118904@gmail.com)
+// Đã xác minh 23/10/2026: POST ẩn danh → 200 → đúng 1 dòng trong Sheet riêng
+// "Bảng điểm Đổi đơn vị - lop 4 (Câu trả lời)" (id 1tJLJKlGfvwGt3_kDJRcfvBxPHKrZE19rlMU-DsYrOto).
+var FORM_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSeb3gsOc-UWQT3y20_LdcWh0PJjJscAxDxOA20HE3F1JX_BWA/formResponse';
+var ENTRY = {
+  ten: 'entry.1275828399', ngay: 'entry.2047066992', dung: 'entry.553019836',
+  tong: 'entry.2082998465', sao: 'entry.1687659485', loiSai: 'entry.1281776812',
+  phanTram: 'entry.553305782', dapAnCuaEm: 'entry.1915954631'
+};
 var SEND_READY = FORM_ENDPOINT.indexOf('http') === 0;
 
 var LEVELS = {
@@ -1733,18 +1739,38 @@ function submitQuiz() {
   document.getElementById('submit-bar').innerHTML = '';
   sendResult(correct, keys.length, stars, pct, wrong.join(' | '), sheet.join(' | '));
 }
+function ngayLamBai(d) {
+  function p(n) { return (n < 10 ? '0' : '') + n; }
+  return p(d.getDate()) + '/' + p(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
 function sendResult(dung, tong, sao, pct, loiSai, dapAn) {
   var st = document.getElementById('send-status');
-  if (!SEND_READY) { st.textContent = 'Chưa cài Form nhận bài — xem README mục "Nơi nhận kết quả".'; return; }
-  var fd = new FormData();
-  fd.append(ENTRY.ten, runState.label);
-  fd.append(ENTRY.ngay, new Date().toLocaleString('vi-VN'));
-  fd.append(ENTRY.dung, dung); fd.append(ENTRY.tong, tong);
-  fd.append(ENTRY.sao, sao); fd.append(ENTRY.loiSai, loiSai);
-  fd.append(ENTRY.phanTram, pct + '%'); fd.append(ENTRY.dapAnCuaEm, dapAn);
-  fetch(FORM_ENDPOINT, { method: 'POST', mode: 'no-cors', body: fd })
-    .then(function () { st.textContent = '✅ Đã gửi kết quả về bảng của thầy.'; })
-    .catch(function () { st.textContent = '⚠️ Không gửi được, kiểm tra mạng.'; });
+  if (!SEND_READY) { st.textContent = 'Chưa cài Form nhận bài — xem README mục "Nơi nhận kết quả".'; return false; }
+  var frame = document.getElementById('th-gui');
+  if (!frame) {
+    frame = document.createElement('iframe');
+    frame.name = 'th-gui'; frame.id = 'th-gui'; frame.className = 'hidden';
+    document.body.appendChild(frame);
+  }
+  var values = { ten: runState.label, ngay: ngayLamBai(new Date()), dung: dung, tong: tong,
+    sao: sao, loiSai: loiSai, phanTram: pct + '%', dapAnCuaEm: dapAn };
+  var form = document.createElement('form');
+  form.method = 'POST'; form.action = FORM_ENDPOINT; form.target = 'th-gui'; form.acceptCharset = 'UTF-8';
+  form.className = 'hidden';
+  var cs = document.createElement('input');
+  cs.type = 'hidden'; cs.name = '_charset_'; cs.value = 'utf-8';
+  form.appendChild(cs);
+  for (var f in ENTRY) {
+    if (!ENTRY[f]) continue;
+    var inp = document.createElement('input');
+    inp.type = 'hidden'; inp.name = ENTRY[f];
+    inp.value = String(values[f] == null ? '' : values[f]);
+    form.appendChild(inp);
+  }
+  document.body.appendChild(form);
+  form.submit(); form.remove();
+  st.textContent = '✅ Đã gửi kết quả về bảng của thầy.';
+  return true;
 }
 
 /* ================= TỰ KIỂM ĐÁP SỐ ================= */

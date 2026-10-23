@@ -1506,10 +1506,15 @@ var ROSTER = [
   { key: 'tra-giang', label: 'Trà Giang', alias: ['tra giang', 'giang'], anh: 'anh-avatar/tra-giang-ho-ca.png' }
 ];
 
-// Form bài 4 CHƯA tồn tại (bài 3 còn chờ nối Sheet, chưa nhân bản được).
-// Để trống → SEND_READY = false → cổng tự in cảnh báo "chưa gắn bảng điểm".
-var FORM_ENDPOINT = '';
-var ENTRY = { ten: '', ngay: '', dung: '', tong: '', sao: '', loiSai: '', phanTram: '', dapAnCuaEm: '' };
+// Form: "Bảng điểm Tổng và Tỉ số - lop 4" (tài khoản minhtien07118904@gmail.com)
+// Đã xác minh 23/10/2026: POST ẩn danh → 200 → đúng 1 dòng trong Sheet riêng
+// "Bảng điểm Tổng và Tỉ số - lop 4 (Câu trả lời)" (id 1ffSDNpe9ZkXutK6fEVfKXwMnhRihqnZg6ASTpo6mkcs).
+var FORM_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSf7NdZw4X4iBonU5rrcwsMXCXSn87PbmHB2DTOJY7mLV49ogA/formResponse';
+var ENTRY = {
+  ten: 'entry.1275828399', ngay: 'entry.2047066992', dung: 'entry.553019836',
+  tong: 'entry.2082998465', sao: 'entry.1687659485', loiSai: 'entry.1281776812',
+  phanTram: 'entry.553305782', dapAnCuaEm: 'entry.1915954631'
+};
 var SEND_READY = FORM_ENDPOINT.indexOf('http') === 0;
 
 var runState = null, submitted = false, baoCaoDaNop = null, activeCap = 1;
