@@ -1611,6 +1611,38 @@ function diagHtml(item, correctVal, userVal) {
 
 /* ================= MÁY CHẠY LUYỆN TẬP ================= */
 var runState = null, submitted = false, curLevel = 1;
+var nhap = {}, baoCaoDaNop = null;
+var KHO = 'bg4-giu-bai-doi-don-vi';
+/* BAN_CAU phải đổi mỗi khi NỘI DUNG một câu đổi (số, đơn vị, cách hỏi): nháp cũ cất theo
+   key lvl-l-i, câu đã khác rồi mà số cũ còn nằm đó thì bé mở lên thấy "số mình gõ hôm
+   trước đang chờ ở câu hôm nay". */
+var BAN_CAU = 1;
+
+/* Mọi thao tác localStorage đều bọc try/catch: ẩn danh và file:// có thể ném lỗi, mà lỗi
+   này lọt ra ngoài là hỏng cả bài học. */
+function luuBai() {
+  try {
+    if (!runState) return;
+    localStorage.setItem(KHO, JSON.stringify({
+      banCau: BAN_CAU, key: runState.key, label: runState.label,
+      attempts: runState.attempts, cap: curLevel, nhap: nhap,
+      nop: submitted, baoCao: baoCaoDaNop
+    }));
+  } catch (e) { }
+}
+function docBai() {
+  try {
+    var s = localStorage.getItem(KHO);
+    if (!s) return null;
+    var o = JSON.parse(s);
+    if (!o || o.banCau !== BAN_CAU || !o.key || !o.attempts) return null;
+    return o;
+  } catch (e) { return null; }
+}
+function xoaBai() {
+  try { localStorage.removeItem(KHO); } catch (e) { }
+  nhap = {};
+}
 document.getElementById('graded-total').textContent = TOTAL;
 
 (function buildRoster() {
@@ -1634,14 +1666,16 @@ function startPractice() {
     if (r.label.toLowerCase() === v || r.alias.indexOf(v) >= 0) { hit = r; break; }
   }
   if (!hit) { document.getElementById('gate-error').textContent = 'Tên chưa đúng. Em là Ban Mai, Gia Linh hay Trà Giang?'; return; }
+  var luu = docBai();
+  if (luu && luu.key !== hit.key) xoaBai();
   document.getElementById('gate-error').textContent = '';
   runState = { key: hit.key, label: hit.label, anh: hit.anh, attempts: {} };
-  submitted = false;
+  submitted = false; baoCaoDaNop = null; curLevel = 1; nhap = {};
   document.getElementById('name-gate').classList.add('hidden');
   document.getElementById('practice-wrap').classList.remove('hidden');
   document.getElementById('runner-name').textContent = hit.label;
   document.getElementById('runner-avatar').src = hit.anh;
-  renderTabs(); renderLevel(1); updateProgress();
+  renderTabs(); renderLevel(1); updateProgress(); luuBai();
 }
 document.getElementById('name-go').onclick = startPractice;
 document.getElementById('name-input').onkeydown = function (e) { if (e.key === 'Enter') startPractice(); };
@@ -1670,13 +1704,22 @@ function renderLevel(l) {
     var inputType = /^\d/.test(String(qq.ans)) ? 'number' : 'text';
     d.innerHTML = '<div class="qrow"><div class="qprompt">' + (i + 1) + '. <span class="math">' + qq.q + '</span></div>' +
       '<div class="qinput"><input type="' + inputType + '" id="in-' + k + '" placeholder="Điền" aria-label="Kết quả"' +
-      (at ? ' disabled value="' + String(at.val).replace(/"/g, '&quot;') + '"' : '') + '>' +
+      (at ? ' disabled value="' + String(at.val).replace(/"/g, '&quot;') + '"'
+          : (nhap[k] ? ' value="' + String(nhap[k]).replace(/"/g, '&quot;') + '"' : '')) + '>' +
       (at ? '' : '<button class="btn pri" data-k="' + k + '">Kiểm tra</button>') + '</div></div>' +
       '<div id="fb-' + k + '">' + (at ? feedbackHtml(qq, at) : '') + '</div>';
     c.appendChild(d);
   });
   var btns = c.querySelectorAll('.btn');
   for (var b = 0; b < btns.length; b++) btns[b].onclick = function () { checkAnswer(this.getAttribute('data-k')); };
+  var ins = c.querySelectorAll('input:not([disabled])');
+  for (var x = 0; x < ins.length; x++) {
+    (function (el) {
+      var k = el.id.slice(3);
+      el.addEventListener('input', function () { nhap[k] = el.value; luuBai(); });
+      el.onkeydown = function (e) { if (e.key === 'Enter') checkAnswer(k); };
+    })(ins[x]);
+  }
   renderSubmitBar();
 }
 function feedbackHtml(qq, at) {
@@ -1694,7 +1737,10 @@ function checkAnswer(k) {
     ? parseFloat(val) === parseFloat(String(qq.ans))
     : val === normVal(qq.ans);
   runState.attempts[k] = { val: inp.value.trim(), ok: ok };
-  renderLevel(curLevel); updateProgress();
+  delete nhap[k];
+  renderLevel(curLevel); updateProgress(); luuBai();
+  var vb = document.getElementById('fb-' + k);
+  if (vb) vb.scrollIntoView({ block: 'nearest' });
 }
 function gradedKeys() {
   var a = [];
@@ -1717,8 +1763,32 @@ function renderSubmitBar() {
     bar.innerHTML = '<p style="font-weight:800;color:#7A6E5C">Làm đủ ' + keys.length + ' câu cấp 4·5·6·7 rồi bấm Nộp bài.</p>';
   }
 }
+function hienBaoCao(rec) {
+  document.getElementById('level-tabs').classList.add('hidden');
+  document.getElementById('quiz-container').classList.add('hidden');
+  document.getElementById('submit-bar').innerHTML = '';
+  document.getElementById('report-wrap').innerHTML =
+    '<div class="report"><img src="' + rec.anh + '" alt=""><h3>' + rec.label + ': <span class="math">' + rec.correct + '/' + rec.total + '</span> (' + rec.pct + '%)</h3>' +
+    '<div class="stars">' + '★'.repeat(rec.stars) + '☆'.repeat(3 - rec.stars) + '</div>' +
+    '<p class="hint">Nộp lúc ' + rec.ngay + '</p>' +
+    (rec.wrong.length ? '<p style="font-weight:900;margin:8px 0 4px">Câu sai:</p><ul>' + rec.wrong.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>'
+      : '<p style="color:var(--green);font-weight:900">Tuyệt vời — đúng cả 16 câu!</p>') +
+    '<p style="margin-top:8px;font-weight:800">' + (rec.stars === 3 ? 'Em nắm chắc thang 10 và thang 100 rồi.' : 'Xem lại Mục 4 rồi làm lại lần sau nhé.') + '</p>' +
+    '<p id="send-status"></p>' +
+    '<p style="margin-top:12px"><button class="btn" id="doi-ban">Ghi tên bạn khác</button></p></div>';
+  document.getElementById('doi-ban').onclick = function () {
+    xoaBai();
+    runState = null; submitted = false; baoCaoDaNop = null; curLevel = 1;
+    document.getElementById('report-wrap').innerHTML = '';
+    document.getElementById('level-tabs').classList.remove('hidden');
+    document.getElementById('quiz-container').classList.remove('hidden');
+    document.getElementById('practice-wrap').classList.add('hidden');
+    document.getElementById('name-gate').classList.remove('hidden');
+    document.getElementById('name-input').value = '';
+  };
+}
 function submitQuiz() {
-  submitted = true;
+  if (submitted) return;
   var keys = gradedKeys(), correct = 0, wrong = [], sheet = [];
   keys.forEach(function (k) {
     var p = k.split('-'), li = +p[1], qi = +p[2];
@@ -1729,15 +1799,12 @@ function submitQuiz() {
   });
   var pct = Math.round(correct / keys.length * 100);
   var stars = pct >= 85 ? 3 : pct >= 60 ? 2 : pct >= 30 ? 1 : 0;
-  document.getElementById('report-wrap').innerHTML =
-    '<div class="report"><img src="' + runState.anh + '" alt=""><h3>Kết quả: <span class="math">' + correct + '/' + keys.length + '</span> (' + pct + '%)</h3>' +
-    '<div class="stars">' + '★'.repeat(stars) + '☆'.repeat(3 - stars) + '</div>' +
-    (wrong.length ? '<p style="font-weight:900;margin:8px 0 4px">Câu sai:</p><ul>' + wrong.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>'
-      : '<p style="color:var(--green);font-weight:900">Tuyệt vời — đúng cả 16 câu!</p>') +
-    '<p style="margin-top:8px;font-weight:800">' + (stars === 3 ? 'Em nắm chắc thang 10 và thang 100 rồi.' : 'Xem lại Mục 4 rồi làm lại lần sau nhé.') + '</p>' +
-    '<p id="send-status"></p></div>';
-  document.getElementById('submit-bar').innerHTML = '';
+  submitted = true;
+  baoCaoDaNop = { label: runState.label, key: runState.key, anh: runState.anh, correct: correct,
+    total: keys.length, pct: pct, stars: stars, wrong: wrong, ngay: ngayLamBai(new Date()) };
+  hienBaoCao(baoCaoDaNop);
   sendResult(correct, keys.length, stars, pct, wrong.join(' | '), sheet.join(' | '));
+  luuBai();
 }
 function ngayLamBai(d) {
   function p(n) { return (n < 10 ? '0' : '') + n; }
@@ -1870,7 +1937,43 @@ function selfTest() {
     pairs100 + ' cặp ×100 · ' + zeroRows + ' ô bảng Mục 1 · ' + chains + ' chuỗi Mục 5 · trang chạy ổn';
   return true;
 }
+/* Mở lại bài dở: trang không lưu gì cả thì điện thoại giải phóng tab giữa cấp là mất trắng
+   số đã gõ, nên lần mở lại phải dựng đúng chỗ em đang đứng — để chống "bị văng ra", chứ
+   không phải để cấm em làm lại. */
+function moLaiBai() {
+  var o = docBai();
+  if (!o) return false;
+  var hit = null;
+  for (var i = 0; i < ROSTER.length; i++) if (ROSTER[i].key === o.key) { hit = ROSTER[i]; break; }
+  if (!hit) { xoaBai(); return false; }
+  runState = { key: hit.key, label: hit.label, anh: hit.anh, attempts: o.attempts };
+  nhap = o.nhap || {};
+  curLevel = (o.cap && LEVELS[o.cap]) ? +o.cap : 1;
+  submitted = !!o.nop; baoCaoDaNop = o.baoCao || null;
+  document.getElementById('name-gate').classList.add('hidden');
+  document.getElementById('practice-wrap').classList.remove('hidden');
+  document.getElementById('runner-name').textContent = hit.label;
+  document.getElementById('runner-avatar').src = hit.anh;
+  renderTabs(); renderLevel(curLevel); updateProgress();
+  if (submitted && o.baoCao && o.baoCao.total) {
+    hienBaoCao(o.baoCao);
+    document.getElementById('send-status').textContent =
+      'Em đã nộp lúc ' + o.baoCao.ngay + ' — kết quả đã nằm trên bảng của thầy, nên mở lại trang này KHÔNG gửi lại lần nữa.';
+    return true;
+  }
+  var da = Object.keys(o.attempts).length;
+  var dangGo = Object.keys(nhap).length;
+  if (da || dangGo) {
+    var gi = [];
+    if (da) gi.push(da + ' câu đã ghi nhận');
+    if (dangGo) gi.push(dangGo + ' câu em đang gõ dở');
+    document.getElementById('progress-line').textContent += ' · ↩ Trang vừa được mở lại, nên thầy giữ hộ em ' +
+      gi.join(' và ') + '.';
+  }
+  return true;
+}
 selfTest();
+moLaiBai();
 </script>
 </body>
 </html>

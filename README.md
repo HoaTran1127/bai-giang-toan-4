@@ -163,7 +163,7 @@ https://hoatran1127.github.io/bai-giang-toan-4/bai-giang-tong-hieu/       (bài 
 https://hoatran1127.github.io/bai-giang-toan-4/bai-giang-tong-ti/         (bài 4)
 ```
 
-Bốn bài **đều đã lên Pages** (đo 23/10/2026: bài 4 phục vụ 199 023 byte, bài 2 109 820 byte — khớp file trong repo). Mỗi bài cần kèm thư mục `anh-avatar/` của chính nó, vì `kid.anh` là đường dẫn tương đối.
+Bốn bài **đều đã lên Pages** (đo 23/10/2026 bằng `wc -c` trên bản đang ở `main`: bài 4 **202 427 byte**, bài 2 **117 710 byte**; bản Pages phục vụ nhỏ hơn một chút vì `core.autocrlf` cắt `\r`). Mỗi bài cần kèm thư mục `anh-avatar/` của chính nó, vì `kid.anh` là đường dẫn tương đối.
 
 Bài 2 trước đây ở repo riêng `bai-giang-doi-don-vi`; từ 14/10/2026 bản **mới nhất (79 970 byte, sửa 13/10) đã chuyển vào đây**, repo cũ không còn là bản gốc nữa.
 
@@ -172,7 +172,8 @@ Sửa trực tiếp trên GitHub: vào file → nút bút chì → sửa → **C
 ## Bài 2 còn thiếu gì
 
 - ~~**Chưa nối bảng điểm**~~ → **đã nối 23/10/2026**: xem mục "Nơi nhận kết quả của bài 2 và bài 4" bên dưới. Đường gửi cũ của bài 2 là `fetch(..., mode: 'no-cors')` + `FormData` và `new Date().toLocaleString('vi-VN')` (Chrome trả giờ trước ngày, thứ tự đổi theo máy) — **đã port sang form ẩn POST thẳng về Form + `_charset_=utf-8` + `ngayLamBai()` ghép `dd/MM/yyyy HH:mm`**, giống hệt bài 1·3·4.
-- Bài 2 **vẫn chưa giữ bài dở**: trang không có `luuBai()`/`moLaiBai()` và không dùng `localStorage`, nên điện thoại giải phóng tab giữa chừng là mất trắng số đã gõ (bài 1·3·4 đã có). Đây là lỗ còn lại, chưa xử lý trong vòng này.
+- ~~Bài 2 **vẫn chưa giữ bài dở**~~ → **đã có từ 23/10/2026** (đo bằng probe, xem mục "Bài 2 — probe giữ bài dở" bên dưới): `luuBai()` / `docBai()` / `xoaBai()` / `moLaiBai()` + `localStorage` key `bg4-giu-bai-doi-don-vi`, mọi thao tác bọc `try/catch` nên Safari ẩn danh / `file://` không làm hỏng bài. Số cất theo `lvl-<cap>-<i>` và có `BAN_CAU = 1` chặn nháp cũ rơi sang đề mới; đã đổi đề thì phải tăng `BAN_CAU` lên.
+- Bài 2 **chưa có tiếng cô giáo** và **chưa có cửa `.parts/` riêng** (bài 3 từng có, giờ không còn trong repo) — vòng này chỉ đo bằng probe tạm ngoài repo, chưa thành script dựng lại được.
 - **Bài 3 đã nối Form (20/10) và đã liên kết Sheet riêng (23/10)**, 3 dòng nộp thử có nhãn đã xoá; Sheet bài 1 cũng đã xoá 2 dòng test hôm 12/10.
 
 ## Kiểm định đã chạy
@@ -195,6 +196,23 @@ Sửa trực tiếp trên GitHub: vào file → nút bút chì → sửa → **C
 ### Bài 2 — `selfTest()` chạy trong trang
 
 Bài "Thang 10 và Thang 100" tự dò lại **28 đáp số** trong ngân hàng câu hỏi bằng một máy đổi tỷ lệ độc lập (`quiTo` dựa trên đơn vị gốc mm / g / mm²), cộng thêm **12 cặp bậc ×10** và **3 cặp bậc ×100**. Lệch bất kỳ đâu → trang tự chặn và in danh sách lỗi lên đầu trang. Trạng thái hiện tại: `28/28 đáp số khớp · 12 cặp ×10 · 3 cặp ×100`.
+
+### Bài 2 — probe "giữ bài dở" (23/10/2026)
+
+Probe **không nằm trong repo** (viết tạm ở `C:\tmp\bai2\serve\probe.html`) vì repo không còn `.parts/` cho bài 2. Cách dựng: chép nguyên thư mục bài (md5 khớp file sẽ push) sang `probe.html` + `index.html`, phục vụ bằng `python -m http.server 8793 --bind 127.0.0.1` **trong thư mục bài**, Chrome headless `--user-data-dir` **cố định** để `localStorage` sống giữa các lần nạp — mỗi phase là một **process Chrome riêng**, nên "mở lại trang" là mở lại thật, không phải reload trong cùng script. Đường gửi bị chặn bằng cách ghi đè `HTMLFormElement.prototype.submit` trong iframe (chụp lại 9 field rồi **dừng**, không có request nào ra Google → không tạo dòng trên Sheet).
+
+| phase | đo gì | kết quả |
+|---|---|---|
+| `draft` | gõ 1 ô → **Enter** thì ô `disabled` + vào `attempts`, nháp bị xoá khỏi `nhap`; gõ 2 ô rồi **đổi cấp** | `kho-full = {banCau:1, key:mai, cap:2, nhap:[lvl-1-1, lvl-2-0], attempts:1, nop:false}` |
+| `resume` | mở lại bằng process khác | cổng tên ẩn, tên "Ban Mai", `curLevel = 2`, `nhap` đủ 2 ô, ô `lvl-2-0` còn "3", dòng "↩ … giữ hộ em **1 câu đã ghi nhận và 2 câu em đang gõ dở**" |
+| `ghi-1` | làm **1 câu chấm** (cấp 4), không gõ dở, không nộp | "giữ hộ em **1 câu đã ghi nhận.**" — không thừa chữ "và … câu gõ dở"; `posts = 0` |
+| `submit` | làm đủ 16 câu chấm rồi bấm Nộp bài | **đúng 1 POST**, `action` = form bài 2, `target = th-gui`, **9 field** (`_charset_` + 8 `entry.*`), ngày `23/10/2026 15:40`, `phanTram = 50%`; sau khi nộp `#submit-bar` **rỗng**, không còn nút Nộp bài; `kho = {nop:true, attempts:16, nhap:0, baoCao:{8,16,1★,50%}}` |
+| `after` | mở lại sau khi đã nộp | báo cáo hiện lại, `#send-status` = "…đã nộp lúc 23/10/2026 15:40 — … mở lại trang này **KHÔNG gửi lại lần nữa**", **`posts = 0`**, `level-tabs`/`quiz-container` ẩn, toàn trang **0** nút "Nộp bài"; ở khổ 320px: `scrollWidth 305 == clientWidth 305` (không tràn ngang) |
+| `doi-ban` | bấm "Ghi tên bạn khác" từ báo cáo | `localStorage` **sạch**, về cổng tên, `#name-input` rỗng, `runState = null`, `submitted = false`, `posts = 0` |
+| `doi-sinh-vien` | Ban Mai đang làm dở → ghi tên **Gia Linh** | `kho = {key:gia-linh, attempts:0, nhap:0, cap:1}`, ô của bạn Mai trong DOM **rỗng hết** |
+| `sai-ten` | gõ tên ngoài ROSTER | hiện "Tên chưa đúng…", `practice-wrap` vẫn ẩn, `kho` vẫn **TRONG** (không cất rác của người chưa được vào) |
+
+Chạy lại trên **`file:///`** (kiểu học sinh double-click file): `draft` + `resume` cho kết quả **giống hệt** trên http, tự kiểm vẫn `28/28` — nên bản mở không qua mạng cũng giữ được bài dở.
 
 ### Bài 3 — `selfTest()` chạy trong trang + `node bai-giang-tong-hieu/.parts/harness.js`
 
@@ -555,7 +573,7 @@ Trước đó **đã bắn thật vào Google Form** (12/10/2026): một POST �
 
 - Level 4–6 của bài 1 chỉ luyện **trừ** cột dọc; chưa có **cộng** cột dọc.
 - Bài 1 phụ thuộc `cdn.tailwindcss.com`: mở khi mất mạng và chưa cache thì giao diện vỡ.
-- ~~Bài 2 và bài 4 chưa nối Google Form~~ → **cả bốn bài đều đã nối (23/10/2026)** và mỗi bài rơi vào một Sheet riêng; bài 3 **đã liên kết Sheet** và 3 dòng nộp thử (`MÁY KIỂM TRA…`) cùng 2 dòng test của bài 1 **đã xoá**. Sơ đồ tư duy của bài 2 rộng 960px nên trên điện thoại phải kéo ngang. **Bài 2 vẫn chưa giữ bài dở** (không `localStorage`) — đổi đơn vị là bài duy nhất trong repo chưa có.
+- ~~Bài 2 và bài 4 chưa nối Google Form~~ → **cả bốn bài đều đã nối (23/10/2026)** và mỗi bài rơi vào một Sheet riêng; bài 3 **đã liên kết Sheet** và 3 dòng nộp thử (`MÁY KIỂM TRA…`) cùng 2 dòng test của bài 1 **đã xoá**. Sơ đồ tư duy của bài 2 rộng 960px nên trên điện thoại phải kéo ngang. ~~Bài 2 vẫn chưa giữ bài dở~~ → **đã có `localStorage` từ 23/10/2026**, cả bốn bài đều giữ được bài dở; bài 2 vẫn là bài **duy nhất chưa có tiếng cô giáo**.
 - Bài 4: MỤC 4 **đổi số được nhưng chỉ trong một hành lang hẹp** — hàng dưới đi qua đúng `MAY_BB = [4, 5, 7, 8]` (loại 6 vì 3/6 chưa tối giản) và giá trị một phần chặn ở `2…12` (để TỔNG còn ≤ 3 chữ số, sơ đồ còn vẽ nổi trên màn 320px). Ngân hàng 52 câu (từ vòng 58) **vẫn chưa có** dạng "thêm/bớt làm đổi tỉ số" và "tuổi — hiệu không đổi, tỉ số đổi" (hai dạng này thuộc bài 5 vì phải cho HIỆU). Kéo–thả của bài 4 đã đi được bằng Tab + Enter, nhưng **không có vùng `aria-live`** nên máy đọc màn hình không nhắc lại trạng thái, và **không tô sáng ô nhận đúng loại** (bài 3 làm được cả hai từ vòng 61).
 - File tĩnh không xác nhận được Google đã nhận hay chưa, và không khoá được học sinh làm lại lần hai.
 - Chỗ giữ bài làm dở nằm trong `localStorage` của **máy đó**: học sinh xoá lịch sử/dữ liệu duyệt web, dùng chế độ ẩn danh, hoặc làm trên máy khác là mất. Webview của app nhắn tin (Zalo/Messenger) có thể không giữ được lâu.
