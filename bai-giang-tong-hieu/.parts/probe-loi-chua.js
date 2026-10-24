@@ -88,6 +88,18 @@ const HAM_DO = `function () {
   });
   LUOT_PROBE[0].sai.forEach(function (x) { attempts[x[0]] = { val: x[1], ok: false }; });
   o.loiSai = loiCuaEm(attempts);
+  o.chon = chonLoiSai(attempts);
+  o.dapAn = dapAnCuaEm(attempts).join('\\n');
+  o.loiDe = (function () {
+    var c = 0, dai = 0;
+    o.loiSai.forEach(function (s) {
+      if (s.length > dai) dai = s.length;
+      CAP[4].ds.concat(CAP[5].ds, CAP[6].ds, CAP[7].ds).forEach(function (q) {
+        if (s.indexOf(lamVan(q).text.slice(0, 20)) >= 0) c++;
+      });
+    });
+    return { coLoiDe: c, daiNhat: dai };
+  })();
 
   /* 4 · số KHÔNG thuộc bài nào → đường dự phòng phải nhắc lại TỔNG + phần lệch */
   GRADED.forEach(function (i) {
@@ -130,10 +142,10 @@ function tram(src, ten) {
 function dong_day(kq) {
   const L = [];
   L.push(["tự kiểm · lỗi JS", String(kq.tuKiem.loi), "0"]);
-  L.push(["tự kiểm · số mục", String(kq.tuKiem.n), "109"]);
+  L.push(["tự kiểm · số mục", String(kq.tuKiem.n), "110"]);
   L.push(["tự kiểm · số câu", String(kq.tuKiem.cau), "48"]);
   L.push(["trang không bị chặn", kq.selfTestAn, "an"]);
-  L.push(["footer in đủ số mục", /109 mục khớp nhau · 48 câu/.test(kq.foot) ? "co" : "khong", "co"]);
+  L.push(["footer in đủ số mục", /110 mục khớp nhau · 48 câu/.test(kq.foot) ? "co" : "khong", "co"]);
 
   const tongSo = kq.block.reduce((a, b) => a + b.so, 0);
   const tongDat = kq.block.reduce((a, b) => a + b.dat, 0);
@@ -159,9 +171,12 @@ function dong_day(kq) {
   });
 
   L.push(["cột Lời sai · số dòng", String(kq.loiSai.length), "7"]);
-  const coChua = kq.loiSai.filter(s => s.indexOf("Câu này hỏi") >= 0).length;
-  L.push(["cột Lời sai · có nguyên nhân", coChua + "/7", "7/7"]);
-  L.push(["cột Lời sai · kèm đáp án đúng", kq.loiSai.filter(s => /đáp án đúng \d+/.test(s)).length + "/7", "7/7"]);
+  const dungKhuon = kq.loiSai.filter(s => /^Bài \d+\.\d+ ✗ \d+ \(đúng \d+\) — .{12,}$/.test(s)).length;
+  L.push(["cột Lời sai · đủ 4 ý (bài·em ghi·đáp án·nguyên nhân)", dungKhuon + "/7", "7/7"]);
+  L.push(["cột Lời sai · không kèm lời đề", String(kq.loiDe.coLoiDe), "0"]);
+  L.push(["cột Lời sai · dòng dài nhất ≤170", String(kq.loiDe.daiNhat), "≤170", v => +v <= 170]);
+  L.push(["cột Lời sai · ngăn bằng xuống dòng", ((kq.chon.match(/\n/g) || []).length) + "/" + (kq.chon.indexOf("|") >= 0 ? "con |" : "sach"), "6/sach"]);
+  L.push(["cột Đáp án · 4 dòng đủ 24 ô", (kq.dapAn.match(/=/g) || []).length + "·" + kq.dapAn.split("\n").length, "24·4"]);
   L.push(["đường dự phòng 24 câu", String(kq.duPhong), "24"]);
   L.push(["thẻ câu sai có hộp nguyên nhân", kq.dom.co + "·" + kq.dom.so, "co·1"]);
   L.push(["hộp nguyên nhân chứa số em ghi", /66/.test(kq.dom.text) ? "co" : "khong", "co"]);
@@ -203,10 +218,18 @@ const DOT_BIEN = [
     "'<div class=\"nguyenNhan\">→ ' + loiChua(q, val, cap, j) + '</div>' +",
     "'' +",
     "thẻ câu sai có hộp nguyên nhân"],
-  ["M6 · cột 'Lời sai của em' gửi về Sheet không kèm nguyên nhân",
-    "', đáp án đúng ' + q.ans + '. ' + loiChua(q, a.val, i, j));",
-    "', đáp án đúng ' + q.ans);",
-    "cột Lời sai · có nguyên nhân"],
+  ["M6 · dòng Sheet bỏ mất nguyên nhân",
+    "return nh ? val + ' là ' + nh.ten",
+    "return nh ? ''",
+    "cột Lời sai · đủ 4 ý (bài·em ghi·đáp án·nguyên nhân)"],
+  ["M7 · dòng Sheet nhét lại cả lời đề vào ô",
+    "+ nganLoiSai(q, val, cap, j);",
+    "+ lamVan(q).text + ' ' + nganLoiSai(q, val, cap, j);",
+    "cột Lời sai · không kèm lời đề"],
+  ["M8 · các câu lại ngăn cách bằng ' | ' (Sheet không xuống dòng)",
+    "return lines.length ? lines.join('\\n') : 'Không sai câu nào';",
+    "return lines.length ? lines.join(' | ') : 'Không sai câu nào';",
+    "cột Lời sai · ngăn bằng xuống dòng"],
   ["ÂM TINH · chỉ đổi màu nền hộp nguyên nhân",
     "border-left: 5px solid var(--orange); background: #FFF7ED;",
     "border-left: 5px solid var(--orange); background: #FEF9C3;",

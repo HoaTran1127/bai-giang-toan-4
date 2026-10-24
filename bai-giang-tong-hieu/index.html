@@ -1249,6 +1249,17 @@ function loiChua(q, val, cap, j) {
   return val + ' là ' + nh.ten + '.' + cuoi;
 }
 
+/* DÒNG NGẮN GỬI VỀ SHEET — ô Sheet hẹp, nhét cả lời đề vào thì thầy không đọc nổi.
+   Mỗi câu sai MỘT DÒNG: bài nào · em ghi gì · đúng là bao nhiêu · vì sao lệch. */
+function nganLoiSai(q, val, cap, j) {
+  var s = doiSo(q.dk), nh = docSoSai(q, val, cap, j);
+  return nh ? val + ' là ' + nh.ten
+    : 'số ngoài bài · dò lại sơ đồ: TỔNG ' + s.tong + ' · lệch ' + s.hieu;
+}
+function dongLoiSai(q, val, cap, j) {
+  return 'Bài ' + cap + '.' + (j + 1) + ' ✗ ' + val + ' (đúng ' + q.ans + ') — ' + nganLoiSai(q, val, cap, j);
+}
+
 /* =====================================================================
    MỤC 1 — 13 ĐỀ ĐỦ TỔNG + HIỆU (kéo 2 số khoanh vàng vào sơ đồ)
    parts: đoạn chữ thường {s} · chip kéo được {chip:'tong'|'hieu', so, txt?}
@@ -4089,19 +4100,22 @@ function loiCuaEm(attempts) {
     CAP[i].ds.forEach(function (q, j) {
       var a = attempts['cap-' + i + '-' + j];
       if (!a || a.ok) return;
-      lines.push('Bài ' + i + '.' + (j + 1) + ': ' + lamVan(q).text + ' — em ghi ' + a.val +
-        ', đáp án đúng ' + q.ans + '. ' + loiChua(q, a.val, i, j));
+      lines.push(dongLoiSai(q, a.val, i, j));
     });
   });
   return lines;
 }
+function chonLoiSai(attempts) {
+  var lines = loiCuaEm(attempts);
+  return lines.length ? lines.join('\n') : 'Không sai câu nào';
+}
 function dapAnCuaEm(attempts) {
   var lines = [];
   GRADED.forEach(function (i) {
-    CAP[i].ds.forEach(function (q, j) {
+    lines.push('Cấp ' + i + ': ' + CAP[i].ds.map(function (q, j) {
       var a = attempts['cap-' + i + '-' + j];
-      lines.push('Bài ' + i + '.' + (j + 1) + ' = ' + (a ? a.val : 'bỏ trống') + (a && a.ok ? ' (đúng)' : ' (sai)'));
-    });
+      return (j + 1) + '=' + (a ? a.val : 'trống') + (a && a.ok ? ' ✓' : ' ✗');
+    }).join(' · '));
   });
   return lines;
 }
@@ -4136,7 +4150,6 @@ function nopBai() {
   if (submitted) return;
   var keys = keyCham();
   var dung = keys.filter(function (k) { return runState.attempts[k].ok; }).length;
-  var lines = loiCuaEm(runState.attempts);
   var rec = {
     ten: runState.label,
     ngay: ngayLamBai(new Date()),
@@ -4144,8 +4157,8 @@ function nopBai() {
     tong: keys.length,
     sao: saoFor(dung, keys.length),
     phanTram: Math.round(dung / keys.length * 100) + '%',
-    loiSai: lines.length ? lines.join(' | ') : 'Không sai câu nào',
-    dapAnCuaEm: dapAnCuaEm(runState.attempts).join(' | ')
+    loiSai: chonLoiSai(runState.attempts),
+    dapAnCuaEm: dapAnCuaEm(runState.attempts).join('\n')
   };
   submitted = true;
   var sent = sendResult(rec);
@@ -4375,6 +4388,35 @@ function tuKiem() {
       });
     });
     if (daChu < GRADED.length * 3) err.push('lời chữa: cả thảy ' + daChu + ' câu chữa — mỗi câu chấm phải có ≥ 3 số dễ nhầm');
+  })();
+
+  /* 1d · DÒNG GỬI VỀ SHEET PHẢI NGẮN. Ô Sheet rất hẹp, nhét cả lời đề vào thì thầy phải
+     kéo từng ô mới đọc được — mỗi câu sai MỘT DÒNG, đủ bốn ý: bài nào · em ghi gì ·
+     đáp án đúng · vì sao lệch. Ngăn cách là xuống dòng, tuyệt đối không " | ". */
+  (function dongSheet() {
+    n++;
+    GRADED.forEach(function (i) {
+      CAP[i].ds.forEach(function (q, j) {
+        var nh = 'Bài ' + i + '.' + (j + 1) + ' dòng Sheet';
+        var de = lamVan(q).text, ds = nhungSoBiNham(q);
+        for (var t = 0; t < Math.min(3, ds.length); t++) {
+          var dong = dongLoiSai(q, ds[t].so, i, j);
+          if (dong.indexOf(de.slice(0, 20)) >= 0) err.push(nh + ': dòng gửi Sheet nhét cả lời đề vào ô → ' + dong);
+          if (dong.length > 170) err.push(nh + ': dòng dài ' + dong.length + ' ký tự, thầy phải kéo ô mới đọc → ' + dong);
+          if (dong.indexOf('|') >= 0) err.push(nh + ': dòng chứa " | " — phải tách bằng xuống dòng → ' + dong);
+          if (!new RegExp('^Bài ' + i + '\\.' + (j + 1) + ' ✗ ' + ds[t].so + ' \\(đúng ' + q.ans + '\\) — .{12,}').test(dong))
+            err.push(nh + ': sai khuôn "Bài · em ghi · đáp án · nguyên nhân" → ' + dong);
+        }
+      });
+    });
+    var mau = {};
+    keyCham().forEach(function (k) { mau[k] = { val: 0, ok: false }; });
+    var ket = chonLoiSai(mau), dongKet = ket.split('\n').length;
+    if (dongKet !== TONG_CHAM) err.push('dòng Sheet: ' + dongKet + ' dòng cho ' + TONG_CHAM + ' câu — mỗi câu sai phải đứng một dòng');
+    if (ket.indexOf('|') >= 0) err.push('dòng Sheet: còn ngăn cách bằng " | " — Sheet chỉ xuống dòng với \\n');
+    var da = dapAnCuaEm(mau).join('\n');
+    if ((da.match(/=/g) || []).length !== TONG_CHAM) err.push('cột đáp án: đếm ' + (da.match(/=/g) || []).length + ' ô, phải đủ ' + TONG_CHAM + ' câu chấm');
+    if (da.split('\n').length !== GRADED.length) err.push('cột đáp án: ' + da.split('\n').length + ' dòng — phải gọn thành ' + GRADED.length + ' dòng, mỗi cấp một dòng');
   })();
 
   // 2 · Sáu dạng
