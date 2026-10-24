@@ -471,6 +471,8 @@
   .okmsg { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: #E8F5E9; border: 2px solid var(--green); color: #14532D; }
   .badmsg { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: #FDEDEC; border: 2px solid var(--red); color: #7F1D1D; }
   .badmsg .dapan { font-weight: 900; color: var(--red); }
+  .nguyenNhan { margin-top: 8px; padding: 8px 10px; border-left: 5px solid var(--orange); background: #FFF7ED;
+    color: #7C2D12; font-size: 14px; font-weight: 900; border-radius: 0 10px 10px 0; }
   .cachgiai { margin-top: 8px; font-size: 14px; font-weight: 800; color: #4B4238; }
   .cachgiai .bx { color: var(--teal); font-weight: 900; }
   .cachgiai .dx { color: var(--red); font-weight: 900; }
@@ -1138,6 +1140,113 @@ function loiGiai(q) {
   var dv = donViCau(q);
   bt.push('<b>Đáp số: ' + traLoi(q, s) + (dv ? ' ' + dv : '') + '</b>');
   return bt;
+}
+
+/* =====================================================================
+   TÁI HIỆN LỐI SAI — khi em ghi sai, máy không chỉ báo "sai rồi".
+   Máy lập danh sách NHỮNG SỐ EM CÓ THỂ GHI NHẦM của đúng câu đó (dựng từ
+   dữ kiện của máy, không ghi tay số của một bài nào), rồi chỉ vào chỗ em
+   đã đứng: số ấy là số nào trong sơ đồ, còn thiếu bước nào để ra đáp án.
+   ===================================================================== */
+function goiSoCua(q, loai) {
+  var t = loai === 'be' ? q.ten[0] : q.ten[1];
+  var dau = /^s[ốo]/.test(t) ? '' : (q.dv === 'tuổi' ? 'tuổi ' : 'số của ');
+  return dau + t + ' (thanh ' + (loai === 'be' ? 'NGẮN' : 'DÀI') + ')';
+}
+
+function hoiGi(q) {
+  switch (q.hoi) {
+    case 'be': return goiSoCua(q, 'be');
+    case 'lon': case 'moi': return goiSoCua(q, 'lon');
+    case 'tong': return 'TỔNG của cả hai';
+    case 'hieu': return 'HIỆU — phần lệch giữa hai thanh';
+    case 'namNua': return 'SỐ NĂM nữa';
+    case 'sauChuyen': return 'số còn lại của ' + goiSoCua(q, 'lon') + ' SAU khi đưa ' + q.dk.chuyen + ' sang bên kia';
+    case 'dientich': return 'DIỆN TÍCH = dài × rộng';
+    default: return 'đáp số';
+  }
+}
+
+function nhungSoBiNham(q) {
+  var s = doiSo(q.dk), dk = q.dk, d = traLoi(q, s), r = [];
+  var dv = q.dv ? ' ' + q.dv : '';
+  function them(so, ten) {
+    if (so == null || !isFinite(so) || so % 1 !== 0 || so <= 0 || so === d) return;
+    for (var i = 0; i < r.length; i++) if (r[i].so === so) return;
+    r.push({ so: so, ten: ten });
+  }
+  /* Số của DẠNG đề này — đẩy trước để tên sát với lối sai hơn. */
+  if (dk.cho != null) {
+    them(s.tong / 2, 'số mỗi bên SAU khi đưa' + dv + ' cho nhau — hai thanh đã bằng nhau, còn câu này hỏi LÚC ĐẦU');
+    them(dk.cho, 'số' + dv + ' đưa đi — mới là MỘT NỬA phần lệch, HIỆU phải là ' + dk.cho + ' × 2');
+  }
+  if (dk.chuyen != null) {
+    them(s.lon, goiSoCua(q, 'lon') + ' LÚC ĐẦU — câu này còn phải bớt ' + dk.chuyen + ' vì đã đưa sang bên kia');
+    them(s.be + dk.chuyen, goiSoCua(q, 'be') + ' SAU khi nhận thêm ' + dk.chuyen + ' — hỏi bên đưa ra, không hỏi bên nhận');
+  }
+  if (dk.namSau != null) {
+    them(dk.tongSau, 'TỔNG tuổi SAU ' + dk.namSau + ' năm — chưa bớt ' + (2 * dk.namSau) + ' tuổi của hai người');
+    them(s.be + dk.namSau, 'tuổi ' + q.ten[0] + ' SAU ' + dk.namSau + ' năm — câu này hỏi tuổi hiện nay');
+    them(s.lon + dk.namSau, 'tuổi ' + q.ten[1] + ' SAU ' + dk.namSau + ' năm');
+  }
+  if (dk.namTruoc != null) {
+    them(dk.tongTruoc, 'TỔNG tuổi CÁCH ĐÂY ' + dk.namTruoc + ' năm — chưa cộng lại ' + (2 * dk.namTruoc) + ' tuổi của hai người');
+    them(s.be - dk.namTruoc, 'tuổi ' + q.ten[0] + ' CÁCH ĐÂY ' + dk.namTruoc + ' năm — câu này hỏi tuổi hiện nay');
+    them(s.lon - dk.namTruoc, 'tuổi ' + q.ten[1] + ' CÁCH ĐÂY ' + dk.namTruoc + ' năm');
+  }
+  if (dk.beBayGio != null) {
+    them(s.tong / 2 - dk.beBayGio, 'kết quả của ' + s.tong + ' ÷ 2 − ' + dk.beBayGio + ' — ' + (s.tong / 2) + ' là tuổi trung bình của HAI người, không phải tuổi ' + q.ten[1]);
+    them(s.be, 'tuổi ' + q.ten[0] + ' khi hai người được TỔNG ' + s.tong + ' — còn phải trừ ' + dk.beBayGio + ' tuổi hiện nay của ' + q.ten[0]);
+    them(dk.beBayGio, 'tuổi ' + q.ten[0] + ' hiện nay — câu này hỏi SỐ NĂM, không hỏi tuổi');
+  }
+  if (dk.tb != null) them(dk.tb, 'trung bình cộng ' + dk.tb + ' — chưa × 2 để mở TỔNG');
+  if (dk.chuVi != null) them(dk.chuVi, 'chu vi ' + dk.chuVi + ' — chưa ÷ 2 để mở TỔNG hai cạnh');
+  if (dk.hieuSauThem != null) {
+    them(dk.hieuSauThem, 'phần lệch SAU khi thêm ' + dk.themVaoSoLon + ' — chưa trừ lại ' + dk.themVaoSoLon + ' để ra phần lệch LÚC ĐẦU');
+    them(dk.themVaoSoLon, 'số vừa được thêm vào — không phải số của thanh nào');
+  }
+  /* Số của sơ đồ. */
+  them(s.be, goiSoCua(q, 'be'));
+  them(s.lon, goiSoCua(q, 'lon'));
+  them(s.tong, 'TỔNG — số của cả hai thanh gộp lại');
+  them(s.hieu, 'HIỆU — đoạn lệch màu cam giữa hai thanh');
+  if (s.tong != null && s.tong % 2 === 0)
+    them(s.tong / 2, 'nửa TỔNG (' + s.tong + ' ÷ 2) — số đứng GIỮA hai thanh, chưa dùng phần lệch ' + s.hieu);
+  return r;
+}
+
+function boChuSo(x) { return String(x).split('').sort().join(''); }
+
+/* Số em ghi là số NÀO trong bài? Trả về {ten} hoặc null khi không trùng chỗ nào. */
+function docSoSai(q, val, cap, j) {
+  var s = doiSo(q.dk), d = traLoi(q, s);
+  if (val == null || !isFinite(val) || val === d) return null;
+  var ds = nhungSoBiNham(q), i;
+  for (i = 0; i < ds.length; i++) if (ds[i].so === val) return { ten: ds[i].ten };
+  if (cap != null && CAP[cap]) {
+    var khac = -1;
+    CAP[cap].ds.forEach(function (o, k) {
+      if (khac < 0 && k !== j && traLoi(o, doiSo(o.dk)) === val) khac = k;
+    });
+    if (khac >= 0) return { ten: 'đáp án của Bài ' + cap + '.' + (khac + 1) + ' — em nhìn nhầm dòng' };
+  }
+  var HANG = { 1: 'hàng đơn vị', 10: 'hàng chục', 100: 'hàng trăm', 1000: 'hàng nghìn' };
+  var lech = Math.abs(val - d);
+  if (HANG[lech]) return { ten: 'đúng như đáp án, chỉ lệch 1 ở ' + HANG[lech] + ' — các chữ số khác đều chuẩn nên đây là quên chữ nhớ' };
+  if (String(val).length === String(d).length && boChuSo(val) === boChuSo(d))
+    return { ten: 'đủ các chữ số của đáp án nhưng ĐẢO chỗ nhau (' + d + ' → ' + val + ')' };
+  return null;
+}
+
+/* Một câu chữa: số ấy là gì + câu này hỏi gì + phải ghi bao nhiêu. */
+function loiChua(q, val, cap, j) {
+  var s = doiSo(q.dk), d = traLoi(q, s), dv = donViCau(q), nh = docSoSai(q, val, cap, j);
+  var cuoi = ' Câu này hỏi ' + hoiGi(q) + ' ⇒ phải ghi ' + d + (dv ? ' ' + dv : '') + '.';
+  if (!nh) {
+    return 'Số ' + val + ' không trùng với số nào trong bài này — em dò lại sơ đồ: TỔNG = ' + s.tong +
+      ', phần lệch = ' + s.hieu + ', hai thanh là ' + s.be + ' và ' + s.lon + '.' + cuoi;
+  }
+  return val + ' là ' + nh.ten + '.' + cuoi;
 }
 
 /* =====================================================================
@@ -3860,11 +3969,12 @@ function veCau(i, j) {
   return html + '</div>';
 }
 
-function phanHoi(q, val, ok) {
+function phanHoi(q, val, ok, cap, j) {
   var buoc = loiGiai(q).map(function (l) { return '<div class="cachgiai">' + l + '</div>'; }).join('');
   if (ok) return '<div class="okmsg"><b>✓ ĐÚNG.</b>' + buoc + '</div>';
   return '<div class="badmsg"><span class="dapan">✕ Em ghi ' + val + ' — đáp án đúng: ' + q.ans +
     (q.dv ? ' ' + q.dv : '') + '.</span>' +
+    '<div class="nguyenNhan">→ ' + loiChua(q, val, cap, j) + '</div>' +
     '<div style="font-size:13px;font-weight:800;margin-top:4px">Câu này chỉ được ghi nhận MỘT lần, thầy chữa hộ em như sau:</div>' +
     buoc + '</div>';
 }
@@ -3890,7 +4000,7 @@ function veDanhSach() {
     var rec = (cham && runState) ? runState.attempts[key] : null;
     if (rec) {
       var fb = document.getElementById('fb-' + key);
-      if (fb) fb.innerHTML = phanHoi(q, rec.val, rec.ok);
+      if (fb) fb.innerHTML = phanHoi(q, rec.val, rec.ok, activeCap, j);
     }
     ganKeoTha('card-' + key, function (el) { quizTha(activeCap, j, el); });
   });
@@ -3922,14 +4032,14 @@ function chamCau(i, j) {
     if (nhan) nhan.textContent = 'Đã ghi đáp án — em kéo số vào sơ đồ để hiểu vì sao:';
     var card = document.getElementById('card-' + key);
     if (card) card.classList.add(ok ? 'ok' : 'bad');
-    if (fb) fb.innerHTML = phanHoi(q, val, ok);
+    if (fb) fb.innerHTML = phanHoi(q, val, ok, i, j);
     luuBai();
     updateSubmitBar();
     if (card) card.scrollIntoView({ block: 'nearest' });
     return;
   }
   if (fb) {
-    fb.innerHTML = phanHoi(q, val, val === q.ans);
+    fb.innerHTML = phanHoi(q, val, val === q.ans, i, j);
     var card = document.getElementById('card-' + key);
     if (card) card.classList.add(val === q.ans ? 'ok' : 'bad');
   }
@@ -3979,7 +4089,8 @@ function loiCuaEm(attempts) {
     CAP[i].ds.forEach(function (q, j) {
       var a = attempts['cap-' + i + '-' + j];
       if (!a || a.ok) return;
-      lines.push('Bài ' + i + '.' + (j + 1) + ': ' + lamVan(q).text + ' — em ghi ' + a.val + ', đáp án đúng ' + q.ans);
+      lines.push('Bài ' + i + '.' + (j + 1) + ': ' + lamVan(q).text + ' — em ghi ' + a.val +
+        ', đáp án đúng ' + q.ans + '. ' + loiChua(q, a.val, i, j));
     });
   });
   return lines;
@@ -4057,7 +4168,7 @@ function showReport(kid, rec) {
       if (!a || a.ok) return;
       mistakes += '<div class="qcard bad" style="margin-top:12px">' +
         '<div class="qhead"><span class="qtag">Bài ' + i + '.' + (j + 1) + '</span><span class="qdh">' + q.dh + '</span></div>' +
-        '<div class="qvan">' + lamVan(q).text + '</div>' + phanHoi(q, a.val, false) + '</div>';
+        '<div class="qvan">' + lamVan(q).text + '</div>' + phanHoi(q, a.val, false, i, j) + '</div>';
     });
   });
   var sao = '';
@@ -4220,6 +4331,50 @@ function tuKiem() {
       var chu = (it.parts || []).map(function (p) { return p.s || ''; }).join(' ');
       kiem('Đề Mục 1 · ' + (i + 1), it.tong, it.hieu, /số chẵn liên tiếp/.test(chu) ? 'chan' : (/số lẻ liên tiếp/.test(chu) ? 'le' : null));
     });
+  })();
+
+  /* 1c · LỜI CHỮA PHẢI TÁI HIỆN ĐƯỢC LỐI SAI.
+     Máy dựng danh sách "số dễ nhầm" của từng câu chấm; mỗi số trong đó khi em ghi
+     vào thì máy phải gọi đúng tên nó là số nào trong bài, nói câu này hỏi gì và chỉ
+     đáp án đúng. Đường dự phòng (số không thuộc bài nào) phải nhắc lại cả TỔNG lẫn
+     phần lệch. Lời chữa là lối sai CHUNG, cấm nhắc tên một bạn cụ thể. */
+  (function loiChuaTaiHien() {
+    n++;
+    var daChu = 0;
+    GRADED.forEach(function (i) {
+      CAP[i].ds.forEach(function (q, j) {
+        var nh = 'Bài ' + i + '.' + (j + 1) + ' lời chữa';
+        var ds = nhungSoBiNham(q);
+        if (ds.length < 3) { err.push(nh + ': máy chỉ dựng ' + ds.length + ' số dễ nhầm — phải đủ bản đồ số của câu'); return; }
+        ds.forEach(function (d) {
+          if (d.so === q.ans) err.push(nh + ': liệt kê cả đáp án ' + d.so + ' vào số dễ nhầm');
+          if (!d.ten || d.ten.length < 12) err.push(nh + ': số ' + d.so + ' có tên quá ngắn ("' + d.ten + '") — không chỉ được chỗ em đứng');
+          if (/undefined|NaN|[{}]/.test(d.ten)) err.push(nh + ': tên của số ' + d.so + ' chưa điền đủ số → ' + d.ten);
+          var chu = loiChua(q, d.so, i, j);
+          if (/không trùng với số nào/.test(chu)) err.push(nh + ': máy tự dựng ra số ' + d.so + ' nhưng chữa không ra nguyên nhân → ' + chu);
+          if (chu.indexOf(String(q.ans)) < 0) err.push(nh + ': câu chữa của số ' + d.so + ' không chỉ đáp án đúng → ' + chu);
+          if (chu.indexOf('Câu này hỏi') < 0) err.push(nh + ': câu chữa của số ' + d.so + ' không nói câu này hỏi gì → ' + chu);
+          ROSTER.forEach(function (kid) {
+            if (normalizeName(chu).indexOf(normalizeName(kid.label)) >= 0)
+              err.push(nh + ': lời chữa nhắc tên "' + kid.label + '" — phải chữa lối sai chung, không chữa của riêng một em');
+          });
+          daChu++;
+        });
+        if (docSoSai(q, q.ans, i, j)) err.push(nh + ': máy đọc đáp án đúng của chính nó là số dễ nhầm');
+        var lang = 0;
+        [7, 13, 17, 23, 29, 31, 37].some(function (le) {
+          var x = q.ans + le;
+          if (docSoSai(q, x, i, j) === null) { lang = x; return true; }
+          return false;
+        });
+        if (!lang) { err.push(nh + ': không có số lạ để đo đường chữa dự phòng'); return; }
+        var du = loiChua(q, lang, i, j);
+        if (!/không trùng với số nào/.test(du)) err.push(nh + ': số lạ ' + lang + ' phải rơi vào đường chữa "không trùng số nào" → ' + du);
+        if (du.indexOf('TỔNG') < 0 || du.indexOf('phần lệch') < 0)
+          err.push(nh + ': đường chữa số lạ phải nhắc lại TỔNG và phần lệch để em tự dò sơ đồ → ' + du);
+      });
+    });
+    if (daChu < GRADED.length * 3) err.push('lời chữa: cả thảy ' + daChu + ' câu chữa — mỗi câu chấm phải có ≥ 3 số dễ nhầm');
   })();
 
   // 2 · Sáu dạng
