@@ -2,7 +2,8 @@
 // Chạy:  node kiem-dinh.js   (hoặc: node kiem-dinh.js duong/dan/index.html)
 // Làm gì: nạp <script> của trang bằng vm (không cần trình duyệt), rồi TÍNH LẠI mọi đáp số,
 //         đối chiếu từng bước của 3 mẫu đặt tính, dựng bảng chẩn đoán cho 11 bài cột dọc,
-//         kiểm thang sao, cổng tên, 8 field gửi về Google Form.
+//         kiểm thang sao, cổng tên, 9 field gửi về Google Form, và MÁY NỘP THEO TỪNG CẤP
+//         (mỗi cấp 4·5·6·7 đúng MỘT dòng, gửi ngay khi câu cuối của cấp được ghi nhận).
 // Exit code 0 = sạch, khác 0 = in ra danh sách lỗi.
 const fs = require('fs');
 const vm = require('vm');
@@ -12,13 +13,13 @@ const html = fs.readFileSync(FILE, 'utf8');
 
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
 if (scripts.length !== 1) throw new Error('expected 1 inline script, got ' + scripts.length);
-const src = scripts[0] + '\n;globalThis.__X = {levelData, colProblems, colNames, buildSubtractionDiagnostic, ROSTER, GRADED_LEVELS, normalizeName, findRoster, starsFor, gradedKeys, isGradedLevel, TOTAL_GRADED, deBang, mistakeLines, answerLines, ENTRY, FORM_ENDPOINT, SEND_READY, ngayLamBai, draftStore, captureDrafts, clearDrafts, answerRowHtml, pressEnter, luuBai, xoaBai, moLaiBai, startPractice, backToGate, recordedCount, hienGhiChuPhucHoi, KHO_PHUC_HOI, get runState() { return runState; }, set runState(v) { runState = v; }, get submitted() { return submitted; }, get activeLevelIndex() { return activeLevelIndex; }, set activeLevelIndex(v) { activeLevelIndex = v; }, layBaoCao() { return baoCaoDaNop; }};';
+const src = scripts[0] + '\n;globalThis.__X = {levelData, colProblems, colNames, buildSubtractionDiagnostic, ROSTER, GRADED_LEVELS, normalizeName, findRoster, starsFor, gradedKeys, isGradedLevel, TOTAL_GRADED, MAX_SAO, keysCuaCap, conCauCuaCap, daXongCap, daDuBonCap, soCapDaGui, capStripHtml, payloadCuaCap, evaluateAnswer, nopCap, sangCap, updateSubmitBar, updateProgressLine, starsHtmlN, saoCuaCap, deBang, mistakeLines, answerLines, ENTRY, FORM_ENDPOINT, SEND_READY, ngayLamBai, draftStore, captureDrafts, clearDrafts, answerRowHtml, pressEnter, luuBai, xoaBai, moLaiBai, startPractice, backToGate, recordedCount, hienGhiChuPhucHoi, KHO_PHUC_HOI, get runState() { return runState; }, set runState(v) { runState = v; }, get submitted() { return submitted; }, get activeLevelIndex() { return activeLevelIndex; }, set activeLevelIndex(v) { activeLevelIndex = v; }, get capDaNop() { return capDaNop; }, get baoCaoCap() { return baoCaoCap; }, layBaoCao() { return baoCaoDaNop; }};';
 
 function el() {
   return {
     innerText: '', innerHTML: '', className: '', value: '', id: '', name: '', type: '',
     classList: { add() {}, remove() {}, contains() { return false; } },
-    appendChild() {}, remove() {}, querySelectorAll() { return []; },
+    appendChild() {}, remove() {}, querySelectorAll() { return []; }, scrollIntoView() {},
   };
 }
 const STUB = {}; // id -> element giả, cho phép test từng hàm theo DOM dựng sẵn
@@ -32,10 +33,20 @@ const LS = {
   removeItem(k) { if (this.blocked) throw new Error('blocked'); this.map.delete(k); }
 };
 
+// Mỗi lần trang gọi <form>.submit() là một DÒNG Sheet thật: ghi lại hết, không phát mạng.
+const POSTS = [];
+function mkGui() {
+  const e = el();
+  e.children = [];
+  e.appendChild = (c) => { e.children.push(c); };
+  e.submit = () => { POSTS.push(e); };
+  return e;
+}
+
 const sandbox = {
   console, Math, JSON, String, Number, Object, Array, parseInt, parseFloat, isNaN, Date, RegExp, Error, Set,
   localStorage: LS,
-  document: { getElementById: id => STUB[id] || el(), createElement: el, body: { appendChild() {} } },
+  document: { getElementById: id => STUB[id] || el(), createElement: mkGui, body: { appendChild() {} } },
   window: { addEventListener() {} },
 };
 vm.createContext(sandbox);
@@ -295,10 +306,11 @@ check('dapAnCuaEm co danh bai', al.every(s => /^Bai [4567]\.\d+ = /.test(deacc(s
 check('dapAnCuaEm ghi ro dung/sai bang tieng Viet', al.every(s => /\((dung|sai)\)$/.test(deacc(s))));
 check('dapAnCuaEm khong con chu cai D/S tron', !al.some(s => / \([DS]\)$/.test(s)));
 notes.push('dapAnCuaEm 2 dong dau -> ' + al.slice(0, 2).join(' | '));
-const keysNeeded = ['ten', 'ngay', 'dung', 'tong', 'sao', 'phanTram', 'loiSai', 'dapAnCuaEm'];
-check('8 khoa payload = 8 khoa ENTRY', keysNeeded.slice().sort().join() === Object.keys(X.ENTRY).slice().sort().join(), Object.keys(X.ENTRY).join());
+const keysNeeded = ['ten', 'ngay', 'dung', 'tong', 'sao', 'phanTram', 'loiSai', 'dapAnCuaEm', 'cap'];
+check('9 khoa payload = 9 khoa ENTRY (thêm cột Cấp)', keysNeeded.slice().sort().join() === Object.keys(X.ENTRY).slice().sort().join(), Object.keys(X.ENTRY).join());
 check('FORM_ENDPOINT gan that', X.SEND_READY === true && /^https:\/\/docs\.google\.com\/forms\/d\/e\/[\w-]+\/formResponse$/.test(X.FORM_ENDPOINT));
-check('entry.* khong trung lap', new Set(Object.values(X.ENTRY)).size === 8);
+check('entry.* khong trung lap', new Set(Object.values(X.ENTRY)).size === 9);
+check('cot Cap tro dung cau "Cap duoc cham" cua Form bai 1', X.ENTRY.cap === 'entry.1137339408', X.ENTRY.cap);
 check('moi field dang ky entry.<so>', Object.values(X.ENTRY).every(v => /^entry\.\d+$/.test(v)));
 // chu trong source khong duoc con placeholder
 check('van dang con cho placeholder form', !/DAN_LINK_FORM_VAO_DAY|forms\/d\/e\/XXXX/.test(html));
@@ -423,11 +435,11 @@ LS.map.clear();
 
 // duong noi day (wiring) - thieu 1 trong 5 moc nay la bai do van mat
 check('captureDrafts cung luu bai do', /function captureDrafts\(\)[\s\S]{0,400}?luuBai\(\);/.test(src));
-check('startPractice luu bai ngay khi bat dau', /function startPractice\(\)[\s\S]{0,900}?luuBai\(\);\s*\}/.test(src));
+check('startPractice luu bai ngay khi bat dau', /function startPractice\(\)[\s\S]{0,1400}?luuBai\(\);\s*\}/.test(src));
 check('startPractice xoa bao cao cua lan truoc', /runState = \{ key: kid\.key[\s\S]{0,200}?baoCaoDaNop = null;/.test(src));
 check('backToGate xoa sach bai luu (doi ban khong ke plan nhau)', /function backToGate\(\)[\s\S]{0,400}?xoaBai\(\);/.test(src));
 check('mo trang len la thu phuc hoi', /DOMContentLoaded[\s\S]{0,300}?moLaiBai\(\)/.test(src));
-check('nop bai roi luu ca bao cao', /baoCaoDaNop = \{[\s\S]{0,200}?\};\s*showReport\(kid, baoCaoDaNop\);\s*luuBai\(\);/.test(src));
+check('nop bai roi luu ca bao cao (mo lai khong phai lam lai)', /baoCaoDaNop = rec;\s*\n\s*showReport\(kid, rec\);\s*\n\s*luuBai\(\);/.test(src));
 check('co cho hien chu phuc hoi trong HTML', /id="resume-note"/.test(html));
 notes.push('KHO_PHUC_HOI -> ' + X.KHO_PHUC_HOI);
 
@@ -453,6 +465,158 @@ pairs.forEach(p => check('MUC 1 cap ' + p[0] + '+' + p[1] + ' != 10', p[0] + p[1
 // nguoi dung la thay Giao duc, khong con tu "co" chi nguoi dung
 const coRefs = [...html.matchAll(/(?:^|\s)([Cc]ô)\s/g)].map(m => m[0]);
 notes.push('Chu "Co" con trong file: ' + (coRefs.length ? coRefs.join(' ') : 'khong'));
+
+
+// ============ 8d. MAY NOP THEO TUNG CAP (4·5·6·7 = 4 DONG RIENG) ============
+// Cat nghia cua phe thay: ban cu doi be ngoi lam het 16 cau thuoc 4 cap thi ket qua moi di.
+// Doan nay chay canh "lam den cau cuoi cua cap la gui" trong vm, bat lai tung POST.
+function napTrang(srcText) {
+  const ST = {}, lsl = new Map(), posts = [];
+  function mkel() {
+    const n = {
+      innerText: '', innerHTML: '', className: '', value: '', id: '', name: '', type: '',
+      children: [],
+      classList: { add() {}, remove() {}, contains() { return false; } },
+      appendChild(c) { n.children.push(c); }, remove() {}, querySelectorAll() { return []; },
+      scrollIntoView() {}, submit() { posts.push(n); },
+    };
+    return n;
+  }
+  const sb = {
+    console, Math, JSON, String, Number, Object, Array, parseInt, parseFloat, isNaN, Date, RegExp, Error, Set,
+    localStorage: {
+      getItem: k => (lsl.has(k) ? lsl.get(k) : null),
+      setItem: (k, v) => { lsl.set(k, String(v)); },
+      removeItem: k => { lsl.delete(k); },
+    },
+    document: {
+      getElementById: id => (ST[id] || (ST[id] = mkel())),
+      createElement: () => mkel(),
+      body: { appendChild() {} },
+    },
+    window: { addEventListener() {} },
+  };
+  vm.runInContext(srcText, vm.createContext(sb));
+  return { X: sb.__X, ST, lsl, posts };
+}
+
+function doanNopCap(srcText) {
+  const rows = [];
+  const R = (ten, ok) => rows.push([ten, !!ok]);
+  const g = napTrang(srcText);
+  const X = g.X, ST = g.ST, posts = g.posts;
+  let err = '';
+  const tryg = fn => { try { return fn(); } catch (e) { err = String((e && e.message) || e); return null; } };
+  const dong = i => {
+    const p = posts[i === undefined ? posts.length - 1 : i];
+    if (!p) return {};
+    const o = {};
+    (p.children || []).forEach(c => { if (c.name) o[c.name] = c.value; });
+    return o;
+  };
+  const f = ten => dong()[X.ENTRY[ten]];
+  const dk = l => X.keysCuaCap(l);
+  const ghi = (l, i, sai) => {
+    const q = X.levelData[l].questions[i];
+    X.activeLevelIndex = l; // bé phải ĐỨNG ở cấp đang làm thì màn trạng thái mới nói chuyện của cấp đó
+    ST['input-' + dk(l)[i]] = { value: String(sai ? q.ans + 1 : q.ans) };
+    tryg(() => X.evaluateAnswer(l, i));
+  };
+  const lamCap = l => dk(l).forEach((k, i) => ghi(l, i, false));
+
+  ST['name-input'] = { value: 'mai' };
+  tryg(() => X.startPractice());
+
+  // --- Cấp 4 có 3 câu: mới 2 câu thì im lặng, câu thứ 3 mới gửi ---
+  ghi(4, 0, true); ghi(4, 1, true);
+  R('Cấp 4 mới 2/3 câu: CHƯA gửi dòng nào', posts.length === 0 && err === '');
+  ghi(4, 2, false);
+  R('câu CUỐI của Cấp 4 vừa ghi nhận: đúng MỘT dòng đi ngay', posts.length === 1);
+  R('dòng Cấp 4: cột Tổng = số câu của cấp (3), không phải 16', f('tong') === '3');
+  R('dòng Cấp 4: Cấp=4 · đúng=1 · 1★ · 33%',
+    f('cap') === '4' && f('dung') === '1' && f('sao') === '1' && f('phanTram') === '33%');
+  R('dòng Cấp 4: tên em + ngày tháng dd/MM/yyyy HH:mm',
+    f('ten') === 'Ban Mai' && /^\d\d\/\d\d\/\d{4} \d\d:\d\d$/.test(String(f('ngay'))));
+  R('lời sai cấp 4 chỉ kê Bài 4.x', /^Bài 4\.1: .*\| Bài 4\.2: /.test(String(f('loiSai'))));
+  R('đáp án cấp 4 đúng 3 dòng, không trộn cấp khác',
+    String(f('dapAnCuaEm')).split(' | ').length === 3 && !/Bài [567]\./.test(String(f('dapAnCuaEm'))));
+  R('thanh trạng thái báo Cấp 4 đã gửi về thầy', /đã gửi về bảng điểm/.test(ST['submit-bar'].innerHTML));
+  R('dải biên lai 4 cấp hiện ở mọi màn', /Cấp 4 ·/.test(ST['submit-bar'].innerHTML) && /Cấp 7 ·/.test(ST['submit-bar'].innerHTML));
+  R('gọi lại nopCap(4): KHÔNG nhân thêm dòng', tryg(() => X.nopCap(4)) === false && posts.length === 1);
+
+  // --- Cấp 5·6·7: mỗi cấp thêm đúng MỘT dòng ---
+  lamCap(5);
+  R('Cấp 5 đủ câu: dòng thứ 2, Cấp=5 · Tổng=4', posts.length === 2 && f('cap') === '5' && f('tong') === '4');
+  lamCap(6);
+  R('Cấp 6: dòng thứ 3, 3★ · 100%', posts.length === 3 && f('cap') === '6' && f('sao') === '3' && f('phanTram') === '100%');
+  lamCap(7);
+  R('Cấp 7 (5 câu): dòng thứ 4, Tổng=5', posts.length === 4 && f('cap') === '7' && f('tong') === '5');
+  R('đủ 4 cấp: tổng kết hiện ra mà KHÔNG có POST thứ 5', X.submitted === true && posts.length === 4);
+  R('mỗi dòng POST mang đủ 9 cột + _charset_',
+    [0, 1, 2, 3].every(i => Object.values(X.ENTRY).every(n => dong(i)[n] !== undefined) && dong(i)._charset_ === 'utf-8'));
+  R('màn tổng kết: đúng 4 dòng biên lai, mỗi cấp một dòng',
+    (ST['report-wrap'].innerHTML.match(/<span>\d+\/\d+ câu đúng<\/span>/g) || []).length === 4);
+  R('tổng kết cộng 4 cấp: 14/16 câu · 10★ trên 12 ô',
+    ST['report-wrap'].innerHTML.indexOf('14 / 16 câu đúng') >= 0 &&
+    ST['report-wrap'].innerHTML.indexOf('10 sao trên tối đa 12 sao') >= 0 &&
+    (ST['report-wrap'].innerHTML.match(/text-amber-400">★/g) || []).length === 10 &&
+    (ST['report-wrap'].innerHTML.match(/text-slate-300">☆/g) || []).length === 2);
+  R('màn tổng kết có avatar của em (không vỡ ảnh)',
+    ST['report-wrap'].innerHTML.indexOf('src="undefined"') < 0 && /mai-rua\.png/.test(ST['report-wrap'].innerHTML));
+  R('tổng kết nói rõ mỗi cấp một dòng', /Mỗi cấp đã gửi riêng một dòng/.test(ST['report-wrap'].innerHTML));
+  R('liết kê 4 cấp: có chữ "Đã nộp 4 cấp"', /Đã nộp 4 cấp/.test(ST['report-wrap'].innerHTML));
+
+  // --- mở lại trang: không được gửi trùng ---
+  const saved = JSON.parse(g.lsl.get(X.KHO_PHUC_HOI) || '{}');
+  R('kho giữ bài cất dấu đã gửi của cả 4 cấp', [4, 5, 6, 7].every(l => saved.nopCap && saved.nopCap[l] === true));
+  R('kho giữ bài cất 4 biên lai cấp', [4, 5, 6, 7].every(l => saved.baoCaoCap && saved.baoCaoCap[l] && saved.baoCaoCap[l].cap === l));
+  const g2 = napTrang(srcText);
+  g2.lsl.set(g2.X.KHO_PHUC_HOI, JSON.stringify(saved));
+  g2.ST['name-input'] = { value: 'mai' };
+  R('mở lại: dựng tiếp được bài đã nộp', tryg(() => g2.X.moLaiBai()) === true);
+  R('mở lại: KHÔNG gửi thêm dòng nào', g2.posts.length === 0);
+  R('mở lại: hiện lại đúng màn tổng kết 4 dòng', /Mỗi cấp đã gửi riêng một dòng/.test(g2.ST['report-wrap'].innerHTML));
+
+  // --- luật cấu trúc trên nguồn ---
+  R('nopCap là nơi DUY NHẤT gọi sendResult',
+    /function nopCap\(lvlIdx\)[\s\S]{0,700}?sendResult\(rec\)/.test(srcText) &&
+    !/function submitPractice\(\)[\s\S]{0,1400}?sendResult\(/.test(srcText) &&
+    !/function evaluateAnswer[\s\S]{0,1200}?sendResult\(/.test(srcText));
+  R('evaluateAnswer kích nộp khi cấp đủ câu', /if \(daXongCap\(levelIdx\)\) nopCap\(levelIdx\)/.test(srcText));
+  R('luuBai cất nopCap + baoCaoCap', /nopCap: capDaNop,\s*\n\s*baoCaoCap: baoCaoCap/.test(srcText));
+  R('startPractice xoá dấu đã gửi khi sang bạn khác', /function startPractice\(\)[\s\S]{0,500}?capDaNop = \[\];\s*\n\s*baoCaoCap = \[\];/.test(srcText));
+  R('JS không ném suốt 16 câu + mở lại', err === '');
+  return { rows, posts: posts.length, err };
+}
+
+const srcN = src.replace(/\r\n/g, '\n'); // file giao là CRLF: neo nhiều dòng phải so trên bản LF
+const doanCo = doanNopCap(srcN);
+doanCo.rows.forEach(r => check('8d · ' + r[0], r[1], doanCo.err ? '[lỗi JS: ' + doanCo.err + ']' : ''));
+notes.push('8d: ' + doanCo.posts + ' POST bắt được cho 4 cấp · ' + doanCo.rows.filter(r => r[1]).length + '/' + doanCo.rows.length + ' hàng đạt');
+const xanh = doanCo.rows.filter(r => r[1]).map(r => r[0]);
+
+// Mỗi đột biến phải làm HỎNG ít nhất một hàng đang xanh.
+const DOT_BIEN = [
+  ['cấp đủ câu nhưng không tự gửi', 'if (daXongCap(levelIdx)) nopCap(levelIdx); // đủ câu cấp này là gửi ngay, không chờ 4 cấp', ''],
+  ['dòng Sheet quên cột Cấp', 'cap: String(lvlIdx)', "cap: ''"],
+  ['mất dấu chống gửi trùng', 'if (!runState || !isGradedLevel(lvlIdx) || capDaNop[lvlIdx] || !daXongCap(lvlIdx)) return false;', 'if (!runState || !isGradedLevel(lvlIdx) || !daXongCap(lvlIdx)) return false;'],
+  ['kho không lưu dấu đã gửi', '          nopCap: capDaNop,\n          baoCaoCap: baoCaoCap\n', ''],
+  ['màn tổng kết lén gửi thêm một dòng', 'function submitPractice() {\n      if (submitted) return;', 'function submitPractice() {\n      if (submitted) return;\n      sendResult(payloadCuaCap(4, runState.attempts));'],
+  ['đủ 4 cấp mà không dựng màn tổng kết', 'if (daDuBonCap()) submitPractice(); // màn tổng kết chỉ hiển thị, không gửi dòng thứ 5', ''],
+];
+DOT_BIEN.forEach(d => {
+  if (srcN.indexOf(d[1]) < 0) { check('8d · đột biến "' + d[0] + '" có neo thật', false, 'khong tim thay neo trong nguon'); return; }
+  const m = doanNopCap(srcN.split(d[1]).join(d[2]));
+  const hong = m.rows.filter(r => !r[1]).map(r => r[0]);
+  check('8d · ĐỘT BIẾN "' + d[0] + '" phải bị bắt',
+    hong.length > 0 && hong.some(t => xanh.indexOf(t) >= 0),
+    hong.length ? 'hong: ' + hong.slice(0, 2).join(' / ') : (m.err ? 'nem loi ' + m.err : 'KHONG HANG NAO HONG'));
+});
+
+// hàng ÂM TINH: chỉ đổi màu nền, máy nộp không việc gì ⇒ mọi hàng phải im lặng
+const amTinh = doanNopCap(srcN.split('bg-emerald-800').join('bg-emerald-801'));
+check('8d · ÂM TINH (chỉ đổi màu nền dải biên lai) phải im lặng',
+  amTinh.rows.every(r => r[1]), amTinh.rows.filter(r => !r[1]).map(r => r[0]).join(' / ') || amTinh.err);
 
 console.log('=== GHI CHU ===');
 notes.forEach(n => console.log('  - ' + n));

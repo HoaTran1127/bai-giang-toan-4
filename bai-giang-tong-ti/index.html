@@ -581,7 +581,7 @@
       <div class="num green">7</div>
       <div>
         <h2 class="h2 green">LUYỆN TẬP 7 CẤP — <span class="math" id="graded-total">16</span> CÂU CHẤM ĐIỂM</h2>
-        <p class="hint">Cấp 1·2·3 ôn: có sơ đồ vẽ sẵn để kéo thả 4 thẻ (2 tên · TỔNG · số phần), bấm Kiểm tra thoải mái. Cấp 4·5·6·7 chấm: đề thường, không vẽ sơ đồ, mỗi câu chỉ ghi nhận lần đầu.</p>
+        <p class="hint">Cấp 1·2·3 ôn: có sơ đồ vẽ sẵn để kéo thả 4 thẻ (2 tên · TỔNG · số phần), bấm Kiểm tra thoải mái. Cấp 4·5·6·7 chấm: đề thường, không vẽ sơ đồ, mỗi câu chỉ ghi nhận lần đầu. Làm kín một cấp thì kết quả cấp đó <b>tự gửi</b> về bảng điểm của thầy — em được nghỉ, hôm khác làm tiếp cấp khác vẫn được.</p>
       </div>
     </div>
 
@@ -1557,16 +1557,19 @@ var ROSTER = [
 // Form: "Bảng điểm Tổng và Tỉ số - lop 4" (tài khoản minhtien07118904@gmail.com)
 // Đã xác minh 23/10/2026: POST ẩn danh → 200 → đúng 1 dòng trong Sheet riêng
 // "Bảng điểm Tổng và Tỉ số - lop 4 (Câu trả lời)" (id 1ffSDNpe9ZkXutK6fEVfKXwMnhRihqnZg6ASTpo6mkcs).
+// Chín cặp entry ↔ câu hỏi đã xác minh lại trên /viewform (25/10/2026) — cột "Cấp" là ô thứ 9.
 var FORM_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSf7NdZw4X4iBonU5rrcwsMXCXSn87PbmHB2DTOJY7mLV49ogA/formResponse';
 var ENTRY = {
   ten: 'entry.1275828399', ngay: 'entry.2047066992', dung: 'entry.553019836',
   tong: 'entry.2082998465', sao: 'entry.1687659485', loiSai: 'entry.1281776812',
-  phanTram: 'entry.553305782', dapAnCuaEm: 'entry.1915954631'
+  phanTram: 'entry.553305782', dapAnCuaEm: 'entry.1915954631',
+  cap: 'entry.997518029'
 };
 var SEND_READY = FORM_ENDPOINT.indexOf('http') === 0;
 
 var runState = null, submitted = false, baoCaoDaNop = null, activeCap = 1;
 var nhap = {};
+var capDaNop = {}, baoCaoCap = {};   // cấp đã gửi về bảng điểm + biên lai để vẽ lại khi mở trang
 var KHO = 'bg4-giu-bai-tong-ti';
 /* BAN_CAU phải đổi mỗi khi NỘI DUNG một câu đổi (số, tỉ số, cách hỏi): nháp cũ cất theo
    key cap-i-j, câu đã khác rồi mà số cũ còn nằm đó thì bé mở lên thấy "số mình gõ hôm
@@ -1582,6 +1585,25 @@ function keyCham() {
 }
 var TONG_CHAM = keyCham().length;
 function daGhiNhan() { return keyCham().filter(function (k) { return !!runState.attempts[k]; }).length; }
+function keysCapi(i) {
+  var k = [];
+  CAP[i].ds.forEach(function (q, j) { k.push('cap-' + i + '-' + j); });
+  return k;
+}
+function daXongCap(i) {
+  return !!runState && keysCapi(i).every(function (k) { return !!runState.attempts[k]; });
+}
+function conCauCuaCap(i) {
+  return keysCapi(i).filter(function (k) { return !runState.attempts[k]; }).length;
+}
+function daDuBonCap() {
+  return GRADED.every(function (i) { return !!capDaNop[i]; });
+}
+function saoText(n, max) {
+  var s = '';
+  for (var t = 0; t < max; t++) s += (t < n ? '★' : '☆');
+  return s;
+}
 function saoFor(dung, tong) {
   var t = tong > 0 ? dung / tong : 0;
   return t >= 0.85 ? 3 : t >= 0.60 ? 2 : t >= 0.30 ? 1 : 0;
@@ -1611,7 +1633,7 @@ function luuBai() {
     if (!runState) { localStorage.removeItem(KHO); return false; }
     localStorage.setItem(KHO, JSON.stringify({
       ver: BAN_CAU, ten: runState.label, attempts: runState.attempts, cap: activeCap,
-      nhap: nhap, nop: submitted, baoCao: baoCaoDaNop
+      nhap: nhap, nop: submitted, baoCao: baoCaoDaNop, nopCap: capDaNop, baoCaoCap: baoCaoCap
     }));
     return true;
   } catch (e) { return false; }
@@ -1623,7 +1645,8 @@ function moLaiBai() {
   if (!s || !s.attempts) { xoaBai(); return false; }
   var kid = findRoster(s.ten);
   if (!kid) { xoaBai(); return false; }
-  if (s.ver !== BAN_CAU && !s.nop) { s.attempts = {}; s.nhap = {}; s.cap = 1; }
+  var daGuiCapNao = !!(s.nopCap && GRADED.some(function (i) { return !!s.nopCap[i]; }));
+  if (s.ver !== BAN_CAU && !s.nop && !daGuiCapNao) { s.attempts = {}; s.nhap = {}; s.cap = 1; }
   runState = { key: kid.key, label: kid.label, attempts: s.attempts };
   nhap = {};
   if (s.nhap) {
@@ -1635,6 +1658,11 @@ function moLaiBai() {
   activeCap = Math.min(7, Math.max(1, parseInt(s.cap, 10) || 1));
   submitted = !!s.nop;
   baoCaoDaNop = s.baoCao || null;
+  capDaNop = {}; baoCaoCap = {};
+  GRADED.forEach(function (i) {
+    if (s.nopCap && s.nopCap[i]) capDaNop[i] = true;
+    if (s.baoCaoCap && s.baoCaoCap[i]) baoCaoCap[i] = s.baoCaoCap[i];
+  });
   document.getElementById('name-gate').classList.add('hidden');
   document.getElementById('runner-name').innerText = kid.label;
   document.getElementById('runner-avatar').src = kid.anh;
@@ -1653,6 +1681,9 @@ function moLaiBai() {
   document.getElementById('practice-wrap').classList.remove('hidden');
   hienGhiChuPhucHoi(daGhiNhan());
   veDanhSach();
+  // Bốn cấp đã gửi mà biên lai tổng kết chưa kịp dựng (trang bị đóng ngay sau cấp cuối):
+  // mở lại là VẼ tổng kết, không gửi thêm dòng nào nữa.
+  if (daDuBonCap()) nopBai();
   return true;
 }
 function hienGhiChuPhucHoi(daNopGhi) {
@@ -1818,6 +1849,8 @@ function chamCau(i, j) {
     delete nhap[key];
     veDanhSach();
     luuBai();
+    // Cấp này vừa kín câu -> gửi ngay MỘT dòng về bảng điểm. Em không phải chờ làm đủ bốn cấp.
+    if (daXongCap(i)) nopCap(i);
     var el = document.getElementById('card-' + key);
     if (el) el.scrollIntoView({ block: 'nearest' });
     return;
@@ -1833,7 +1866,7 @@ function veTabs() {
   var g = document.getElementById('level-tabs'), html = '';
   for (var i = 1; i <= 7; i++) {
     html += '<button class="lv' + (laCapCham(i) ? ' graded' : '') + (i === activeCap ? ' active' : '') + '" data-cap="' + i + '">' +
-      'Cấp ' + i + (laCapCham(i) ? ' · chấm' : ' · ôn') + '</button>';
+      'Cấp ' + i + (laCapCham(i) ? (capDaNop[i] ? ' · đã gửi' : ' · chấm') : ' · ôn') + '</button>';
   }
   g.innerHTML = html;
   var bs = g.querySelectorAll('.lv');
@@ -1849,28 +1882,53 @@ function veTabs() {
   if (pl && runState) pl.innerText = 'Đã ghi nhận ' + daGhiNhan() + '/' + TONG_CHAM + ' câu được chấm';
 }
 
+function dongTrangThaiCaps() {
+  return GRADED.map(function (i) {
+    var b = baoCaoCap[i];
+    if (capDaNop[i] && b) return 'Cấp ' + i + ': ' + b.correct + '/' + b.total + ' ' + saoText(b.stars, 3);
+    return 'Cấp ' + i + ': còn ' + (runState ? conCauCuaCap(i) : CAP[i].ds.length) + ' câu';
+  }).join(' · ');
+}
+
 function updateSubmitBar() {
   var bar = document.getElementById('submit-bar');
   if (!bar || !runState) return;
-  var con = TONG_CHAM - daGhiNhan();
   if (submitted) {
-    bar.innerHTML = '<div class="lv-head" style="text-align:center">Em đã nộp bài này rồi — muốn làm lại thì nhờ thầy xoá dòng của em trên bảng điểm.</div>';
+    bar.innerHTML = '<div class="lv-head" style="text-align:center">Em đã nộp đủ bốn cấp — muốn làm lại thì nhờ thầy xoá dòng của em trên bảng điểm.</div>';
     return;
   }
+  var i = activeCap, strip = '<div class="qdh" style="margin-top:8px;text-align:center">' + dongTrangThaiCaps() + '</div>';
+  if (!laCapCham(i)) {
+    bar.innerHTML = '<div class="qdh" style="text-align:center">Cấp ' + i + ' là cấp ôn: bấm Kiểm tra bao nhiêu lần cũng được, <b>không</b> gửi về bảng điểm.</div>' + strip;
+    return;
+  }
+  if (capDaNop[i] && baoCaoCap[i]) {
+    var b = baoCaoCap[i], tiep = GRADED.filter(function (x) { return !capDaNop[x]; })[0];
+    bar.innerHTML = '<div class="kq-line" style="border-color:var(--green);background:#DCFCE7"><b>Cấp ' + i + ' đã gửi về bảng điểm của thầy:</b> ' +
+      b.correct + '/' + b.total + ' câu đúng · ' + saoText(b.stars, 3) + ' (' + b.stars + '/3 sao)' +
+      (b.sent ? '' : ' <span class="qdh">— bài này chưa gắn link bảng điểm nên kết quả chưa đi được</span>') + '</div>' +
+      (tiep ? '<div style="text-align:center;margin-top:8px"><button class="btn pri" id="btn-tiep">Sang Cấp ' + tiep + ' làm tiếp →</button></div>' : '') +
+      strip;
+    var nt = document.getElementById('btn-tiep');
+    if (nt) nt.onclick = function () { gomNhap(); activeCap = tiep; veDanhSach(); luuBai(); };
+    return;
+  }
+  var con = conCauCuaCap(i);
   if (con > 0) {
     bar.innerHTML = '<div class="kq-line" style="border-color:var(--orange);background:#FEF3C7">Em còn <b>' + con +
-      '</b> câu ở Cấp 4·5·6·7 chưa bấm Kiểm tra. Mỗi câu chỉ được ghi nhận <b>1 lần</b>.</div>';
+      '</b> câu ở Cấp ' + i + ' chưa bấm Kiểm tra. Làm xong cấp này là kết quả gửi về thầy ngay, em không phải ngồi làm cả bốn cấp một lúc. Mỗi câu chỉ được ghi nhận <b>1 lần</b>.</div>' + strip;
   } else {
     bar.innerHTML = '<div style="text-align:center"><button class="btn warm" id="btn-nop">' +
-      (SEND_READY ? 'Nộp bài — gửi kết quả về thầy' : 'Xem kết quả của em') + '</button>' +
-      '<div class="qdh" style="margin-top:6px">Mỗi bạn chỉ làm 1 lần.</div></div>';
-    document.getElementById('btn-nop').onclick = nopBai;
+      (SEND_READY ? 'Gửi kết quả Cấp ' + i + ' về thầy' : 'Xem kết quả Cấp ' + i) + '</button>' +
+      '<div class="qdh" style="margin-top:6px">Cấp này đã kín câu nhưng trang chưa gửi được (em mở lại nháp cũ) — bấm một cái là xong.</div></div>' + strip;
+    document.getElementById('btn-nop').onclick = function () { nopCap(i); };
   }
 }
 
-function loiCuaEm(attempts) {
+function loiCuaEm(attempts, chiCap) {
   var lines = [];
   GRADED.forEach(function (i) {
+    if (chiCap && i !== chiCap) return;
     CAP[i].ds.forEach(function (q, j) {
       var a = attempts['cap-' + i + '-' + j];
       if (!a || a.ok) return;
@@ -1879,9 +1937,10 @@ function loiCuaEm(attempts) {
   });
   return lines;
 }
-function dapAnCuaEm(attempts) {
+function dapAnCuaEm(attempts, chiCap) {
   var lines = [];
   GRADED.forEach(function (i) {
+    if (chiCap && i !== chiCap) return;
     CAP[i].ds.forEach(function (q, j) {
       var a = attempts['cap-' + i + '-' + j];
       lines.push('Bài ' + i + '.' + (j + 1) + ' = ' + (a ? a.val : 'bỏ trống') + (a && a.ok ? ' (đúng)' : ' (sai)'));
@@ -1916,24 +1975,59 @@ function sendResult(payload) {
   return true;
 }
 
+/* Dòng về Sheet của RIÊNG một cấp: tổng = số câu của cấp đó, sao tính trong cấp (tối đa 3). */
+function payloadCuaCap(i, attempts) {
+  var keys = keysCapi(i);
+  var dung = keys.filter(function (k) { return attempts[k] && attempts[k].ok; }).length;
+  var tong = keys.length;
+  var lines = loiCuaEm(attempts, i);
+  return {
+    ngay: ngayLamBai(new Date()),
+    cap: String(i),
+    dung: dung,
+    tong: tong,
+    sao: saoFor(dung, tong),
+    phanTram: Math.round(dung / tong * 100) + '%',
+    loiSai: lines.length ? lines.join(' | ') : 'Không sai câu nào',
+    dapAnCuaEm: dapAnCuaEm(attempts, i).join(' | ')
+  };
+}
+function catAttemptsCapi(i, attempts) {
+  var out = {};
+  keysCapi(i).forEach(function (k) { if (attempts[k]) out[k] = attempts[k]; });
+  return out;
+}
+
+/* MỘT cấp = MỘT dòng trên bảng điểm. Em làm xong cấp nào thì thầy nhận kết quả cấp đó ngay.
+   Cấp 1·2·3 là cấp ôn: không gửi gì cả. */
+function nopCap(i) {
+  if (!runState || !laCapCham(i) || capDaNop[i] || !daXongCap(i)) return;
+  var rec = payloadCuaCap(i, runState.attempts);
+  rec.ten = runState.label;
+  capDaNop[i] = true;
+  var sent = sendResult(rec);
+  baoCaoCap[i] = {
+    cap: i, label: runState.label, correct: rec.dung, total: rec.tong,
+    stars: rec.sao, ngay: rec.ngay, sent: sent, attempts: catAttemptsCapi(i, runState.attempts)
+  };
+  luuBai();
+  veTabs(); updateSubmitBar();   // tab phải sáng dấu "đã gửi" ngay lúc gửi, không chờ em đổi cấp
+  if (daDuBonCap()) nopBai();
+}
+
+/* Đủ bốn cấp: chỉ dựng biên lai tổng kết trên màn hình. Không POST — mỗi cấp đã gửi một dòng riêng. */
 function nopBai() {
-  if (submitted) return;
+  if (submitted || !runState || !daDuBonCap()) return;
   var keys = keyCham();
   var dung = keys.filter(function (k) { return runState.attempts[k].ok; }).length;
-  var lines = loiCuaEm(runState.attempts);
-  var rec = {
-    ten: runState.label,
-    ngay: ngayLamBai(new Date()),
-    dung: dung,
-    tong: keys.length,
-    sao: saoFor(dung, keys.length),
-    phanTram: Math.round(dung / keys.length * 100) + '%',
-    loiSai: lines.length ? lines.join(' | ') : 'Không sai câu nào',
-    dapAnCuaEm: dapAnCuaEm(runState.attempts).join(' | ')
-  };
+  var tongSao = 0;
+  GRADED.forEach(function (i) { tongSao += baoCaoCap[i] ? baoCaoCap[i].stars : 0; });
+  var daGuiHet = GRADED.every(function (i) { return !!baoCaoCap[i] && baoCaoCap[i].sent; });
   submitted = true;
-  var sent = sendResult(rec);
-  baoCaoDaNop = { label: runState.label, correct: dung, total: keys.length, stars: rec.sao, ngay: rec.ngay, attempts: runState.attempts, sent: sent };
+  baoCaoDaNop = {
+    label: runState.label, correct: dung, total: keys.length, stars: tongSao, maxSao: GRADED.length * 3,
+    ngay: ngayLamBai(new Date()), attempts: runState.attempts, sent: daGuiHet, caps: baoCaoCap
+  };
   showReport(findRoster(runState.label), baoCaoDaNop);
   luuBai();
 }
@@ -1953,15 +2047,21 @@ function showReport(kid, rec) {
         '<div class="qvan">' + lamVan(q).text + '</div>' + phanHoi(q, a.val, false) + '</div>';
     });
   });
-  var sao = '';
-  for (var s = 0; s < 3; s++) sao += (s < rec.stars ? '★' : '☆');
+  var maxSao = rec.maxSao || 3;
+  var dongCaps = rec.caps ? '<div class="qdh" style="text-align:center;margin-top:6px">' + GRADED.map(function (i) {
+    var b = rec.caps[i];
+    if (!b) return '';
+    return 'Cấp ' + i + ': ' + b.correct + '/' + b.total + ' · ' + saoText(b.stars, 3) +
+      ' · ' + (b.sent ? 'đã gửi về bảng điểm' : 'chưa gửi được');
+  }).join('<br>') + '</div>' : '';
   wrap.innerHTML = '<div class="report">' +
     '<img src="' + kid.anh + '" alt="">' +
     '<h3>' + rec.label + ': ' + rec.correct + ' / ' + rec.total + ' câu đúng</h3>' +
-    '<div class="stars">' + sao + '</div>' +
-    '<div class="qdh" style="text-align:center">Nộp lúc ' + rec.ngay + ' · ' + rec.stars + ' sao trên tối đa 3 sao</div>' +
+    '<div class="stars">' + saoText(rec.stars, maxSao) + '</div>' +
+    '<div class="qdh" style="text-align:center">Tổng kết lúc ' + rec.ngay + ' · ' + rec.stars + ' sao trên tối đa ' + maxSao + ' sao (mỗi cấp tối đa 3 sao)</div>' +
+    dongCaps +
     '<div id="send-status">' + (rec.sent
-      ? '✅ Đã gửi kết quả về bảng điểm của thầy.'
+      ? '✅ Mỗi cấp đã gửi riêng một dòng về bảng điểm của thầy.'
       : ' Bài giảng này chưa gắn link bảng điểm nên kết quả CHƯA gửi đi được. Em đưa màn hình này cho thầy xem nhé.') + '</div>' +
     '<div style="text-align:center;margin-top:10px"><span class="sb sb-g">Đã nộp — mỗi bạn chỉ làm 1 lần</span></div>' +
     '</div>' +
@@ -1974,6 +2074,7 @@ function showReport(kid, rec) {
 
 function veCong() {
   runState = null; submitted = false; baoCaoDaNop = null; nhap = {}; activeCap = 1;
+  capDaNop = {}; baoCaoCap = {};
   document.getElementById('quiz-container').innerHTML = '';
   xoaBai();
   document.getElementById('practice-wrap').classList.add('hidden');
@@ -1999,7 +2100,7 @@ function renderGate() {
     };
   }
   document.getElementById('gate-send').innerHTML = SEND_READY
-    ? 'Làm xong bấm Nộp — kết quả của em sẽ tự gửi về bảng điểm của thầy.'
+    ? 'Cấp 4·5·6·7: làm xong cấp nào là kết quả cấp đó <b>tự gửi</b> về bảng điểm của thầy ngay — em không cần ngồi làm liền cả bốn cấp.'
     : '⚠ Thầy chưa gắn link bảng điểm vào bài này, nên kết quả sẽ không gửi được. Em vẫn làm và đọc điểm trên màn hình.';
 }
 
@@ -2013,6 +2114,7 @@ function batDau() {
   err.innerText = '';
   runState = { key: kid.key, label: kid.label, attempts: {} };
   nhap = {}; submitted = false; baoCaoDaNop = null; activeCap = 1;
+  capDaNop = {}; baoCaoCap = {};
   document.getElementById('quiz-container').innerHTML = '';
   document.getElementById('name-gate').classList.add('hidden');
   document.getElementById('report-wrap').classList.add('hidden');
@@ -3084,7 +3186,8 @@ function tuKiem() {
       else if (daEntry.indexOf(ENTRY[f8]) >= 0) err.push('Hai ô cùng dùng ' + ENTRY[f8] + ' — bảng điểm ghi đè nhau');
       else daEntry.push(ENTRY[f8]);
     }
-    if (daEntry.length !== 8) err.push('Bảng điểm cần đủ 8 ô (tên · ngày · đúng · tổng · sao · lời sai · % · đáp án), hiện ' + daEntry.length);
+    if (daEntry.length !== 9) err.push('Bảng điểm cần đủ 9 ô (tên · ngày · đúng · tổng · sao · lời sai · % · đáp án · cấp), hiện ' + daEntry.length);
+    if (!ENTRY.cap) err.push('Thiếu ENTRY.cap — cột "Cấp" trên Sheet trống, thầy không biết dòng nào của cấp nào');
   } else {
     if (SEND_READY) err.push('SEND_READY = true dù chưa có FORM_ENDPOINT');
     if (coHinh) {
@@ -3094,6 +3197,41 @@ function tuKiem() {
   }
   if (KHO !== 'bg4-giu-bai-tong-ti') err.push('Chỗ giữ bài phải là "bg4-giu-bai-tong-ti" để không ăn vào bài khác');
   if (!laCapCham(4) || laCapCham(1)) err.push('GRADED phải là các cấp 4·5·6·7');
+
+  /* NỘP THEO CẤP: mỗi cấp một dòng riêng, tổng = đúng số câu của cấp, sao ≤ 3 trong cấp,
+     cột lời sai/đáp án chỉ mang câu của cấp vừa gửi, và màn tổng kết không POST lần hai. */
+  n++;
+  (function () {
+    if (typeof payloadCuaCap !== 'function') { err.push('Thiếu payloadCuaCap(i, attempts) — máy nộp vẫn gộp cả bốn cấp vào một dòng'); return; }
+    var saiHet = {};
+    GRADED.forEach(function (i) {
+      CAP[i].ds.forEach(function (q, j) { saiHet['cap-' + i + '-' + j] = { val: q.ans + 1, ok: false }; });
+    });
+    var tongBonCap = 0;
+    GRADED.forEach(function (i) {
+      var p = payloadCuaCap(i, saiHet);
+      if (String(p.cap) !== String(i)) err.push('Cấp ' + i + ': cột Cấp gửi "' + p.cap + '" — Sheet sẽ xếp nhầm dòng của cấp này vào cấp khác');
+      if (p.tong !== CAP[i].ds.length) err.push('Cấp ' + i + ': dòng Sheet báo ' + p.tong + ' câu, cấp này chỉ có ' + CAP[i].ds.length);
+      if (p.dung > p.tong) err.push('Cấp ' + i + ': ' + p.dung + ' câu đúng > tổng ' + p.tong);
+      if (p.sao > 3) err.push('Cấp ' + i + ': ' + p.sao + ' sao, tối đa của một cấp phải là 3');
+      if (!/%$/.test(String(p.phanTram))) err.push('Cấp ' + i + ': tỷ lệ "' + p.phanTram + '" thiếu dấu %');
+      tongBonCap += p.tong;
+      var ls = String(p.loiSai).split(' | ');
+      if (ls.length !== CAP[i].ds.length) err.push('Cấp ' + i + ': cột lời sai ' + ls.length + ' mục, phải đủ ' + CAP[i].ds.length + ' câu của cấp này');
+      for (var t = 0; t < ls.length; t++)
+        if (ls[t].indexOf('Bài ' + i + '.') !== 0) err.push('Cấp ' + i + ': lời sai lẫn câu của cấp khác → ' + ls[t].slice(0, 22));
+      var da = String(p.dapAnCuaEm).split(' | ');
+      if (da.length !== CAP[i].ds.length) err.push('Cấp ' + i + ': cột đáp án ' + da.length + ' mục, phải đúng ' + CAP[i].ds.length + ' câu của cấp vừa gửi');
+      if (da[0].indexOf('Bài ' + i + '.') !== 0) err.push('Cấp ' + i + ': cột đáp án mở đầu bằng "' + da[0].slice(0, 12) + '"');
+    });
+    if (tongBonCap !== TONG_CHAM) err.push('Bốn cấp gửi tổng cộng ' + tongBonCap + ' câu, máy chấm cả bài có ' + TONG_CHAM);
+    if (String(nopCap).indexOf('sendResult(') < 0) err.push('nopCap không gọi sendResult — làm xong cấp mà bảng điểm không nhận được dòng');
+    if (String(nopCap).indexOf('laCapCham(i)') < 0) err.push('nopCap không chặn cấp ôn — Cấp 1·2·3 sẽ bị gửi thành dòng');
+    if (String(nopBai).indexOf('sendResult(') >= 0) err.push('nopBai còn POST — tổng kết tạo thêm dòng thứ năm cho mỗi em');
+    if (String(chamCau).indexOf('nopCap(i)') < 0) err.push('chamCau không gọi nopCap — cấp vừa kín câu phải tự gửi, không chờ em bấm nút');
+    if (String(luuBai).indexOf('nopCap: capDaNop') < 0) err.push('luuBai không lưu capDaNop — tải lại trang là em gửi trùng cấp');
+    if (String(moLaiBai).indexOf('capDaNop[i] = true') < 0) err.push('moLaiBai không khôi phục capDaNop — chống gửi trùng hỏng khi mở lại bài dở');
+  })();
 
   /* Luật cuối: đối chiếu VẾT CHÂN chụp ở đầu hàm. Máy tự kiểm được phép làm hỏng trang
      trong lúc thử, nhưng phải trả về nguyên trạng — nếu không thì bé mở bài lên là thấy

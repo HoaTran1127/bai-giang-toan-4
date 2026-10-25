@@ -14,7 +14,7 @@
    rác. Prototype phải bọc sau lúc nạp: same-origin navigation dựng lại global mới,
    gắn shim trước đó là bị xoá sạch.
 
-   Exit 0 khi mọi hàng đạt VÀ cả 5 mutation đều bị bắt (kèm 1 hàng âm tinh chứng minh cửa
+   Exit 0 khi mọi hàng đạt VÀ cả 8 mutation đều bị bắt (kèm 2 hàng âm tinh chứng minh cửa
    không hỏng ăn lung tung). Tìm Chrome từng chỗ như bài 4 đã làm.
    ============================================================================= */
 const { spawnSync } = require('child_process');
@@ -109,7 +109,11 @@ function chay(){
     return {banCau:o.banCau,key:o.key,cap:o.cap,nop:o.nop,
       attempts:Object.keys(o.attempts).length,attemptsKeys:Object.keys(o.attempts).sort().join(','),
       nhap:Object.keys(o.nhap||{}).sort().join(','),
-      baoCao:o.baoCao?{correct:o.baoCao.correct,total:o.baoCao.total,stars:o.baoCao.stars,pct:o.baoCao.pct}:null};}
+      baoCao:o.baoCao?{correct:o.baoCao.correct,total:o.baoCao.total,stars:o.baoCao.stars,pct:o.baoCao.pct}:null,
+      gui:(o.nopCap||[]).slice(4,8).map(function(x){return x?1:0;}).join(''),
+      bien:Object.keys(o.baoCaoCap||{}).filter(function(x){return +x>=4;}).sort().join(',')};}
+  function pf(p,ten){var t=iw.ENTRY[ten],ra=null;(p.fields||[]).forEach(function(x){
+    if(x.indexOf(t+'~')===0)ra=x.slice(t.length+1);});return ra;}
   function soNop(){return $$('button').filter(function(b){return b.textContent.trim()==='Nộp bài';}).length;}
 
   if (P==='draft') {
@@ -158,16 +162,23 @@ function chay(){
   }
   else if (P==='nop') {
     var keys=[]; [4,5,6,7].forEach(function(l){ iw.LEVELS[l].qs.forEach(function(q,i){keys.push('lvl-'+l+'-'+i);}); });
-    var thieu=0;
+    var thieu=0, bannerDaGui='(khong-run)';
     keys.forEach(function(k){ var p=k.split('-'); sangCap(+p[1]);
       if (!idoc.getElementById('in-'+k)) { return; }
       if (!go(k, ans(k))) { thieu++; return; }
-      enter(k); });
+      enter(k);
+      /* cấp 4 vừa kín câu: thanh trạng thái phải báo đã gửi NGAY, lúc em còn đứng ở cấp đó */
+      if (iw.__posts.length===1 && bannerDaGui==='(khong-run)')
+        bannerDaGui = String(idoc.getElementById('submit-bar').textContent).indexOf('Cấp 4 đã gửi')>=0?'co':'KHONG';
+    });
     step('du-16', {tongKeys:keys.length, daGhi:Object.keys(iw.runState.attempts).length, thieu:thieu});
     step('nut-nop', soNop());
-    var btn=$$('#submit-bar button').filter(function(b){return b.textContent.trim()==='Nộp bài';})[0];
-    if (btn) btn.click(); else step('nut-nop','KHONG-CO-NUT');
     step('posts', iw.__posts.length);
+    /* cấp nào vừa kín câu phải tự đi ngay tại câu cuối, không chờ em bấm gì cả */
+    [4,5,6,7].forEach(function(l,ix){var pp=iw.__posts[ix];
+      step('cap'+l, pp?{cap:pf(pp,'cap'),dung:pf(pp,'dung'),tong:pf(pp,'tong'),sao:pf(pp,'sao'),
+        pct:pf(pp,'phanTram'),ten:pf(pp,'ten'),loiSai:(pf(pp,'loiSai')||'').slice(0,17)}:'(KHONG-CO-DONG)');});
+    step('banner-da-gui', bannerDaGui);
     var p0=iw.__posts[0]||null;
     /* "rong" liệt kê TÊN CỘT có ô rỗng chứ không đếm số: máy trả lời đúng cả 16 câu nên cột
        "Câu sai" rỗng là ĐÚNG, còn một cột số bị rỗng mới là mất dòng trên Sheet. */
@@ -181,8 +192,11 @@ function chay(){
     step('ngay', ngayF?ngayF.split('~')[1]:'(thieu-cot-ngay)');
     var pct=p0?p0.fields.filter(function(s){return s.indexOf('entry.553305782~')===0;})[0]:null;
     step('phanTram', pct?pct.split('~')[1]:'(khong co)');
+    step('tong-ket', {sao:(String(idoc.getElementById('report-wrap').textContent).match(/tổng (\\d+)\\/(\\d+) sao/)||[]).slice(1,3).join('/'),
+      dong:(String(idoc.getElementById('report-wrap').textContent).match(/Cấp \\d:/g)||[]).join(','),
+      status:(idoc.getElementById('send-status').textContent||'').slice(0,40)});
     step('sau-nop', {submitBar:(idoc.getElementById('submit-bar').innerHTML||'').length, nut:soNop(),
-      nop:rut().nop, baoCao:rut().baoCao});
+      nop:rut().nop, gui:rut().gui, bien:rut().bien, baoCao:rut().baoCao});
   }
   else if (P==='after') {
     step('cong', an(idoc.getElementById('name-gate'))?'an':'HIEN');
@@ -258,13 +272,19 @@ const DONG = [
   ['mo-khong-go', 'line', /giữ hộ em 3 câu đã ghi nhận\.$/, 'chỉ nói số câu đã ghi nhận khi không còn gì gõ dở'],
   ['mo-khong-go', 'posts', '0', 'mở lại lần hai vẫn im lặng'],
   ['nop', 'du-16', /"tongKeys":16,"daGhi":19,"thieu":0/, 'đủ 16 câu chấm (cộng 3 câu ôn đã ghi) — không câu nào thiếu ô'],
-  ['nop', 'nut-nop', '1', 'làm đủ 16 câu chấm thì nút Nộp bài hiện ra'],
-  ['nop', 'posts', '1', 'một lần bấm Nộp = đúng MỘT POST (đường goto: iframe ẩn, không request ra Google)'],
-  ['nop', 'post', /"target":"th-gui","cs":"UTF-8","n":9,"rong":"entry\.1281776812"/, 'form ẩn POST, target iframe, _charset_ + 8 entry.* — ô rỗng duy nhất là cột "Câu sai" vì máy trả lời đúng cả 16 câu'],
-  ['nop', 'post-cot', /^_charset_,entry\.1275828399,entry\.2047066992,entry\.553019836,entry\.2082998465,entry\.1687659485,entry\.1281776812,entry\.553305782,entry\.1915954631$/, 'đúng 9 cột mà Sheet của bài 2 thật sự có — sai một tên là Form nhận mà bảng điểm không hiện'],
+  ['nop', 'nut-nop', '0', 'KHÔNG còn nút "Nộp bài": cấp tự gửi ngay câu cuối, em không phải bấm'],
+  ['nop', 'posts', '4', 'bốn cấp kín câu = BỐN POST, đúng một dòng cho mỗi cấp (iframe ẩn, không request ra Google)'],
+  ['nop', 'cap4', /"cap":"4","dung":"4","tong":"4","sao":"3","pct":"100%","ten":"Ban Mai","loiSai":"Không sai câu nào"/, 'dòng Cấp 4: cột Cấp đúng, tổng = 4 câu của cấp (không phải 16), sao tính TRONG cấp'],
+  ['nop', 'cap5', /"cap":"5","dung":"4","tong":"4","sao":"3"/, 'dòng Cấp 5 đi riêng, tổng vẫn là 4 (không phải 16)'],
+  ['nop', 'cap6', /"cap":"6","dung":"4","tong":"4","sao":"3"/, 'dòng Cấp 6 đi riêng'],
+  ['nop', 'cap7', /"cap":"7","dung":"4","tong":"4","sao":"3"/, 'dòng Cấp 7 đi riêng'],
+  ['nop', 'banner-da-gui', 'co', 'thanh trang thai noi Cấp đã gửi về bảng điểm ngay khi cấp vừa kín'],
+  ['nop', 'post', /"target":"th-gui","cs":"UTF-8","n":10,"rong":""/, 'form ẩn POST, target iframe, _charset_ + 9 entry.* — không cột nào rỗng (cấp đúng hết nên cột "Câu sai" ghi rõ "Không sai câu nào")'],
+  ['nop', 'post-cot', /^_charset_,entry\.1275828399,entry\.2047066992,entry\.553019836,entry\.2082998465,entry\.1687659485,entry\.1281776812,entry\.553305782,entry\.1915954631,entry\.1460151827$/, 'đúng 10 cột mà Sheet của bài 2 thật sự có (thêm cột Cấp) — sai một tên là Form nhận mà bảng điểm không hiện'],
   ['nop', 'ngay', /^\d\d\/\d\d\/\d\d\d\d \d\d:\d\d$/, 'ngày tự ghép dd/MM/yyyy HH:mm (không phải toLocaleString đảo thứ tự theo máy)'],
-  ['nop', 'phanTram', /^\d+%$/, 'cột % có dấu %'],
-  ['nop', 'sau-nop', /"submitBar":0,"nut":0,"nop":true,"baoCao":\{"correct":\d+,"total":16,"stars":[0-3],"pct":\d+\}/, 'sau khi nộp: submit-bar rỗng, không còn nút Nộp, kho đánh dấu nop:true + cất báo cáo'],
+  ['nop', 'phanTram', /^\d+%$/, 'cột % có dấu % (tính trong cấp vừa gửi)'],
+  ['nop', 'tong-ket', /"sao":"12\/12","dong":"Cấp 4:,Cấp 5:,Cấp 6:,Cấp 7:","status":"✅ Mỗi cấp đã gửi riêng một dòng/, 'tổng kết chỉ VẼ: 12★ = 4 cấp × 3★, liệt kê đủ bốn cấp, và không POST thêm lần năm'],
+  ['nop', 'sau-nop', /"submitBar":0,"nut":0,"nop":true,"gui":"1111","bien":"4,5,6,7","baoCao":\{"correct":\d+,"total":16,"stars":[0-9]+,"pct":\d+\}/, 'sau khi nộp: submit-bar rỗng, không còn nút Nộp, kho đánh dấu cả bốn cấp đã gửi (gui=1111) + cất báo cáo'],
   ['after', 'cong', 'an', 'mở lại sau khi nộp: vào thẳng, không qua cổng'],
   ['after', 'bao-cao', 'hien-lai', 'báo cáo dựng lại từ kho, em thấy đúng kết quả của mình'],
   ['after', 'status', /đã nộp lúc \d\d\/\d\d\/\d\d\d\d \d\d:\d\d.*KHÔNG gửi lại lần nữa/, 'nói thẳng là mở lại sẽ KHÔNG gửi lần hai'],
@@ -276,7 +296,7 @@ const DONG = [
   ['doi-ban', 'doi-ban', /"kho":null,"cong":"HIEN","baoCao":0,"runState":"null","submitted":"false","oTen":0,"nhapGo":0/, 'Ghi tên bạn khác ⇒ kho SẠCH + về cổng + báo cáo cũ xoá sạch + ô tên trống (không cất rác của bạn trước)'],
   ['doi-ban', 'posts', '0', 'bấm "Ghi tên bạn khác" không gửi gì thêm'],
   ['doi-sinh-vien', 'mai', /"key":"mai","nhap":"lvl-1-0"/, 'Ban Mai gõ dở ⇒ nháp nằm trong kho của bạn Mai'],
-  ['doi-sinh-vien', 'gia-linh', /"kho":\{"banCau":1,"key":"gia-linh","cap":1,"nop":false,"attempts":0,"attemptsKeys":"","nhap":"","baoCao":null\},"oTrong":0/, 'sang bạn khác ⇒ kho ghi đè bằng key mới, attempts 0, cap 1 và KHÔNG còn ô nào mang số của bạn trước'],
+  ['doi-sinh-vien', 'gia-linh', /"kho":\{"banCau":1,"key":"gia-linh","cap":1,"nop":false,"attempts":0,"attemptsKeys":"","nhap":"","baoCao":null,"gui":"","bien":""},"oTrong":0/, 'sang bạn khác ⇒ kho ghi đè bằng key mới, attempts 0, cap 1 và KHÔNG còn ô nào mang số của bạn trước'],
   ['doi-sinh-vien', 'posts', '0', 'đổi bạn không gửi gì'],
   ['sai-ten', 'ban-dau', /"kho":"trong","cong":"HIEN"/, 'vào phase với cổng tên sạch'],
   ['sai-ten', 'lan-hoang', /"err":"Tên chưa đúng.*"cong":"HIEN","practice":"an","kho":"trong"/, 'tên ngoài ROSTER ⇒ bị chặn, không vào bài, và KHÔNG cất nháp của người chưa được vào'],
@@ -334,13 +354,18 @@ const DOT_BIEN = [
   ['M1 · gõ vào ô nhưng không cất nháp', ['draft'], "nhap[k] = el.value; luuBai();", 'nhap[k] = el.value;', 'draft', 'kho', false],
   ['M2 · ghi nhận câu rồi mà quên xoá nháp', ['draft'], 'delete nhap[k];', '', 'draft', 'enter-ghi', false],
   ['M3 · mở lại không dựng lại chỗ đang gõ dở', ['draft', 'resume'], 'nhap = o.nhap || {};', 'nhap = {};', 'resume', 'o-gio-do', false],
-  ['M4 · mở lại quên là bài đã nộp', ['draft', 'nop', 'after'], 'submitted = !!o.nop;', '', 'after', 'bao-cao', false],
+  ['M4 · mở lại quên là bài đã nộp', ['draft', 'nop', 'after'], 'submitted = !!o.nop; baoCaoDaNop = o.baoCao || null;',
+    'baoCaoDaNop = o.baoCao || null;', 'after', 'status', false],
   ['M5 · "Ghi tên bạn khác" không xoá kho cũ', ['draft', 'nop', 'doi-ban'],
     "onclick = function () {\n    xoaBai();", 'onclick = function () {', 'doi-ban', 'doi-ban', false],
+  ['M6 · cấp kín câu nhưng không tự gửi', ['draft', 'nop'], ' if (laCapCham(li) && daXongCap(li)) nopCap(li);', '', 'nop', 'posts', false],
+  ['M7 · dòng Sheet quên cột Cấp', ['draft', 'nop'], 'cap: String(l),', "cap: '',", 'nop', 'cap4', false],
+  ['M8 · kho không lưu dấu đã gửi', ['draft', 'nop'], ', nopCap: capDaNop, baoCaoCap: baoCaoCap', '', 'nop', 'sau-nop', false],
   ['ÂM TINH · chỉ đổi chữ trong lời khen, không đụng máy giữ bài', ['draft'], "<span>Chính xác! '", "<span>Đúng rồi! '", 'draft', 'kho', true],
+  ['ÂM TINH · chỉ đổi màu chữ của dải trạng thái cấp', ['draft', 'nop'], 'var strip = \'<p style="color:#7A6E5C;text-align:center">\'', 'var strip = \'<p style="color:#7A6E5D;text-align:center">\'', 'nop', 'tong-ket', true],
 ];
 let cay = 0, mutHong = [];
-console.log('— ĐỘT BIẾN (5 lỗi cấy vào máy giữ bài phải bị bắt + 1 hàng âm tinh) —');
+console.log('— ĐỘT BIẾN (8 lỗi cấy vào máy giữ bài + máy nộp theo cấp phải bị bắt, 2 hàng âm tinh phải im lặng) —');
 DOT_BIEN.forEach(function (d) {
   const [ten, prefix, neo, thay, p, hang, amTinh] = d;
   const so = gocLF.split(neo).length - 1;

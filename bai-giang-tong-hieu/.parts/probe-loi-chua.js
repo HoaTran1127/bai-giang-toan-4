@@ -142,10 +142,10 @@ function tram(src, ten) {
 function dong_day(kq) {
   const L = [];
   L.push(["tự kiểm · lỗi JS", String(kq.tuKiem.loi), "0"]);
-  L.push(["tự kiểm · số mục", String(kq.tuKiem.n), "110"]);
+  L.push(["tự kiểm · số mục", String(kq.tuKiem.n), "111"]);
   L.push(["tự kiểm · số câu", String(kq.tuKiem.cau), "48"]);
   L.push(["trang không bị chặn", kq.selfTestAn, "an"]);
-  L.push(["footer in đủ số mục", /110 mục khớp nhau · 48 câu/.test(kq.foot) ? "co" : "khong", "co"]);
+  L.push(["footer in đủ số mục", /111 mục khớp nhau · 48 câu/.test(kq.foot) ? "co" : "khong", "co"]);
 
   const tongSo = kq.block.reduce((a, b) => a + b.so, 0);
   const tongDat = kq.block.reduce((a, b) => a + b.dat, 0);

@@ -931,12 +931,17 @@
       sao: 'entry.1045781291',        // Số sao
       loiSai: 'entry.1065046570',     // Lời sai của em
       phanTram: 'entry.1166974658',   // Tỉ lệ %
-      dapAnCuaEm: 'entry.839337160'   // Đáp án em đã ghi
+      dapAnCuaEm: 'entry.839337160',  // Đáp án em đã ghi
+      cap: 'entry.1137339408',         // Cấp được chấm (4·5·6·7)
     };
     const SEND_READY = FORM_ENDPOINT.indexOf('http') === 0;
 
     let runState = null; // { key, label, attempts: { 'lvl-4-0': {val, ok} } }
     let submitted = false;
+    // Mấy bản cũ chờ bé làm xong cả 4 cấp mới gửi ⇒ một em ngồi gần hết buổi.
+    // capDaNop[4] = true khi dòng Cấp 4 đã về bảng điểm; baoCaoCap giữ biên lai đã gửi.
+    let capDaNop = [];
+    let baoCaoCap = [];
 
     // Nháp: giữ số em đã gõ nhưng chưa bấm Kiểm tra, vì mỗi lần vẽ lại danh sách
     // (ghi nhận 1 câu / đổi cấp độ) DOM của các ô khác bị dựng lại từ đầu.
@@ -979,7 +984,9 @@
           cap: activeLevelIndex,
           nhap: draftStore,
           nop: submitted,
-          baoCao: baoCaoDaNop
+          baoCao: baoCaoDaNop,
+          nopCap: capDaNop,
+          baoCaoCap: baoCaoCap
         }));
         return true;
       } catch (e) {
@@ -1012,6 +1019,8 @@
       activeLevelIndex = Math.min(7, Math.max(1, parseInt(s.cap, 10) || 1));
       submitted = !!s.nop;
       baoCaoDaNop = s.baoCao || null;
+      capDaNop = (s.nopCap || []).slice();
+      baoCaoCap = (s.baoCaoCap || []).slice();
 
       document.getElementById('name-gate').classList.add('hidden');
       document.getElementById('runner-name').innerText = kid.label;
@@ -1027,6 +1036,7 @@
       hienGhiChuPhucHoi(recordedCount());
       renderLevelTabs();
       renderQuizList();
+      if (!submitted && daDuBonCap()) submitPractice(); // chỉ dựng màn hình, không POST
       return true;
     }
 
@@ -1048,6 +1058,20 @@
     }
     function isGradedLevel(lvlIdx) { return GRADED_LEVELS.indexOf(lvlIdx) !== -1; }
     const TOTAL_GRADED = gradedKeys().length;
+    const MAX_SAO = GRADED_LEVELS.length * 3; // mỗi cấp tối đa 3★ ⇒ cả bài tối đa 12★
+
+    function keysCuaCap(lvlIdx) {
+      const keys = [];
+      levelData[lvlIdx].questions.forEach(function (q, i) { keys.push('lvl-' + lvlIdx + '-' + i); });
+      return keys;
+    }
+    function conCauCuaCap(lvlIdx) {
+      return keysCuaCap(lvlIdx).filter(function (k) { return !runState.attempts[k]; }).length;
+    }
+    function daXongCap(lvlIdx) { return isGradedLevel(lvlIdx) && conCauCuaCap(lvlIdx) === 0; }
+    function daDuBonCap() { return GRADED_LEVELS.every(function (l) { return daXongCap(l); }); }
+    function soCapDaGui() { return GRADED_LEVELS.filter(function (l) { return !!capDaNop[l]; }).length; }
+    function saoChoCap(dung, tong) { return starsFor(dung, tong); }
 
     function starsFor(correct, total) {
       const pct = total > 0 ? correct / total : 0;
@@ -1063,6 +1087,23 @@
       function hai(n) { return (n < 10 ? '0' : '') + n; }
       return hai(d.getDate()) + '/' + hai(d.getMonth() + 1) + '/' + d.getFullYear() +
         ' ' + hai(d.getHours()) + ':' + hai(d.getMinutes());
+    }
+    function saoCuaCap(lvlIdx) {
+      if (!capDaNop[lvlIdx]) {
+        // Bé văng ra đúng lúc gửi dòng cuối: đủ câu mà chưa có biên lai thì gửi bù.
+        if (!runState || !daXongCap(lvlIdx)) return 0;
+        nopCap(lvlIdx);
+      }
+      return baoCaoCap[lvlIdx] ? baoCaoCap[lvlIdx].sao : 0;
+    }
+
+    // Tổng kết cộng sao của cả bốn cấp ⇒ dải sao phải vẽ đúng số ô của tổng, không phải 3.
+    function starsHtmlN(count, max) {
+      let s = '';
+      for (let i = 0; i < max; i++) {
+        s += '<span class="' + (i < count ? 'text-amber-400' : 'text-slate-300') + '">' + (i < count ? '★' : '☆') + '</span>';
+      }
+      return '<span class="text-2xl sm:text-3xl tracking-wider leading-none">' + s + '</span>';
     }
     function starsHtml(count) {
       let s = '';
@@ -1185,7 +1226,7 @@
           'Em vẫn làm bình thường và đọc điểm trên màn hình.</div>';
       } else {
         box.classList.remove('hidden');
-        box.innerHTML = 'Làm xong bấm Nộp — kết quả của em sẽ tự gửi về bảng điểm của thầy.';
+        box.innerHTML = 'Làm xong cấp nào thì kết quả cấp đó <b>tự gửi ngay</b> về bảng điểm của thầy — em không phải ngồi làm hết cả bốn cấp cùng một lúc.';
       }
     }
 
@@ -1218,6 +1259,8 @@
       baoCaoDaNop = null;
       activeLevelIndex = 1;
       submitted = false;
+      capDaNop = [];
+      baoCaoCap = [];
       document.getElementById('name-gate').classList.add('hidden');
       document.getElementById('report-wrap').classList.add('hidden');
       document.getElementById('practice-wrap').classList.remove('hidden');
@@ -1233,6 +1276,8 @@
       runState = null;
       baoCaoDaNop = null;
       submitted = false;
+      capDaNop = [];
+      baoCaoCap = [];
       clearDrafts();
       xoaBai();
       hienGhiChuPhucHoi(0);
@@ -1252,7 +1297,7 @@
         btn.className = (i === activeLevelIndex)
           ? "px-3 py-1.5 rounded-xl text-xs font-black text-white shadow-sm " + (graded ? 'bg-indigo-600' : 'bg-slate-600')
           : "px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200";
-        btn.innerText = 'Cấp độ ' + i + (graded ? ' · chấm điểm' : ' · ôn');
+        btn.innerText = 'Cấp độ ' + i + (graded ? (capDaNop[i] ? ' · đã gửi ✓' : ' · chấm điểm') : ' · ôn');
         btn.onclick = (function (levelIdx) {
           return function () {
             activeLevelIndex = levelIdx;
@@ -1271,29 +1316,131 @@
     function updateProgressLine() {
       const el = document.getElementById('progress-line');
       if (!el || !runState) return;
-      el.innerText = 'Đã ghi nhận ' + recordedCount() + '/' + TOTAL_GRADED + ' câu được chấm';
+      el.innerText = 'Đã ghi nhận ' + recordedCount() + '/' + TOTAL_GRADED + ' câu được chấm · ' + soCapDaGui() + '/4 cấp đã về bảng điểm của thầy';
     }
+    function loiSaiCuaCap(lvlIdx, attempts) {
+      const lines = [];
+      levelData[lvlIdx].questions.forEach(function (q, idx) {
+        const a = attempts['lvl-' + lvlIdx + '-' + idx];
+        if (!a || a.ok) return;
+        lines.push('Bài ' + lvlIdx + '.' + (idx + 1) + ': ' + deBang(q) + ' — em ghi ' + a.val + ', đáp án đúng ' + q.ans);
+      });
+      return lines;
+    }
+    function dapAnCuaEmCuaCap(lvlIdx, attempts) {
+      const lines = [];
+      levelData[lvlIdx].questions.forEach(function (q, idx) {
+        const a = attempts['lvl-' + lvlIdx + '-' + idx];
+        lines.push('Bài ' + lvlIdx + '.' + (idx + 1) + ' = ' + (a ? a.val : 'bỏ trống') + (a && a.ok ? ' (đúng)' : ' (sai)'));
+      });
+      return lines;
+    }
+    // Một payload = một dòng Sheet: đúng/tổng và sao đều tính TRONG cấp, tối đa 3★.
+    function payloadCuaCap(lvlIdx, attempts) {
+      const keys = keysCuaCap(lvlIdx);
+      const dung = keys.filter(function (k) { return attempts[k] && attempts[k].ok; }).length;
+      const tong = keys.length;
+      const ls = loiSaiCuaCap(lvlIdx, attempts);
+      return {
+        ten: runState.label,
+        ngay: ngayLamBai(new Date()),
+        dung: dung,
+        tong: tong,
+        sao: saoChoCap(dung, tong),
+        phanTram: Math.round(dung / tong * 100) + '%',
+        loiSai: ls.length ? ls.join(' | ') : 'Không sai câu nào',
+        dapAnCuaEm: dapAnCuaEmCuaCap(lvlIdx, attempts).join(' | '),
+        cap: String(lvlIdx)
+      };
+    }
+
+    // ---------- GỬI MỘT DÒNG CHO MỘT CẤP ----------
+    function nopCap(lvlIdx) {
+      if (!runState || !isGradedLevel(lvlIdx) || capDaNop[lvlIdx] || !daXongCap(lvlIdx)) return false;
+      const rec = payloadCuaCap(lvlIdx, runState.attempts);
+      capDaNop[lvlIdx] = true; // dán dấu TRƯỚC khi gửi: mạng chập chờn cũng không gửi trùng
+      const sent = sendResult(rec);
+      baoCaoCap[lvlIdx] = {
+        cap: lvlIdx, label: rec.ten, dung: rec.dung, tong: rec.tong,
+        stars: rec.sao, sao: rec.sao, phanTram: rec.phanTram, ngay: rec.ngay, sent: !!sent
+      };
+      luuBai();
+      renderLevelTabs();
+      updateSubmitBar();
+      if (daDuBonCap()) submitPractice(); // màn tổng kết chỉ hiển thị, không gửi dòng thứ 5
+      return true;
+    }
+
+    function sangCap(lvlIdx) {
+      activeLevelIndex = lvlIdx;
+      renderLevelTabs();
+      renderQuizList();
+      keoVaoTamai('quiz-container');
+    }
+
+    // Dải biên lai: đứng ở cấp nào bé cũng thấy mấy cấp đã về thầy, mấy cấp còn lại.
+    function capStripHtml() {
+      let h = '<div class="text-[10px] font-black uppercase text-slate-500 text-center">🔒 Đã về bảng điểm thầy</div>';
+      h += '<div class="flex flex-wrap justify-center gap-2">';
+      GRADED_LEVELS.forEach(function (l) {
+        const b = baoCaoCap[l];
+        const ok = !!capDaNop[l];
+        h += '<div class="px-3 py-1.5 rounded-xl border text-[11px] font-black ' +
+          (ok ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-slate-50 border-slate-200 text-slate-400') + '">' +
+          'Cấp ' + l + ' · ' +
+          (ok ? (b ? b.dung + '/' + b.tong + ' câu đúng · ' + b.stars + '★ · ' + b.phanTram + ' · đã gửi' : 'đã gửi ✓')
+              : 'đang làm · đủ câu là gửi') +
+        '</div>';
+      });
+      return h + '</div>';
+    }
+
+    // Bé đứng ở cấp nào thì thanh trạng thái nói đúng chuyện của cấp đó.
     function updateSubmitBar() {
       const bar = document.getElementById('submit-bar');
       if (!bar || !runState) return;
-      const left = TOTAL_GRADED - recordedCount();
       updateProgressLine();
       if (submitted) {
-        bar.innerHTML = '<div class="p-3.5 rounded-2xl bg-slate-100 border border-slate-300 text-slate-600 font-bold text-xs text-center">' +
-          'Em đã nộp bài này rồi — muốn làm lại thì nhờ thầy xoá dòng của em trên bảng điểm.' +
-        '</div>';
+        bar.innerHTML = capStripHtml() +
+          '<div class="p-3.5 rounded-2xl bg-slate-100 border border-slate-300 text-slate-600 font-bold text-xs text-center mt-2">' +
+            'Bốn cấp đều đã gửi về bảng điểm của thầy — muốn làm lại thì nhờ thầy xoá dòng của em.' +
+          '</div>';
         return;
       }
-      bar.innerHTML = left > 0
-        ? '<div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 font-bold text-xs text-center">' +
-            'Em còn <b>' + left + '</b> câu ở Cấp độ 4 · 5 · 6 · 7 chưa bấm Kiểm tra. Mỗi câu chỉ được ghi nhận <b>1 lần</b>.' +
-          '</div>'
-        : '<div class="p-4 rounded-2xl bg-indigo-50 border-2 border-indigo-300 space-y-3 text-center">' +
-            '<div class="text-xs font-black text-indigo-900">Đã ghi nhận đủ ' + TOTAL_GRADED + '/' + TOTAL_GRADED + ' câu được chấm.</div>' +
-            '<button onclick="submitPractice()" class="px-6 py-3 bg-emerald-600 text-white font-black text-sm rounded-2xl hover:bg-emerald-700 shadow-sm">Nộp bài — gửi kết quả về thầy</button>' +
-            '<div class="text-[10px] font-bold text-slate-500 uppercase">Mỗi bạn chỉ làm 1 lần, nộp xong là gửi về bảng điểm.</div>' +
+      if (!isGradedLevel(activeLevelIndex)) {
+        bar.innerHTML = capStripHtml() +
+          '<div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-500 font-bold text-xs text-center mt-2">' +
+            'Cấp độ ' + activeLevelIndex + ' là bài ôn, không tính điểm và không gửi về thầy. Làm xong thì sang Cấp độ 4.' +
           '</div>';
+        return;
+      }
+      if (capDaNop[activeLevelIndex]) {
+        const b = baoCaoCap[activeLevelIndex];
+        let tiep = 0;
+        for (let i = activeLevelIndex + 1; i <= 7; i++) { if (isGradedLevel(i) && !capDaNop[i]) { tiep = i; break; } }
+        bar.innerHTML = capStripHtml() +
+          '<div class="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-300 space-y-2 text-center mt-2">' +
+            '<div class="text-sm font-black text-emerald-800">Cấp độ ' + activeLevelIndex + ' đã gửi về bảng điểm của thầy ✅</div>' +
+            (b ? '<div class="text-xs font-bold text-emerald-900">' + b.dung + '/' + b.tong + ' câu đúng · ' + b.sao + '/3 ★ · ' + b.phanTram + '</div>' : '') +
+            '<div class="text-[10px] font-bold text-emerald-800 uppercase">Làm cấp nào — gửi cấp đó. Em không phải ngồi làm hết bốn cấp.</div>' +
+            (tiep ? '<div><button onclick="sangCap(' + tiep + ')" class="px-5 py-2 rounded-xl bg-indigo-600 text-white font-black text-xs hover:bg-indigo-700">Làm tiếp Cấp độ ' + tiep + ' →</button></div>' : '') +
+          '</div>';
+        return;
+      }
+      const con = conCauCuaCap(activeLevelIndex);
+      const tong = keysCuaCap(activeLevelIndex).length;
+      bar.innerHTML = capStripHtml() +
+        (con > 0
+          ? '<div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 font-bold text-xs text-center mt-2">' +
+              'Em còn <b>' + con + '</b> câu được chấm ở Cấp độ ' + activeLevelIndex + ' (cả cấp ' + tong + ' câu). Mỗi câu chỉ ghi nhận <b>1 lần</b> — câu cuối là dòng của cấp này tự sang thầy.' +
+            '</div>'
+          : '<div class="p-4 rounded-2xl bg-indigo-50 border-2 border-indigo-300 space-y-3 text-center mt-2">' +
+              '<div class="text-xs font-black text-indigo-900">Cấp độ ' + activeLevelIndex + ' đã ghi nhận đủ ' + tong + '/' + tong + ' câu.</div>' +
+              '<button onclick="nopCap(' + activeLevelIndex + ')" class="px-6 py-3 bg-emerald-600 text-white font-black text-sm rounded-2xl hover:bg-emerald-700 shadow-sm">Gửi kết quả Cấp độ ' + activeLevelIndex + ' về thầy</button>' +
+              '<div class="text-[10px] font-bold text-slate-500 uppercase">Thường thì trang tự gửi rồi — đây là nút để dành nếu mạng chập chờn.</div>' +
+            '</div>');
     }
+
 
     function answerRowHtml(qKey, lvlIdx, idx, graded) {
       const rec = graded ? runState.attempts[qKey] : null;
@@ -1477,6 +1624,7 @@
         // Vẽ lại làm DOM dịch chuyển: phải kéo đúng câu vừa ghi nhận vào tầm mắt,
         // nếu nhảy sang ô trống khác thì em không nhìn thấy ✓/✕ của mình.
         keoVaoTamai('feedback-' + qKey);
+        if (daXongCap(levelIdx)) nopCap(levelIdx); // đủ câu cấp này là gửi ngay, không chờ 4 cấp
         return;
       }
 
@@ -1502,27 +1650,34 @@
     // ============================================================
     function submitPractice() {
       if (submitted) return;
+      // showReport vẽ avatar từ kid.anh ⇒ phải lấy nguyên suất ROSTER, đừng chế object non.
+      const kid = ROSTER.filter(function (k) { return k.key === runState.key; })[0] ||
+        { key: runState.key, label: runState.label, anh: '' };
       const keys = gradedKeys();
-      const kid = { key: runState.key, label: runState.label };
-      const correct = keys.filter(function (k) { return runState.attempts[k].ok; }).length;
-      const lines = mistakeLines(runState.attempts);
+      const correct = keys.filter(function (k) { return runState.attempts[k] && runState.attempts[k].ok; }).length;
+      const caps = GRADED_LEVELS.map(function (l) { return baoCaoCap[l]; }).filter(Boolean);
+      let tongSao = 0;
+      caps.forEach(function (b) { tongSao += b.sao; });
       const rec = {
-        ten: kid.label,
-        ngay: ngayLamBai(new Date()),
-        dung: correct,
-        tong: keys.length,
-        sao: starsFor(correct, keys.length),
-        phanTram: Math.round(correct / keys.length * 100) + '%',
-        loiSai: lines.length ? lines.join(' | ') : 'Không sai câu nào',
-        dapAnCuaEm: answerLines(runState.attempts).join(' | ')
+        label: kid.label,
+        correct: correct,
+        total: keys.length,
+        stars: tongSao,
+        maxSao: MAX_SAO,
+        ngay: caps.length ? caps[caps.length - 1].ngay : ngayLamBai(new Date()),
+        attempts: runState.attempts,
+        lines: mistakeLines(runState.attempts),
+        caps: caps,
+        // Một dòng cho mỗi cấp đã đi rồi ⇒ không có dòng thứ năm, chỉ thiếu khi mạng trở.
+        sent: caps.length === GRADED_LEVELS.length && caps.every(function (b) { return b.sent; }),
+        loiManh: caps.filter(function (b) { return !b.sent; }).map(function (b) { return b.cap; })
       };
-
       submitted = true;
-      const sent = sendResult(rec);
-      baoCaoDaNop = { label: kid.label, correct: correct, total: keys.length, stars: rec.sao, ngay: rec.ngay, attempts: runState.attempts, sent: sent, lines: lines };
-      showReport(kid, baoCaoDaNop);
-      luuBai(); // mở lại trang vẫn thấy đúng báo cáo này, không rơi về cổng ghi tên
+      baoCaoDaNop = rec;
+      showReport(kid, rec);
+      luuBai(); // mở lại trang vẫn thấy đúng báo cáo này, không gửi lại dòng nào
     }
+
 
     function questionTitleHtml(q, lvlIdx, idx) {
       const label = 'Bài ' + lvlIdx + '.' + (idx + 1);
@@ -1559,13 +1714,27 @@
           '<div class="text-[11px] font-black uppercase tracking-wide text-indigo-700">Kết quả luyện tập của ' + rec.label + '</div>' +
           '<div class="text-sm font-bold text-slate-500">Nộp lúc: ' + (rec.ngay || '—') + '</div>' +
           '<div class="text-3xl sm:text-4xl font-black text-slate-900 math-font">' + rec.correct + ' / ' + rec.total + ' câu đúng</div>' +
-          starsHtml(rec.stars) +
-          '<div class="text-xs font-black text-slate-600">' + rec.stars + ' sao trên tối đa 3 sao</div>' +
-          '<div class="pt-2 inline-block px-4 py-1.5 rounded-full bg-slate-700 text-white text-[11px] font-black uppercase">Đã nộp — mỗi bạn chỉ làm 1 lần</div>' +
+          starsHtmlN(rec.stars, rec.maxSao || MAX_SAO) +
+          '<div class="text-xs font-black text-slate-600">' + rec.stars + ' sao trên tối đa ' + (rec.maxSao || MAX_SAO) + ' sao (mỗi cấp tối đa 3 sao)</div>' +
+          '<div class="pt-2 inline-block px-4 py-1.5 rounded-full bg-slate-700 text-white text-[11px] font-black uppercase">Đã nộp 4 cấp — mỗi bạn chỉ làm 1 lần</div>' +
         '</div>' +
         (rec.sent
-          ? '<div class="p-3.5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-900 font-black text-xs text-center">✅ Đã gửi kết quả về bảng điểm của thầy.</div>'
-          : '<div class="p-3.5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-950 font-black text-xs text-center">⚠ Bài giảng này chưa được gắn link bảng điểm nên kết quả <b>CHƯA gửi</b> đi được. Em đưa màn hình này cho thầy xem nhé.</div>') +
+          ? '<div class="p-3.5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-900 font-black text-xs text-center">✅ Mỗi cấp đã gửi riêng một dòng về bảng điểm của thầy.</div>'
+          : '<div class="p-3.5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-950 font-black text-xs text-center">⚠ ' +
+            (rec.loiManh && rec.loiManh.length
+              ? 'Cấp ' + rec.loiManh.join(' · ') + ' chưa gửi được vì mạng trở. Em bấm lại nút Gửi ở cấp đó hoặc đưa màn hình này cho thầy.'
+              : 'Bài giảng này chưa được gắn link bảng điểm nên kết quả <b>CHƯA gửi</b> đi được. Em đưa màn hình này cho thầy xem nhé.') +
+            '</div>') +
+        (rec.caps && rec.caps.length
+          ? '<div class="text-xs font-black uppercase text-slate-600 tracking-wide pt-1">Bốn dòng đã về bảng điểm — mỗi cấp một dòng:</div>' +
+            '<div class="space-y-2">' + rec.caps.map(function (b) {
+              return '<div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-white border border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-black text-slate-700">' +
+                '<span>Cấp ' + b.cap + '</span><span>' + b.dung + '/' + b.tong + ' câu đúng</span>' +
+                '<span class="text-amber-500">' + b.sao + '★</span><span>' + b.phanTram + '</span>' +
+                '<span class="' + (b.sent ? 'text-emerald-700' : 'text-amber-700') + '">' + (b.sent ? 'đã gửi' : 'chưa gửi') + '</span>' +
+              '</div>';
+            }).join('') + '</div>'
+          : '') +
         (mistakes
           ? '<div class="text-xs font-black uppercase text-slate-600 tracking-wide pt-1">Lời sai của em — xem lại từng câu:</div>' +
             '<div class="space-y-4">' + mistakes + '</div>'
