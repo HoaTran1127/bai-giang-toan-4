@@ -300,6 +300,14 @@
   .keo.cho { display: inline; background: none; border: 0; border-radius: 0; padding: 0; margin: 0;
     color: inherit; font-size: inherit; font-weight: inherit; cursor: default; pointer-events: none; }
   .cumkeo .keo.cho { display: none; }
+  /* NÂNG CAO: đề phải đọc như trong sách — tên và số CHỈ LÀ CHỮ, không vòng khoanh, không nền màu.
+     Thẻ vẫn kéo được (giữ draggable + cursor: grab của .keo); giữ chuột thì có gạch chân chấm để bé
+     biết chỗ ấy cầm được, nhưng trang không được tô màu chỉ hộ chữ nào là dữ liệu. */
+  .keo.thuong { display: inline; background: none; border: 0; border-radius: 0; padding: 0;
+    margin: 0; color: inherit; font-size: inherit; font-weight: inherit; box-shadow: none; }
+  .keo.thuong:hover { text-decoration: underline dotted #94A3B8; text-underline-offset: 3px; }
+  /* Thẻ đã ăn xong cho dữ liệu cũng phải hoà vào câu — chỉ còn dấu ✓ nhỏ, không khung tròn. */
+  b.da-dung.thuong { border: 0; background: none; border-radius: 0; padding: 0; color: #9AA8B8; }
   /* Để lâu không cầm thẻ nào: thẻ đang dùng được rung nhẹ nhắc em. */
   .keo.rung { animation: rungThe .6s ease-in-out 4; }
   @keyframes rungThe { 0%,100% { transform: none; } 20% { transform: translateX(-4px) rotate(-2deg); }
@@ -460,6 +468,15 @@
   /* Dữ liệu nằm NGAY TRONG LỜI ĐỀ — dòng này chỉ nhắc việc phải làm, không chứa thẻ riêng. */
   .qhu { margin: 8px 0 2px; }
   .qhu .nhan { font-size: 13px; font-weight: 900; color: #7A6E5C; }
+  /* CÔNG TẮC NÂNG CAO: gạt là đề đổi số + mọi gợi ý ẩn đi, khung kéo thả vẫn nguyên. */
+  .nc-bar { margin: 10px 0 8px; padding: 10px 12px; border: 2px dashed #C4B5FD; border-radius: 14px; background: #F5F3FF; }
+  .nc-switch { position: relative; font: inherit; font-weight: 900; color: #4C1D95; background: #fff; border: 2px solid #7C3AED; border-radius: 999px; padding: 7px 16px 7px 56px; cursor: pointer; }
+  .nc-switch::before { content: ""; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 36px; height: 18px; border-radius: 999px; background: #E9D5FF; box-shadow: inset 0 0 0 2px #A78BFA; }
+  .nc-switch::after { content: ""; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; border-radius: 50%; background: #7C3AED; }
+  .nc-switch[aria-checked="true"] { background: #EDE9FE; }
+  .nc-switch[aria-checked="true"]::before { background: #7C3AED; }
+  .nc-switch[aria-checked="true"]::after { left: 30px; background: #fff; }
+  .nc-loi { margin-top: 7px; font-size: 13px; font-weight: 700; line-height: 1.5; color: #5B21B6; }
   .qvan .keo { margin: 0 1px; }
   /* Một số phải dùng cho cả TỔNG lẫn HIỆU: hai thẻ đứng chung một chỗ, thẻ sau ẩn chờ lượt. */
   .cumkeo { display: inline; }
@@ -929,6 +946,10 @@
         <span id="progress-line" style="color:#7A6E5C"></span>
       </p>
       <div id="resume-note"></div>
+      <div class="nc-bar">
+        <button type="button" class="nc-switch" id="nc-switch" role="switch" aria-checked="false"><span>NÂNG CAO: đang tắt</span></button>
+        <div class="nc-loi" id="nc-loi"></div>
+      </div>
       <div class="lv-tabs" id="level-tabs" role="tablist"></div>
       <div id="quiz-container"></div>
       <div id="submit-bar" style="margin-top:14px"></div>
@@ -1223,9 +1244,9 @@ function docSoSai(q, val, cap, j) {
   if (val == null || !isFinite(val) || val === d) return null;
   var ds = nhungSoBiNham(q), i;
   for (i = 0; i < ds.length; i++) if (ds[i].so === val) return { ten: ds[i].ten };
-  if (cap != null && CAP[cap]) {
+  if (cap != null && capCua(cap)) {
     var khac = -1;
-    CAP[cap].ds.forEach(function (o, k) {
+    capCua(cap).ds.forEach(function (o, k) {
       if (khac < 0 && k !== j && traLoi(o, doiSo(o.dk)) === val) khac = k;
     });
     if (khac >= 0) return { ten: 'đáp án của Bài ' + cap + '.' + (khac + 1) + ' — em nhìn nhầm dòng' };
@@ -1669,6 +1690,230 @@ var CAP = {
 var GRADED = [4, 5, 6, 7];
 
 /* =====================================================================
+   CÔNG TẮC NÂNG CAO — bảy cấp vẫn giữ nguyên kết cấu kéo–thả, nhưng ĐỔI SỐ
+   thành một bài mới và ẨN HẾT mọi gợi ý: chữ "Dấu hiệu", câu giải nghĩa phép
+   tính, ô nháy khi giữ chuột và cô giáo đọc. Đề hiện ra như trong sách giáo
+   khoa: chỉ lời đề + sơ đồ còn ô trống, em phải tự tìm dữ liệu mà kéo.
+   Ngân hàng nâng cao sinh từ CHÍNH CAP qua doiSo()/traLoi() ⇒ đáp số luôn đúng,
+   mỗi cấp vẫn chấm riêng và vẫn tự gửi MỘT dòng mang chữ "(nâng cao)".
+   ===================================================================== */
+var NC = false;
+var CAPN = {};
+var SEED_NC = 20261027;
+var THU_NC_HONG = [];
+var LOI_NC = 'Em đọc kỹ đề như trong sách rồi tự tìm dữ liệu: kéo tên và số trong đề vào các ô ? trên sơ đồ nhé:';
+var LOI_SAI_NC = '✕ Chỗ này chưa đúng. Em đọc lại đề, xem ô đó cần số nào rồi kéo lại nhé.';
+
+function tienToK() { return NC ? 'nc-' : ''; }
+function capCua(i) { return NC ? CAPN[i] : CAP[i]; }
+function cauCua(i, j) { return capCua(i).ds[j]; }
+function cauK(i, j) { return tienToK() + 'cap-' + i + '-' + j; }
+function cheDoK() { return NC ? 'nc' : 'th'; }
+function mucK(i) { return cheDoK() + '-' + i; }
+function nhanCheDo() { return NC ? ' (nâng cao)' : ''; }
+function chenCheDo(s) { return NC ? '(nâng cao) ' + s : String(s); }
+function idCard(i, j) { return 'card-' + cauK(i, j); }
+function idKq(i, j) { return 'qkq-' + cauK(i, j); }
+
+/* Cùng seed ⇒ cùng bộ đề nâng cao: mở lại trang không bị đổi số giữa bài làm. */
+function lamNgauNhien(seed) {
+  var m = 4294967296, a = (seed >>> 0) || 20261027;
+  return function () { a = (a * 1664525 + 1013904223) % m; return a / m; };
+}
+function indexNgau(dai, rngT) { return dai.length ? Math.floor(rngT() * dai.length) : 0; }
+function cacSoTrong(text) { return (String(text).match(/[0-9]+/g) || []); }
+
+/* Dải số bé thử lại: càng cách số cũ càng dễ ra một đề thật khác, nhưng vẫn trong tầm
+   lớp 4 (dưới 1000) để sơ đồ không vỡ khổ. */
+function danhSachBe(be) {
+  var buoc = be > 40 ? 6 : be > 15 ? 3 : 2, ra = [], n;
+  for (n = 1; n <= 9; n++) {
+    ra.push(be + n * buoc);
+    if (be - n * buoc >= 3) ra.push(be - n * buoc);
+  }
+  return ra;
+}
+function danhSachHieu(hieu, q) {
+  if (q.dk.lienTiep != null) return [hieu];   // "liên tiếp" là định nghĩa: lệch 1 hoặc 2, không được đổi
+  if (q.dk.cho != null) {
+    var c = q.dk.cho;
+    return [2 * (c + 1), 2 * (c + 2), 2 * Math.max(2, c - 1), 2 * Math.max(2, c - 2)];
+  }
+  var buoc = hieu > 20 ? 4 : hieu > 8 ? 2 : 1, san = Math.max(2, Math.round(hieu / 3)), ra = [], n;
+  for (n = 1; n <= 6; n++) {
+    ra.push(hieu + n * buoc);
+    if (hieu - n * buoc >= san) ra.push(hieu - n * buoc);
+  }
+  return ra;
+}
+/* Tính biểu thức khung (chỉ + − × ÷), nhân–chia trước. Trả về null khi gặp chữ lạ. */
+function tinhBieuThuc(bt) {
+  var t = String(bt).replace(/−/g, '-').replace(/×/g, '*').replace(/÷/g, '/').split(/\s+/).filter(Boolean);
+  if (!t.length || !/^[0-9]/.test(t[0])) return null;
+  var so = [parseFloat(t[0])], phep = [], i, x, d, truoc;
+  for (i = 1; i < t.length; i++) {
+    x = t[i];
+    if (x === '+' || x === '-' || x === '*' || x === '/') { phep.push(x); continue; }
+    if (!/^[0-9]+(\.[0-9]+)?$/.test(x)) return null;
+    d = phep[phep.length - 1]; truoc = so[so.length - 1];
+    if (d === '*') so[so.length - 1] = truoc * parseFloat(x);
+    else if (d === '/') { if (parseFloat(x) === 0) return null; so[so.length - 1] = truoc / parseFloat(x); }
+    else so.push(parseFloat(x));
+    if (d === '*' || d === '/') phep.pop();
+  }
+  var ra = so[0];
+  for (i = 0; i < phep.length; i++) ra += (phep[i] === '-' ? -so[i + 1] : so[i + 1]);
+  return isFinite(ra) ? ra : null;
+}
+/* Chỗ "45 × 2" cô viết tay ⇒ khuông mẫu "{tb} × 2" để số trong đề đổi thì khung tính đổi theo.
+   Số nào không khớp dữ kiện nào (chữ 2 của "× 2") thì giữ nguyên — đó là cấu trúc, không phải dữ liệu.
+   Khuông chỉ được nhận khi thay số CŨ vào mà tính ra đúng số cũ; nếu không trả null để máy tự bóc. */
+function hoaMaTran(bt, dkGoc, giaTri) {
+  if (!bt) return null;
+  var s = doiSo(dkGoc), khoa = {}, k, phong = { t: s.tong, h: s.hieu, be: s.be, lon: s.lon };
+  for (k in dkGoc) if (typeof dkGoc[k] === 'number' && khoa[dkGoc[k]] == null) khoa[dkGoc[k]] = k;
+  var ma = String(bt).replace(/[0-9]+/g, function (x) {
+    var so = parseInt(x, 10);
+    if (khoa[so] != null) return '{' + khoa[so] + '}';
+    for (var p in phong) if (phong[p] === so) return '{' + p + '}';
+    return x;
+  });
+  if (String(ma) === String(bt)) return String(bt);
+  var ra = dienVan(ma, dkGoc);
+  if (/[\{\}]|\?\?/.test(ra)) return null;
+  var tinh = tinhBieuThuc(ra);
+  if (tinh == null || tinh !== giaTri) return null;
+  return ma;
+}
+function dkMoi(q, be, hieu) {
+  var lon = be + hieu, tong = be + lon, dk = {}, k;
+  for (k in q.dk) dk[k] = q.dk[k];
+  if (dk.a != null && dk.b != null) { dk.a = lon; dk.b = be; return dk; }   // đề cho hai số: a lớn, b bé như cô viết
+  if ('tong' in dk) dk.tong = tong;
+  if ('hieu' in dk) dk.hieu = hieu;
+  if ('tb' in dk) dk.tb = tong / 2;
+  if ('chuVi' in dk) dk.chuVi = tong * 2;
+  if ('nuaChuVi' in dk) dk.nuaChuVi = tong;
+  if ('cho' in dk) dk.cho = hieu / 2;
+  if ('tongSau' in dk) dk.tongSau = tong + 2 * dk.namSau;
+  if ('tongTruoc' in dk) dk.tongTruoc = tong - 2 * dk.namTruoc;
+  if ('hieuSauThem' in dk) dk.hieuSauThem = hieu + dk.themVaoSoLon;
+  return dk;
+}
+/* Một đề nâng cao phải qua đủ cổng này mới được nhận ⇒ máy sinh không bao giờ giao đề hỏng. */
+function deHop(nq, goc) {
+  var s = doiSo(nq.dk), gocS = doiSo(goc.dk), k, d = traLoi(nq, s);
+  if (s.tong == null || s.hieu == null || s.be == null || s.lon == null) return false;
+  for (k in nq.dk) {
+    if (typeof nq.dk[k] !== 'number') continue;
+    if (nq.dk[k] % 1 !== 0 || nq.dk[k] < 0) return false;                    // mọi số in ra đề phải nguyên, dương
+  }
+  if (s.be % 1 || s.lon % 1 || s.tong % 1 || s.hieu % 1) return false;
+  if (s.be < 1 || s.lon > 999 || s.tong > 1998) return false;
+  if (s.hieu > 2 * s.be) return false;                                       // thanh lệch dài hơn hai thanh bằng ⇒ sơ đồ méo
+  if (s.be === s.hieu || s.lon === s.hieu || s.be === s.tong || s.tong === s.hieu) return false;
+  if (nq.dk.lienTiep === 'chan' && (s.be % 2 !== 0 || s.lon % 2 !== 0)) return false;
+  if (nq.dk.lienTiep === 'le' && (s.be % 2 !== 1 || s.lon % 2 !== 1)) return false;
+  if (d == null || d % 1 !== 0 || d < 1) return false;
+  if (nq.hoi === 'dientich' && d > 5000) return false;
+  if (nq.dk.tongTruoc != null && s.be - nq.dk.namTruoc < 1) return false;      // "trước đây N năm" thì con phải đã sinh ra
+  if (nq.dv === 'tuổi') {
+    if (s.be < 3 || s.lon > 75) return false;
+    var chaMe = /mẹ|bố|cha|ông|bà/i.test((nq.ten || []).join(' '));
+    if (chaMe && (s.hieu < 24 || s.hieu > 45)) return false;                    // mẹ hơn con 6 tuổi là đề hỏng
+    if (!chaMe && s.hieu > 15) return false;                                    // anh chị em thì lệch vừa phải
+  }
+  var r = lamVan(nq), vanGoc = lamVan(goc).text;
+  if (/[\{\}]|\?\?/.test(r.text)) return false;
+  if (r.text === vanGoc) return false;                                       // buộc phải đổi số
+  if (r.text.replace(/[0-9]/g, '') !== vanGoc.replace(/[0-9]/g, '')) return false;  // chỉ đổi SỐ, chữ của đề y nguyên
+  var viHoi = r.text.search(/Hỏi/i);
+  var duKien = viHoi < 0 ? r.text : r.text.slice(0, viHoi);
+  if (cacSoTrong(duKien).indexOf(String(d)) >= 0) return false;              // đáp số không được lộ trong dữ kiện
+  if (/(t[ổo]ng|hi[ệe]u)/i.test(duKien)) return false;                        // đúng luật máy tự kiểm: đề không được gọi tên TỔNG/HIỆU như dữ kiện
+  if (s.be === gocS.be && s.hieu === gocS.hieu) return false;
+  return true;
+}
+function thuCauNC(q, be, hieu) {
+  var dk = dkMoi(q, be, hieu), sGoc = doiSo(q.dk);
+  var nq = { mau: q.mau, dk: dk, ten: q.ten, hoi: q.hoi, dv: q.dv, dh: q.dh };
+  nq.tg = hoaMaTran(q.tg, q.dk, sGoc.tong);
+  nq.hg = hoaMaTran(q.hg, q.dk, sGoc.hieu);
+  nq.ans = traLoi(nq, doiSo(dk));
+  return deHop(nq, q) ? nq : null;
+}
+function sinhCauNC(q, rngT) {
+  var s = doiSo(q.dk), dsBe = danhSachBe(s.be), dsHieu = danhSachHieu(s.hieu, q);
+  var xBe = indexNgau(dsBe, rngT), xHieu = indexNgau(dsHieu, rngT), i, j, nq;
+  for (i = 0; i < dsBe.length; i++) {
+    for (j = 0; j < dsHieu.length; j++) {
+      nq = thuCauNC(q, dsBe[(i + xBe) % dsBe.length], dsHieu[(j + xHieu) % dsHieu.length]);
+      if (nq) return nq;
+    }
+  }
+  return null;
+}
+function sinhNC(seed) {
+  var rngT = lamNgauNhien(seed), ra = {}, hong = [];
+  for (var i = 1; i <= 7; i++) {
+    ra[i] = { ten: CAP[i].ten, hu: CAP[i].hu, uuTien: CAP[i].uuTien, ds: [] };
+    CAP[i].ds.forEach(function (q, j) {
+      var nq = sinhCauNC(q, rngT);
+      if (!nq) hong.push('Cấp ' + i + '.' + (j + 1));
+      ra[i].ds.push(nq || q);
+    });
+  }
+  THU_NC_HONG = hong;
+  return ra;
+}
+function napNC(seed) {
+  SEED_NC = (seed >>> 0) || 20261027;
+  CAPN = sinhNC(SEED_NC);
+}
+
+/* --- công tắc trên màn luyện tập + tắt cô trợ giảng khi đang nâng cao --- */
+function veNC() {
+  var b = document.getElementById('nc-switch'), loi = document.getElementById('nc-loi'),
+      dock = document.getElementById('co-dock');
+  if (b) {
+    if (!b.onclick) b.onclick = batNC;   // nút phải bật được bằng MỘT lần click thật
+    b.setAttribute('aria-checked', NC ? 'true' : 'false');
+    var chu = b.querySelector('span');
+    if (chu) chu.textContent = NC ? 'NÂNG CAO: đang bật' : 'NÂNG CAO: đang tắt';
+  }
+  if (loi) loi.textContent = NC
+    ? 'Đề nâng cao: số đã đổi thành bài mới, gợi ý ẩn hết — em tự tìm dữ liệu. Mỗi cấp làm kín vẫn tự gửi một dòng riêng, có chữ "(nâng cao)".'
+    : 'Bật công tắc: đề đổi số thành bài mới, mọi gợi ý (Dấu hiệu · ô nháy · cô đọc) ẩn hết — vẫn kéo thả như cũ, vẫn chấm và gửi từng cấp.';
+  if (dock) dock.style.display = NC ? 'none' : '';
+}
+function veLaiTheoCheDo() {
+  var gate = document.getElementById('name-gate'), pw = document.getElementById('practice-wrap'),
+      rw = document.getElementById('report-wrap');
+  if (!runState) { veNC(); return; }
+  if (nopCua() && baoCaoCua()) {
+    pw.classList.add('hidden');
+    showReport(findRoster(runState.label), baoCaoCua());
+    return;
+  }
+  rw.classList.add('hidden'); rw.innerHTML = '';
+  gate.classList.add('hidden'); pw.classList.remove('hidden');
+  hienGhiChuPhucHoi(daGhiNhan());
+  veDanhSach();
+}
+function datNC(b) {
+  b = !!b;
+  if (NC === b) { veNC(); return false; }
+  if (runState) gomNhap();
+  NC = b;
+  if (NC && !CAPN[1]) napNC(SEED_NC);
+  veNC();
+  if (runState) veLaiTheoCheDo();
+  luuBai();
+  return true;
+}
+function batNC() { datNC(!NC); }
+
+/* =====================================================================
    VẼ SƠ ĐỒ ĐOẠN THẲNG
    ===================================================================== */
 function dienVan(van, dk) {
@@ -1880,6 +2125,7 @@ function kiemTraRung() {
   var g = document.getElementById('quiz-container');
   if (!g) return;
   if (Date.now() - LAN_THAO_TAC < 15000) return;
+  if (NC) return;   // nâng cao: thẻ là chữ thường giữa câu, rung lên là chỉ hộ — không rung
   var song = [].slice.call(g.querySelectorAll('.keo:not(.cho)'));
   LAN_THAO_TAC = Date.now();
   if (!song.length) return;
@@ -1942,6 +2188,7 @@ function ganKeoTha(rootId, hamTha) {
     var vg = root.querySelectorAll('[data-thavung]');
     for (var d = 0; d < ds.length; d++) ds[d].classList.remove('nham');
     for (var g = 0; g < vg.length; g++) vg[g].classList.remove('nham');
+    if (NC) return;   // nâng cao: không tô sẵn đường đi, em tự đọc đề mà tìm ô
     if (!loai) return;
     for (var e = 0; e < ds.length; e++) {
       // Ô còn KHOÁ (Bình nhận, chờ thẻ 6 từ An) không sáng: bé cầm 6 chưa tới lượt thả vào đó.
@@ -2226,6 +2473,7 @@ function coRanh() {
    Không dùng coNoiSau cho thẻ ghép: một mình nó chỉ giữ ĐÚNG MỘT câu hẹn giờ, bé thả hai thẻ
    liên tiếp là câu trước bị xoá mất — đo thật 2026-10-22: "xac-ten" bị nuốt vì thẻ số xuống ngay. */
 function coNoi(khoa, chu, loai) {
+  if (NC) return;   // đề nâng cao mô phỏng bài trong sách: không có cô đọc gợi ý
   var chuSach = coChuSach(chu);
   if (!chuSach) return;
   clearTimeout(coHenNoi); coHenNoi = null;
@@ -2471,7 +2719,7 @@ function rungVaBao(el, cap, msg, khoa) {
   var tg = vung || el;
   tg.classList.remove('shake'); void tg.offsetWidth; tg.classList.add('shake');
   setTimeout(function () { tg.classList.remove('shake'); }, 450);
-  cap.innerHTML = msg;
+  cap.innerHTML = NC ? LOI_SAI_NC : msg;
   cap.className = 'cap bad';
   baoTieng(khoa, msg);
 }
@@ -2549,7 +2797,8 @@ function thaDung(el, keo, cap) {
       cum.removeChild(chipEl);
       cho.classList.remove('cho');
     } else {
-      chipEl.outerHTML = '<b class="da-dung"><i>✓</i>' + (chipEl.getAttribute('data-txt') || keo.gia) + '</b>';
+      var chuDe = NC ? chipEl.textContent : (chipEl.getAttribute('data-txt') || keo.gia);
+      chipEl.outerHTML = '<b class="da-dung' + (NC ? ' thuong' : '') + '"><i>✓</i>' + chuDe + '</b>';
     }
   }
   KEO = null;
@@ -3422,16 +3671,19 @@ var ENTRY = {
 };
 var SEND_READY = FORM_ENDPOINT.indexOf('http') === 0;
 
-var runState = null, submitted = false, baoCaoDaNop = null, activeCap = 1;
+var runState = null, activeCap = 1;
+var nopChDo = {}, baoCaoChDo = {};   // "đã nộp đủ bốn cấp" + biên lai tổng kết RIÊNG từng chế độ (thường · nâng cao)
 var nhap = {};
-var capDaNop = {}, baoCaoCap = {};   // cấp đã gửi về bảng điểm + biên lai để vẽ lại khi mở trang
+var capDaNop = {}, baoCaoCap = {};   // cấp đã gửi về bảng điểm + biên lai, khóa theo chế độ: mucK(i) = th-4 · nc-4
+function nopCua() { return nopChDo[cheDoK()]; }
+function baoCaoCua() { return baoCaoChDo[cheDoK()]; }
 var KHO = 'bg4-giu-bai-tong-hieu';
 var BAN_CAU = 2;
 
 function laCapCham(i) { return GRADED.indexOf(i) !== -1; }
 function keyCham() {
   var k = [];
-  GRADED.forEach(function (i) { CAP[i].ds.forEach(function (q, j) { k.push('cap-' + i + '-' + j); }); });
+  GRADED.forEach(function (i) { capCua(i).ds.forEach(function (q, j) { k.push(cauK(i, j)); }); });
   return k;
 }
 var TONG_CHAM = keyCham().length;
@@ -3440,7 +3692,7 @@ function daGhiNhan() {
 }
 function keysCapi(i) {
   var k = [];
-  CAP[i].ds.forEach(function (q, j) { k.push('cap-' + i + '-' + j); });
+  capCua(i).ds.forEach(function (q, j) { k.push(cauK(i, j)); });
   return k;
 }
 function daXongCap(i) {
@@ -3450,7 +3702,7 @@ function conCauCuaCap(i) {
   return keysCapi(i).filter(function (k) { return !runState.attempts[k]; }).length;
 }
 function daDuBonCap() {
-  return GRADED.every(function (i) { return !!capDaNop[i]; });
+  return GRADED.every(function (i) { return !!capDaNop[mucK(i)]; });
 }
 function saoText(n, max) {
   var s = '';
@@ -3487,8 +3739,8 @@ function luuBai() {
     if (!runState) { localStorage.removeItem(KHO); return false; }
     localStorage.setItem(KHO, JSON.stringify({
       ver: BAN_CAU,
-      ten: runState.label, attempts: runState.attempts, cap: activeCap, nhap: nhap, nop: submitted, baoCao: baoCaoDaNop,
-      nopCap: capDaNop, baoCaoCap: baoCaoCap
+      ten: runState.label, attempts: runState.attempts, cap: activeCap, nhap: nhap, nc: NC,
+      nop: nopChDo, baoCao: baoCaoChDo, nopCap: capDaNop, baoCaoCap: baoCaoCap
     }));
     return true;
   } catch (e) { return false; }
@@ -3502,7 +3754,7 @@ function moLaiBai() {
   if (!kid) { xoaBai(); return false; }
   // Ngân hàng câu hỏi đổi (số câu chấm 16 → 24): phiếu nháp cũ phải bỏ, nếu không máy chấm
   // sẽ đối chiếu câu trả lời cũ với đề mới. Biên lai đã nộp thì giữ nguyên để chống nộp lần 2.
-  var daGuiCapNaos = !!(s.nopCap && GRADED.some(function (i) { return !!s.nopCap[i]; }));
+  var daGuiCapNaos = !!(s.nopCap && Object.keys(s.nopCap).length);
   if (s.ver !== BAN_CAU && !s.nop && !daGuiCapNaos) { s.attempts = {}; s.nhap = {}; s.cap = 1; }
   runState = { key: kid.key, label: kid.label, attempts: s.attempts };
   nhap = {};
@@ -3513,19 +3765,27 @@ function moLaiBai() {
     }
   }
   activeCap = Math.min(7, Math.max(1, parseInt(s.cap, 10) || 1));
-  submitted = !!s.nop;
-  baoCaoDaNop = s.baoCao || null;
+  nopChDo = {}; baoCaoChDo = {};
+  if (s.nop === true) nopChDo.th = true;              // nháp đời trước chỉ có một chế độ: đã nộp cả bài = đã nộp đề thường
+  else if (s.nop) { for (var mkN in s.nop) nopChDo[mkN] = s.nop[mkN]; }
+  if (s.baoCao && s.baoCao.attempts) baoCaoChDo.th = s.baoCao;
+  else if (s.baoCao) { for (var mkB in s.baoCao) if (s.baoCao[mkB]) baoCaoChDo[mkB] = s.baoCao[mkB]; }
   capDaNop = {}; baoCaoCap = {};
   GRADED.forEach(function (i) {
-    if (s.nopCap && s.nopCap[i]) capDaNop[i] = true;
-    if (s.baoCaoCap && s.baoCaoCap[i]) baoCaoCap[i] = s.baoCaoCap[i];
+    if (s.nopCap && s.nopCap[i]) capDaNop['th-' + i] = true;
+    if (s.baoCaoCap && s.baoCaoCap[i]) baoCaoCap['th-' + i] = s.baoCaoCap[i];
   });
+  for (var mkC in (s.nopCap || {})) if (String(mkC).indexOf('-') > 0) capDaNop[mkC] = true;
+  for (var mkD in (s.baoCaoCap || {})) if (String(mkD).indexOf('-') > 0) baoCaoCap[mkD] = s.baoCaoCap[mkD];
+  NC = !!s.nc;
+  if (NC) napNC(SEED_NC);
+  veNC();
   document.getElementById('name-gate').classList.add('hidden');
   document.getElementById('runner-name').innerText = kid.label;
   document.getElementById('runner-avatar').src = kid.anh;
-  if (submitted && baoCaoDaNop) {
+  if (nopCua() && baoCaoCua()) {
     document.getElementById('practice-wrap').classList.add('hidden');
-    showReport(kid, baoCaoDaNop);
+    showReport(kid, baoCaoCua());
     return true;
   }
   document.getElementById('report-wrap').classList.add('hidden');
@@ -3651,13 +3911,13 @@ function timTrongVan(van, tu, danh) {
   return -1;
 }
 function theKeoHTML(p, hien) {
-  return '<span class="keo' + (p.giai === 2 ? ' cho' : '') + '" id="keo-q-' + p.id + '" draggable="true" data-giai="' +
+  return '<span class="keo' + (p.giai === 2 ? ' cho' : '') + (NC ? ' thuong' : '') + '" id="keo-q-' + p.id + '" draggable="true" data-giai="' +
     p.giai + '" data-gia="' + p.gia + '" data-loai="' + p.loai + '" data-txt="' + p.txt + '">' + hien + '</span>';
 }
 function vanKeo(q, i, j) {
   var s = doiSo(q.dk), id = i + '-' + j, van = lamVan(q).text;
   var kT = khuCua(q, s, 'tong', van), kH = khuCua(q, s, 'hieu', van);
-  var uuH = CAP[i].uuTien === 'hieu';
+  var uuH = capCua(i).uuTien === 'hieu';
   var doiGiai = uuH ? kH.so.length > 0 : kT.so.length > 0, theo = {}, dem = 0;
   function them(gia, loai, giai, txt) {
     var p = { id: id + '-' + (dem++), gia: String(gia), loai: loai, giai: giai, txt: txt == null ? String(gia) : String(txt) };
@@ -3690,7 +3950,8 @@ function vanKeo(q, i, j) {
     if (!ds.length) return;
     html += van.slice(cuoi, m.dau);
     var chu = van.slice(m.dau, m.cuoi);
-    var tron = ds.map(function (p) { return theKeoHTML(p, p.loai === 'ten' ? chu : p.gia); }).join('');
+    /* nâng cao: hiện ĐÚNG CHỮ của đề (khác hoa–thường cũng giữ nguyên), không bày số đã chuẩn hoá. */
+    var tron = ds.map(function (p) { return theKeoHTML(p, (NC || p.loai === 'ten') ? chu : p.gia); }).join('');
     html += ds.length > 1 ? '<span class="cumkeo">' + tron + '</span>' : tron;
     cuoi = m.cuoi;
   });
@@ -3707,6 +3968,7 @@ function vanKeo(q, i, j) {
     });
     html += ' Gọi ' + goi.join(', ') + '.';
   }
+  if (NC) return { de: html, nhan: LOI_NC };   // nâng cao: đề như sách giáo khoa, không giải nghĩa phép tính
   return {
     de: html,
     nhan: uuH
@@ -3755,6 +4017,7 @@ function nghiaPhep(q, loai) {
 // TÍNH; khung chỉ một ô mà số đã nằm sẵn trong đề thì chỉ việc KÉO — hứa "tính" khi không có gì
 // để tính là đánh lừa em.
 function nhanThe(giai, khu, q) {
+  if (NC) return LOI_NC;
   if (!khu || !khu.so.length) return 'Kéo tên hai thanh trong đề xuống đầu hai thanh nhé:';
   var tinh = khu.tokens.some(function (t) { return t.d != null; }) || khu.so.length > 1;
   // Số của đề nằm trong khung tính KHÔNG phải "số HIỆU/số TỔNG" — nó là ĐẦU VÀO. Thay lời gọi
@@ -3772,7 +4035,7 @@ function nhanThe(giai, khu, q) {
     : 'Kéo tên hai thanh và số TỔNG trong đề lên ngoặc tím nhé:';
 }
 function veSoDoKeo(i, j) {
-  var q = CAP[i].ds[j], s = doiSo(q.dk), id = i + '-' + j, van = lamVan(q).text;
+  var q = cauCua(i, j), s = doiSo(q.dk), id = i + '-' + j, van = lamVan(q).text;
   var kT = khuCua(q, s, 'tong', van), kH = khuCua(q, s, 'hieu', van);
   var k = kichThuoc({ dai: 1, le: String(s.hieu), gao: String(s.tong), be: s.be, lon: s.lon });
   function nhan(row) {
@@ -3787,7 +4050,7 @@ function veSoDoKeo(i, j) {
       '" data-dap="' + giaTri + '">' + (cho ? '?' : giaTri) + '</span>';
   }
   var tinhT = canTinh(kT), tinhH = canTinh(kH);
-  var uuH = CAP[i].uuTien === 'hieu';
+  var uuH = capCua(i).uuTien === 'hieu';
   /* TỔNG: nhãn + phép tính nằm NGAY TRONG ngoặc tím — "nó là TỔNG thì cứ để ở trên TỔNG".
      Số đề cho thành ô kéo; dấu phép và hằng số in sẵn. Kết quả chỉ hiện khi phép tính đã kín
      (thẻ .ket còn .an thì giấu) để không có ba dấu "?" đứng cạnh nhau.
@@ -3836,7 +4099,7 @@ function hienSo(id, loai) {
 // HIỆU chỉ có MỘT số trong đề thì không có .tinh.h, nhưng vẫn có ô kéo trong cam ⇒ vẫn phải mở
 // thẻ HIỆU ở đây; bỏ qua là thẻ nằm im trong đề, bé không bao giờ kéo được.
 function moKhungH(i, j) {
-  var id = i + '-' + j, card = document.getElementById('card-cap-' + id);
+  var id = i + '-' + j, card = document.getElementById(idCard(i, j));
   if (!card) return;
   var tinh = document.getElementById('tinh-h-' + id);
   hienSo(id, 't');
@@ -3849,21 +4112,23 @@ function moKhungH(i, j) {
   }
   var con = card.querySelectorAll('.drop[data-loai="hieu"]:not(.ok)').length;
   if (!con) { xongSoDo(i, j); return; }
-  var qq = CAP[i].ds[j], ss = doiSo(qq.dk);
+  var qq = cauCua(i, j), ss = doiSo(qq.dk);
   var nhan = card.querySelector('.qhu .nhan');
   if (nhan) nhan.textContent = nhanThe(2, khuCua(qq, ss, 'hieu', lamVan(qq).text), qq);
-  var cap = document.getElementById('qkq-cap-' + id);
+  var cap = document.getElementById(idKq(i, j));
   if (cap) {
-    cap.className = 'cap ok'; cap.textContent = '✓ TỔNG = ' + ss.tong +
-      ' đã hiện trên ngoặc tím. ' + (con > 1 ? 'Mình tính HIỆU. ' + nghiaPhep(qq, 'hieu') +
-        '. Em kéo hai số còn lại trong đề xuống đoạn cam nhé.'
-        : 'Em kéo số còn lại trong đề xuống đoạn cam nhé.');
+    cap.className = 'cap ok'; cap.textContent = NC
+      ? '✓ Ghép đúng. Em đọc tiếp đề rồi làm phần còn lại nhé.'
+      : '✓ TỔNG = ' + ss.tong +
+        ' đã hiện trên ngoặc tím. ' + (con > 1 ? 'Mình tính HIỆU. ' + nghiaPhep(qq, 'hieu') +
+          '. Em kéo hai số còn lại trong đề xuống đoạn cam nhé.'
+          : 'Em kéo số còn lại trong đề xuống đoạn cam nhé.');
   }
 }
 // Cấp 2 đi ngược: HIỆU kín trước ⇒ hiện kết quả dưới ngoặc HIỆU, mở phép TỔNG trong ngoặc tím
 // và mở nốt hai thẻ TỔNG còn đang chờ trong đề.
 function moKhungT(i, j) {
-  var id = i + '-' + j, card = document.getElementById('card-cap-' + id);
+  var id = i + '-' + j, card = document.getElementById(idCard(i, j));
   if (!card) return;
   var tinh = document.getElementById('tinh-t-' + id);
   hienSo(id, 'h');
@@ -3878,23 +4143,24 @@ function moKhungT(i, j) {
   }
   var con = card.querySelectorAll('.drop[data-loai="tong"]:not(.ok)').length;
   if (!con) { xongSoDo(i, j); return; }
-  var qq = CAP[i].ds[j], ss = doiSo(qq.dk);
+  var qq = cauCua(i, j), ss = doiSo(qq.dk);
   var nhan = card.querySelector('.qhu .nhan');
-  if (nhan) nhan.textContent = 'HIỆU ra số rồi. ' + nghiaPhep(qq, 'tong') +
-    '. Em kéo hai số trong đề lên ngoặc tím để tính TỔNG nhé:';
-  var cap = document.getElementById('qkq-cap-' + id);
+  if (nhan) nhan.textContent = NC ? LOI_NC
+    : 'HIỆU ra số rồi. ' + nghiaPhep(qq, 'tong') + '. Em kéo hai số trong đề lên ngoặc tím để tính TỔNG nhé:';
+  var cap = document.getElementById(idKq(i, j));
   if (cap) {
-    cap.className = 'cap ok'; cap.textContent = '✓ HIỆU = ' + ss.hieu +
-      ' đã hiện dưới ngoặc HIỆU. Em kéo ' + (con > 1 ? 'hai số còn lại trong đề' : 'số còn lại trong đề') +
-      ' lên ngoặc tím nhé.';
+    cap.className = 'cap ok'; cap.textContent = NC
+      ? '✓ Ghép đúng. Em đọc tiếp đề rồi làm phần còn lại nhé.'
+      : '✓ HIỆU = ' + ss.hieu + ' đã hiện dưới ngoặc HIỆU. Em kéo ' +
+        (con > 1 ? 'hai số còn lại trong đề' : 'số còn lại trong đề') + ' lên ngoặc tím nhé.';
   }
 }
 // Hai phép tính đều kín ⇒ sơ đồ khép kín: hiện nốt HIỆU lên đoạn cam, mời tính đáp số.
 // Phải hiện CẢ TỔNG: đề có HIỆU in sẵn (hai số liền nhau) thì phép tính HIỆU không có,
 // moKhungH không chạy ⇒ nếu quên bước này thì ngoặc tím vĩnh viễn "?".
 function xongSoDo(i, j) {
-  var id = i + '-' + j, card = document.getElementById('card-cap-' + id);
-  var cap = document.getElementById('qkq-cap-' + id);
+  var id = i + '-' + j, card = document.getElementById(idCard(i, j));
+  var cap = document.getElementById(idKq(i, j));
   if (!card) return;
   hienSo(id, 't'); hienSo(id, 'h');
   var phT = document.getElementById('cho-tong-' + id);
@@ -3918,10 +4184,10 @@ function sauKhiGhep(i, j, loai, khuCha) {
   var id = i + '-' + j;
   var kt = document.getElementById('tinh-t-' + id);
   var kh = document.getElementById('tinh-h-' + id);
-  var card = document.getElementById('card-cap-' + id);
+  var card = document.getElementById(idCard(i, j));
   var conH = card ? card.querySelectorAll('.drop[data-loai="hieu"]:not(.ok)').length : 0;
   var conT = card ? card.querySelectorAll('.drop[data-loai="tong"]:not(.ok)').length : 0;
-  if (CAP[i].uuTien === 'hieu') {
+  if (capCua(i).uuTien === 'hieu') {
     if (loai === 'hieu' && khuDong(kh)) {
       hienSo(id, 'h');
       if (conT) { moKhungT(i, j); return; }
@@ -3935,8 +4201,8 @@ function sauKhiGhep(i, j, loai, khuCha) {
 function quizTha(i, j, el) {
   var keo = KEO; if (!keo) return;
   var id = i + '-' + j;
-  var card = document.getElementById('card-cap-' + id);
-  var cap = document.getElementById('qkq-cap-' + id);
+  var card = document.getElementById(idCard(i, j));
+  var cap = document.getElementById(idKq(i, j));
   var loai = el.getAttribute('data-loai');
   if (!card || !cap || el.classList.contains('ok')) { boChonKeo(card); return; }
   if (loai !== keo.loai) {
@@ -3988,14 +4254,15 @@ function quizTha(i, j, el) {
 }
 
 function veCau(i, j) {
-  var q = CAP[i].ds[j], key = 'cap-' + i + '-' + j, cham = laCapCham(i);
+  var q = cauCua(i, j), key = cauK(i, j), cham = laCapCham(i);
   var v = vanKeo(q, i, j);
   var rec = (cham && runState) ? runState.attempts[key] : null;
   var html = '<div class="qcard' + (rec ? (rec.ok ? ' ok' : ' bad') : '') + '" id="card-' + key + '">' +
-    '<div class="qhead"><span class="qtag">Bài ' + i + '.' + (j + 1) + '</span><span class="qdh">Dấu hiệu: ' + q.dh + '</span></div>' +
+    '<div class="qhead"><span class="qtag">Bài ' + i + '.' + (j + 1) + '</span>' +
+    (NC ? '' : '<span class="qdh">Dấu hiệu: ' + q.dh + '</span>') + '</div>' +
     '<div class="qvan">' + v.de + '</div>' +
     '<div class="qhu" id="hu-' + i + '-' + j + '"><span class="nhan">' + v.nhan + '</span></div>';
-  html += veSoDoKeo(i, j) + '<div class="cap" id="qkq-cap-' + i + '-' + j + '"></div>';
+  html += veSoDoKeo(i, j) + '<div class="cap" id="' + idKq(i, j) + '"></div>';
   if (rec) {
     html += '<div class="qrow"><input type="number" value="' + rec.val + '" disabled>' +
       '<span style="font-weight:900;color:' + (rec.ok ? 'var(--green)' : 'var(--red)') + '">' +
@@ -4025,13 +4292,14 @@ function veDanhSach() {
   // Đổi cấp = đổi bộ câu cô sẽ nói: mỗi cấp bé được nghe lại một lần các câu xác nhận loại ô.
   daXacNhan = {};
   var cham = laCapCham(activeCap), html = '';
-  CAP[activeCap].ds.forEach(function (q, j) { html += veCau(activeCap, j); });
+  capCua(activeCap).ds.forEach(function (q, j) { html += veCau(activeCap, j); });
   document.getElementById('quiz-container').innerHTML =
-    '<div class="lv-head">📌 <b>Cấp ' + activeCap + ' · ' + CAP[activeCap].ten + ':</b> ' + CAP[activeCap].hu +
+    '<div class="lv-head">📌 <b>Cấp ' + activeCap + ' · ' + capCua(activeCap).ten + (NC ? ' · NÂNG CAO' : ':') + '</b> ' +
+    (NC ? 'Đề đã đổi số, gợi ý ẩn hết — em đọc kỹ như trong sách rồi tự tìm dữ liệu mà kéo.' : capCua(activeCap).hu) +
     (cham ? '' : ' <span class="qdh">(cấp ôn — không tính điểm)</span>') + '</div>' + html;
 
-  CAP[activeCap].ds.forEach(function (q, j) {
-    var key = 'cap-' + activeCap + '-' + j;
+  capCua(activeCap).ds.forEach(function (q, j) {
+    var key = cauK(activeCap, j);
     var btn = document.getElementById('btn-' + key);
     var inp = document.getElementById('nhap-' + key);
     if (btn) btn.onclick = function () { chamCau(activeCap, j); };
@@ -4052,7 +4320,7 @@ function veDanhSach() {
 }
 
 function chamCau(i, j) {
-  var q = CAP[i].ds[j], key = 'cap-' + i + '-' + j;
+  var q = cauCua(i, j), key = cauK(i, j);
   var inp = document.getElementById('nhap-' + key);
   if (!inp) return;
   var val = parseInt(inp.value, 10);
@@ -4092,7 +4360,7 @@ function veTabs() {
   var g = document.getElementById('level-tabs'), html = '';
   for (var i = 1; i <= 7; i++) {
     html += '<button class="lv' + (laCapCham(i) ? ' graded' : '') + (i === activeCap ? ' active' : '') + '" data-cap="' + i + '">' +
-      'Cấp ' + i + (laCapCham(i) ? (capDaNop[i] ? ' · đã gửi' : ' · chấm') : ' · ôn') + '</button>';
+      'Cấp ' + i + (laCapCham(i) ? (capDaNop[mucK(i)] ? ' · đã gửi' : ' · chấm') : ' · ôn') + '</button>';
   }
   g.innerHTML = html;
   var bs = g.querySelectorAll('.lv');
@@ -4110,16 +4378,16 @@ function veTabs() {
 
 function dongTrangThaiCaps() {
   return GRADED.map(function (i) {
-    var b = baoCaoCap[i];
-    if (capDaNop[i] && b) return 'Cấp ' + i + ': ' + b.correct + '/' + b.total + ' ' + saoText(b.stars, 3);
-    return 'Cấp ' + i + ': còn ' + (runState ? conCauCuaCap(i) : CAP[i].ds.length) + ' câu';
+    var b = baoCaoCap[mucK(i)];
+    if (capDaNop[mucK(i)] && b) return 'Cấp ' + i + ': ' + b.correct + '/' + b.total + ' ' + saoText(b.stars, 3);
+    return 'Cấp ' + i + ': còn ' + (runState ? conCauCuaCap(i) : capCua(i).ds.length) + ' câu';
   }).join(' · ');
 }
 
 function updateSubmitBar() {
   var bar = document.getElementById('submit-bar');
   if (!bar || !runState) return;
-  if (submitted) {
+  if (nopCua()) {
     bar.innerHTML = '<div class="lv-head" style="text-align:center">Em đã nộp đủ bốn cấp — muốn làm lại thì nhờ thầy xoá dòng của em trên bảng điểm.</div>';
     return;
   }
@@ -4128,8 +4396,8 @@ function updateSubmitBar() {
     bar.innerHTML = '<div class="qdh" style="text-align:center">Cấp ' + i + ' là cấp ôn: bấm Kiểm tra bao nhiêu lần cũng được, <b>không</b> gửi về bảng điểm.</div>' + strip;
     return;
   }
-  if (capDaNop[i] && baoCaoCap[i]) {   /* nháp cũ/sứt có thể thiếu biên lai — đừng để trang chết */
-    var b = baoCaoCap[i], tiep = GRADED.filter(function (x) { return !capDaNop[x]; })[0];
+  if (capDaNop[mucK(i)] && baoCaoCap[mucK(i)]) {   /* nháp cũ/sứt có thể thiếu biên lai — đừng để trang chết */
+    var b = baoCaoCap[mucK(i)], tiep = GRADED.filter(function (x) { return !capDaNop[mucK(x)]; })[0];
     bar.innerHTML = '<div class="kq-line" style="border-color:var(--green);background:#DCFCE7"><b>Cấp ' + i + ' đã gửi về bảng điểm của thầy:</b> ' +
       b.correct + '/' + b.total + ' câu đúng · ' + saoText(b.stars, 3) + ' (' + b.stars + '/3 sao)' +
       (b.sent ? '' : ' <span class="qdh">— bài này chưa gắn link bảng điểm nên kết quả chưa đi được</span>') + '</div>' +
@@ -4154,8 +4422,8 @@ function loiCuaEm(attempts, chiCap) {
   var lines = [];
   GRADED.forEach(function (i) {
     if (chiCap && i !== chiCap) return;
-    CAP[i].ds.forEach(function (q, j) {
-      var a = attempts['cap-' + i + '-' + j];
+    capCua(i).ds.forEach(function (q, j) {
+      var a = attempts[cauK(i, j)];
       if (!a || a.ok) return;
       lines.push(dongLoiSai(q, a.val, i, j));
     });
@@ -4164,14 +4432,14 @@ function loiCuaEm(attempts, chiCap) {
 }
 function chonLoiSai(attempts, chiCap) {
   var lines = loiCuaEm(attempts, chiCap);
-  return lines.length ? lines.join('\n') : 'Không sai câu nào';
+  return chenCheDo(lines.length ? lines.join('\n') : 'Không sai câu nào');
 }
 function dapAnCuaEm(attempts, chiCap) {
   var lines = [];
   GRADED.forEach(function (i) {
     if (chiCap && i !== chiCap) return;
-    lines.push('Cấp ' + i + ': ' + CAP[i].ds.map(function (q, j) {
-      var a = attempts['cap-' + i + '-' + j];
+    lines.push('Cấp ' + i + nhanCheDo() + ': ' + capCua(i).ds.map(function (q, j) {
+      var a = attempts[cauK(i, j)];
       return (j + 1) + '=' + (a ? a.val : 'trống') + (a && a.ok ? ' ✓' : ' ✗');
     }).join(' · '));
   });
@@ -4230,12 +4498,12 @@ function catAttemptsCapi(i, attempts) {
 /* MỘT cấp = MỘT dòng trên bảng điểm. Em làm xong cấp nào thì thầy nhận kết quả cấp đó ngay.
    Cấp 1·2·3 là cấp ôn: không gửi gì cả. */
 function nopCap(i) {
-  if (!runState || !laCapCham(i) || capDaNop[i] || !daXongCap(i)) return;
+  if (!runState || !laCapCham(i) || capDaNop[mucK(i)] || !daXongCap(i)) return;
   var rec = payloadCuaCap(i, runState.attempts);
   rec.ten = runState.label;
-  capDaNop[i] = true;
+  capDaNop[mucK(i)] = true;
   var sent = sendResult(rec);
-  baoCaoCap[i] = {
+  baoCaoCap[mucK(i)] = {
     cap: i, label: runState.label, correct: rec.dung, total: rec.tong,
     stars: rec.sao, ngay: rec.ngay, sent: sent, attempts: catAttemptsCapi(i, runState.attempts)
   };
@@ -4248,18 +4516,18 @@ function nopCap(i) {
 
 /* Đủ bốn cấp: chỉ dựng biên lai tổng kết trên màn hình. Không POST — mỗi cấp đã gửi một dòng riêng. */
 function nopBai() {
-  if (submitted || !runState || !daDuBonCap()) return;
+  if (nopCua() || !runState || !daDuBonCap()) return;
   var keys = keyCham();
   var dung = keys.filter(function (k) { return runState.attempts[k].ok; }).length;
   var tongSao = 0;
-  GRADED.forEach(function (i) { tongSao += baoCaoCap[i] ? baoCaoCap[i].stars : 0; });
-  var daGuiHet = GRADED.every(function (i) { return !!baoCaoCap[i] && baoCaoCap[i].sent; });
-  submitted = true;
-  baoCaoDaNop = {
+  GRADED.forEach(function (i) { tongSao += baoCaoCap[mucK(i)] ? baoCaoCap[mucK(i)].stars : 0; });
+  var daGuiHet = GRADED.every(function (i) { return !!baoCaoCap[mucK(i)] && baoCaoCap[mucK(i)].sent; });
+  nopChDo[cheDoK()] = true;
+  baoCaoChDo[cheDoK()] = {
     label: runState.label, correct: dung, total: keys.length, stars: tongSao, maxSao: GRADED.length * 3,
     ngay: ngayLamBai(new Date()), attempts: runState.attempts, sent: daGuiHet, caps: baoCaoCap
   };
-  showReport(findRoster(runState.label), baoCaoDaNop);
+  showReport(findRoster(runState.label), baoCaoCua());
   luuBai();
 }
 
@@ -4270,8 +4538,8 @@ function showReport(kid, rec) {
   wrap.classList.remove('hidden');
   var mistakes = '';
   GRADED.forEach(function (i) {
-    CAP[i].ds.forEach(function (q, j) {
-      var a = rec.attempts['cap-' + i + '-' + j];
+    capCua(i).ds.forEach(function (q, j) {
+      var a = rec.attempts[cauK(i, j)];
       if (!a || a.ok) return;
       mistakes += '<div class="qcard bad" style="margin-top:12px">' +
         '<div class="qhead"><span class="qtag">Bài ' + i + '.' + (j + 1) + '</span><span class="qdh">' + q.dh + '</span></div>' +
@@ -4280,14 +4548,14 @@ function showReport(kid, rec) {
   });
   var maxSao = rec.maxSao || 3;
   var dongCaps = rec.caps ? '<div class="qdh" style="text-align:center;margin-top:6px">' + GRADED.map(function (i) {
-    var b = rec.caps[i];
+    var b = rec.caps[mucK(i)];
     if (!b) return '';
     return 'Cấp ' + i + ': ' + b.correct + '/' + b.total + ' · ' + saoText(b.stars, 3) +
       ' · ' + (b.sent ? 'đã gửi về bảng điểm' : 'chưa gửi được');
   }).join('<br>') + '</div>' : '';
   wrap.innerHTML = '<div class="report">' +
     '<img src="' + kid.anh + '" alt="">' +
-    '<h3>' + rec.label + ': ' + rec.correct + ' / ' + rec.total + ' câu đúng</h3>' +
+    '<h3>' + rec.label + ': ' + rec.correct + ' / ' + rec.total + ' câu đúng' + nhanCheDo() + '</h3>' +
     '<div class="stars">' + saoText(rec.stars, maxSao) + '</div>' +
     '<div class="qdh" style="text-align:center">Tổng kết lúc ' + rec.ngay + ' · ' + rec.stars + ' sao trên tối đa ' + maxSao + ' sao (mỗi cấp tối đa 3 sao)</div>' +
     dongCaps +
@@ -4299,13 +4567,17 @@ function showReport(kid, rec) {
     (mistakes
       ? '<div class="qdh" style="margin:12px 0 6px">Lời chữa của thầy cho từng câu em sai:</div>' + mistakes
       : '<div class="okmsg" style="margin-top:12px">Em không sai câu nào trong ' + rec.total + ' câu được chấm. Xuất sắc!</div>') +
+    '<div style="margin-top:12px;text-align:center"><button class="btn" id="btn-che-do">' +
+      (NC ? '← Về đề thường (kết quả thường vẫn giữ nguyên)' : 'Làm tiếp đề NÂNG CAO: đổi số, ẩn hết gợi ý →') + '</button></div>' +
     '<div style="margin-top:14px;text-align:center"><button class="btn pri" id="btn-sangay">Ghi tên bạn khác</button></div>';
   document.getElementById('btn-sangay').onclick = veCong;
+  document.getElementById('btn-che-do').onclick = function () { datNC(!NC); };
 }
 
 function veCong() {
-  runState = null; submitted = false; baoCaoDaNop = null; nhap = {}; activeCap = 1;
-  capDaNop = {}; baoCaoCap = {};
+  runState = null; nhap = {}; activeCap = 1;
+  nopChDo = {}; baoCaoChDo = {}; capDaNop = {}; baoCaoCap = {};
+  NC = false; veNC();
   document.getElementById('quiz-container').innerHTML = '';
   xoaBai();
   document.getElementById('practice-wrap').classList.add('hidden');
@@ -4344,8 +4616,9 @@ function batDau() {
   }
   err.innerText = '';
   runState = { key: kid.key, label: kid.label, attempts: {} };
-  nhap = {}; submitted = false; baoCaoDaNop = null; activeCap = 1;
+  nhap = {}; nopChDo = {}; baoCaoChDo = {}; activeCap = 1;
   capDaNop = {}; baoCaoCap = {};
+  NC = false; veNC();
   document.getElementById('quiz-container').innerHTML = '';
   document.getElementById('name-gate').classList.add('hidden');
   document.getElementById('report-wrap').classList.add('hidden');
@@ -4361,7 +4634,7 @@ function batDau() {
    TỰ KIỂM — máy tính lại từng đáp số, so với số đã ghi trong dữ liệu.
    Hai đường phải khớp nhau, nếu không trang tự chặn.
    ===================================================================== */
-function tuKiem() {
+function tuKiemThuong() {
   var err = [], n = 0;
   function soTrongVan(text) {
     var m = String(text).match(/\d+/g) || [];
@@ -5887,10 +6160,125 @@ function tuKiem() {
     if (String(nopBai).indexOf('sendResult(') >= 0) err.push('nopBai còn POST — tổng kết tạo thêm dòng thứ năm cho mỗi em');
     if (String(chamCau).indexOf('nopCap(i)') < 0) err.push('chamCau không gọi nopCap — cấp vừa kín câu phải tự gửi, không chờ em bấm nút');
     if (String(luuBai).indexOf('nopCap: capDaNop') < 0) err.push('luuBai không lưu capDaNop — tải lại trang là em gửi trùng cấp');
-    if (String(moLaiBai).indexOf('capDaNop[i] = true') < 0) err.push('moLaiBai không khôi phục capDaNop — chống gửi trùng hỏng khi mở lại bài dở');
+    if (String(moLaiBai).indexOf('capDaNop[') < 0 || String(moLaiBai).indexOf('nopCap') < 0) err.push('moLaiBai không khôi phục capDaNop — chống gửi trùng hỏng khi mở lại bài dở');
+    if (String(nopCap).indexOf('capDaNop[mucK(i)] = true') < 0) err.push('nopCap không chặn bằng phím cấp theo chế độ — hai đề sẽ gửi trùng một dòng');
   })();
 
   return { err: err, n: n, tongCau: tongCau };
+}
+/* =====================================================================
+   MÁY TỰ KIỂM PHẦN NÂNG CAO — chạy sau tuKiemThuong.
+   Vì máy tự kiểm phần thường VẼ sơ đồ và đoán id/chữ của đề thường, nó phải
+   chạy với NC=false; phần này đo xong trả chế độ về đúng lúc trang mở.
+   Luật đo ở đây:
+     · sinh đủ 48 đề mới, không câu nào rớt, và rớt ở seed nào cũng không được;
+     · mỗi đề nâng cao THẬT SỰ khác đề thường nhưng chữ của đề không đổi — chỉ số đổi;
+     · máy tính lại đáp số cho đề mới, đáp số không được lộ trong dữ kiện;
+     · phím câu / phím cấp đổi theo chế độ ⇒ hai bài làm không đè nháp nhau;
+     · gợi ý ẩn hết (Dấu hiệu · giải nghĩa phép tính) nhưng khung kéo thả còn;
+     · dòng về Sheet mang chữ "(nâng cao)" trong cột có sẵn, cột Cấp vẫn là SỐ.
+   ===================================================================== */
+function tuKiem() {
+  var goc = NC, so = 0;
+  NC = false;
+  var kq = tuKiemThuong();
+  try {
+    [1, SEED_NC, 987654321, 777, 424242].forEach(function (sd) {
+      napNC(sd);
+      if (THU_NC_HONG.length) {
+        throw new Error('seed ' + sd + ': sinh hỏng ' + THU_NC_HONG.length + ' câu (' + THU_NC_HONG.slice(0, 4).join(', ') + ')');
+      }
+    });
+    napNC(SEED_NC);
+    so++;
+    for (var zi = 1; zi <= 7; zi++) {
+      if (!CAPN[zi] || CAPN[zi].ds.length !== CAP[zi].ds.length) { kq.err.push('Cấp ' + zi + ': ngân hàng nâng cao thiếu câu'); continue; }
+      CAP[zi].ds.forEach(function (q, j) {
+        var nh = 'NÂNG CAO Bài ' + zi + '.' + (j + 1), nq = CAPN[zi].ds[j];
+        if (nq === q) { kq.err.push(nh + ': còn giữ nguyên đề thường — công tắc không đổi số'); return; }
+        var mt = lamVan(nq).text, gt = lamVan(q).text;
+        if (mt === gt) kq.err.push(nh + ': đề nâng cao y hệt đề thường');
+        if (mt.replace(/[0-9]/g, '') !== gt.replace(/[0-9]/g, '')) kq.err.push(nh + ': chữ của đề bị sửa — chỉ được đổi SỐ');
+        if (traLoi(nq, doiSo(nq.dk)) !== nq.ans) kq.err.push(nh + ': máy ra ' + traLoi(nq, doiSo(nq.dk)) + ', đề ghi ' + nq.ans);
+        var vh = mt.search(/\bHỏi\b/i);
+        if (vh > 0) {
+          var da = (mt.slice(0, vh).match(/\d+/g) || []).map(function (x) { return String(parseInt(x, 10)); });
+          if (da.indexOf(String(nq.ans)) >= 0) kq.err.push(nh + ': đáp số ' + nq.ans + ' lộ ngay trong dữ kiện');
+        }
+      });
+    }
+    so++;
+    /* phím câu + phím cấp ĐỔI THEO CHẾ ĐỘ ⇒ nháp, sao và dòng Sheet của hai đề không đè nhau */
+    if (cauK(4, 0) !== 'cap-4-0' || mucK(4) !== 'th-4') kq.err.push('Đề thường không còn dùng phím cũ — nháp em đang làm giữa chừng bị mất');
+    NC = true;
+    if (cauK(4, 0) !== 'nc-cap-4-0') kq.err.push('Đề nâng cao không tách phím câu: ' + cauK(4, 0));
+    if (mucK(4) !== 'nc-4') kq.err.push('Đề nâng cao không tách phím cấp đã gửi: ' + mucK(4));
+    if (keyCham().length !== TONG_CHAM || keyCham()[0] !== 'nc-cap-4-0') kq.err.push('keyCham ở chế độ nâng cao sai: ' + keyCham()[0]);
+    if (capCua(4).ds === CAP[4].ds) kq.err.push('capCua(4) vẫn trỏ thẳng ngân hàng thường');
+    so++;
+    /* GỢI Ý ẨN HẾT nhưng KHUNG KÉO THẢ VẪN CÒN */
+    [0, 1, 2, 3, 4, 5].forEach(function (j) {
+      var h = veCau(4, j), v = vanKeo(cauCua(4, j), 4, j);
+      if (h.indexOf('Dấu hiệu:') >= 0) kq.err.push('NÂNG CAO Bài 4.' + (j + 1) + ': còn chữ Dấu hiệu trên đề');
+      if (v.nhan !== LOI_NC) kq.err.push('NÂNG CAO Bài 4.' + (j + 1) + ': nhãn khay thẻ còn giải nghĩa phép tính');
+      if (nhanThe(1, { so: [1] }, cauCua(4, j)) !== LOI_NC) kq.err.push('NÂNG CAO: nhanThe còn gợi ý cách tính');
+      if ((h.match(/class="drop/g) || []).length < 3) kq.err.push('NÂNG CAO Bài 4.' + (j + 1) + ': mất khung ô để kéo vào');
+      if ((h.match(/draggable="true"/g) || []).length < 3) kq.err.push('NÂNG CAO Bài 4.' + (j + 1) + ': mất thẻ kéo được trong lời đề');
+      if (!/type="number"/.test(h)) kq.err.push('NÂNG CAO Bài 4.' + (j + 1) + ': mất ô điền đáp số');
+    });
+    NC = false;
+    if (veCau(4, 0).indexOf('Dấu hiệu:') < 0) kq.err.push('Đề thường mất chữ Dấu hiệu — tắt công tắc mà gợi ý không về');
+    if (vanKeo(CAP[4].ds[0], 4, 0).nhan === LOI_NC) kq.err.push('Đề thường mà nhãn khay thẻ vẫn là chữ của nâng cao');
+    so++;
+    /* ĐỀ NÂNG CAO PHẢI LÀ CHỮ THƯỜNG — thầy chốt 27/10: "không khoanh tròn gợi ý 120 · thùng to ·
+       thùng bé nữa, viết như đề bình thường, bé phải tự tìm trong đề mà kéo xuống". Đo từng câu:
+       mọi thẻ trong lời đề phải mang lớp `thuong`, và BỎ HẾT THẺ thì câu còn nguyên văn như sách. */
+    NC = true;
+    for (var vi = 1; vi <= 7; vi++) {
+      if (!CAPN[vi]) { kq.err.push('Cấp ' + vi + ': nâng cao chưa có ngân hàng đề'); continue; }
+      CAPN[vi].ds.forEach(function (nq, j) {
+        var nh = 'NÂNG CAO Bài ' + vi + '.' + (j + 1), v = vanKeo(nq, vi, j), van = lamVan(nq).text;
+        var lop = v.de.match(/class="keo[^"]*"/g) || [];
+        if (!lop.length) { kq.err.push(nh + ': lời đề không còn thẻ kéo được nào'); return; }
+        lop.forEach(function (t) {
+          if (t.indexOf('thuong') < 0) kq.err.push(nh + ': còn thẻ khoanh tròn trong đề nâng cao (' + t + ')');
+        });
+        /* Bỏ thẻ ra thì câu phải còn NGUYÊN VĂN như sách. Thẻ chờ trong .cumkeo bị CSS ẩn hẳn
+           (display:none) nên không được tính — cấp 2 ghi hai thẻ cùng một chỗ, đếm cả hai là "thừa" số. */
+        var xoong = document.createElement('div');
+        xoong.innerHTML = v.de;
+        [].slice.call(xoong.querySelectorAll('.cumkeo .keo.cho')).forEach(function (e) { e.parentNode.removeChild(e); });
+        var thu = String(xoong.textContent || '').replace(/\s+/g, ' ').trim(), vanN = van.replace(/\s+/g, ' ').trim();
+        /* Duoc noi them mot mang " Goi thanh ngan la ..., thanh dai la ..." o cuoi (de khong goi ten thanh nao),
+           nhung PHAI MO DAU bang dung cau cua sach — khong duoc dem them so hay dung hoi chu. */
+        if (thu.indexOf(vanN) !== 0) kq.err.push(nh + ': bỏ hết thẻ ra thì câu không còn nguyên văn như sách');
+      });
+    }
+    NC = false;
+    if (/class="keo[^"]*thuong/.test(vanKeo(CAP[4].ds[0], 4, 0).de)) kq.err.push('Đề thường bị in chữ thường — em không còn thấy thẻ để kéo');
+    if (!/class="keo[" ]/.test(vanKeo(CAP[4].ds[0], 4, 0).de)) kq.err.push('Đề thường mất vòng thẻ — tắt công tắc mà thẻ không hiện lại');
+    so++;
+    /* DÒNG SHEET: dấu (nâng cao) nằm trong cột CÓ SẴN, cột Cấp vẫn là SỐ để thầy lọc */
+    var gia = {};
+    for (var zj = 0; zj < CAP[4].ds.length; zj++) gia['nc-cap-4-' + zj] = { val: 1, ok: zj !== 0 };
+    NC = true;
+    var pl = payloadCuaCap(4, gia);
+    if (pl.cap !== '4') kq.err.push('Nâng cao mà cột Cấp không còn là số: "' + pl.cap + '" — bảng điểm của thầy lọc theo cấp sẽ hỏng');
+    if (String(pl.loiSai).indexOf('(nâng cao)') !== 0) kq.err.push('Cột Lời sai không mở đầu bằng (nâng cao)');
+    if (String(pl.dapAnCuaEm).indexOf('Cấp 4 (nâng cao):') !== 0) kq.err.push('Cột Đáp án em ghi không mang dấu (nâng cao)');
+    if (pl.tong !== CAP[4].ds.length) kq.err.push('Dòng nâng cao tính nhầm số câu của cấp');
+    NC = false;
+    var pl2 = payloadCuaCap(4, {});
+    if (String(pl2.loiSai).indexOf('(nâng cao)') >= 0) kq.err.push('Đề thường mà dòng Sheet lại mang chữ (nâng cao)');
+    if (String(pl2.dapAnCuaEm).indexOf('Cấp 4:') !== 0) kq.err.push('Đề thường bị gắn nhãn chế độ vào cột Đáp án');
+    so++;
+  } catch (e) {
+    kq.err.push('Máy nâng cao crash: ' + ((e && e.message) || e));
+    NC = false;
+  }
+  kq.n += 1 + so;
+  NC = goc;
+  return kq;
 }
 
 function selfTest() {
@@ -5954,6 +6342,7 @@ function khoiDong() {
   document.getElementById('name-go').onclick = batDau;
   document.getElementById('name-input').onkeydown = function (ev) { if (ev.key === 'Enter') batDau(); };
   renderGate();
+  veNC();
   moLaiBai();
   selfTest();
 }

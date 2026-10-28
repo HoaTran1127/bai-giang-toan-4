@@ -142,10 +142,10 @@ function tram(src, ten) {
 function dong_day(kq) {
   const L = [];
   L.push(["tự kiểm · lỗi JS", String(kq.tuKiem.loi), "0"]);
-  L.push(["tự kiểm · số mục", String(kq.tuKiem.n), "111"]);
+  L.push(["tự kiểm · số mục", String(kq.tuKiem.n), "118"]);
   L.push(["tự kiểm · số câu", String(kq.tuKiem.cau), "48"]);
   L.push(["trang không bị chặn", kq.selfTestAn, "an"]);
-  L.push(["footer in đủ số mục", /111 mục khớp nhau · 48 câu/.test(kq.foot) ? "co" : "khong", "co"]);
+  L.push(["footer in đủ số mục", /118 mục khớp nhau · 48 câu/.test(kq.foot) ? "co" : "khong", "co"]);
 
   const tongSo = kq.block.reduce((a, b) => a + b.so, 0);
   const tongDat = kq.block.reduce((a, b) => a + b.dat, 0);
@@ -205,7 +205,7 @@ const DOT_BIEN = [
     "if (so == null || !isFinite(so) || so % 1 !== 0 || so <= 0) return;",
     "tự kiểm · lỗi JS"],
   ["M2 · quên đường 'chép đáp án bài khác'",
-    "if (cap != null && CAP[cap]) {", "if (false && CAP[cap]) {",
+    "if (cap != null && capCua(cap)) {", "if (false && capCua(cap)) {",
     "lý lịch lỗi cap-4-0"],
   ["M3 · quên đường 'lệch một hàng = quên chữ nhớ'",
     "if (HANG[lech]) return { ten:", "if (false) return { ten:",
@@ -227,8 +227,8 @@ const DOT_BIEN = [
     "+ lamVan(q).text + ' ' + nganLoiSai(q, val, cap, j);",
     "cột Lời sai · không kèm lời đề"],
   ["M8 · các câu lại ngăn cách bằng ' | ' (Sheet không xuống dòng)",
-    "return lines.length ? lines.join('\\n') : 'Không sai câu nào';",
-    "return lines.length ? lines.join(' | ') : 'Không sai câu nào';",
+    "return chenCheDo(lines.length ? lines.join('\\n') : 'Không sai câu nào');",
+    "return chenCheDo(lines.length ? lines.join(' | ') : 'Không sai câu nào');",
     "cột Lời sai · ngăn bằng xuống dòng"],
   ["ÂM TINH · chỉ đổi màu nền hộp nguyên nhân",
     "border-left: 5px solid var(--orange); background: #FFF7ED;",

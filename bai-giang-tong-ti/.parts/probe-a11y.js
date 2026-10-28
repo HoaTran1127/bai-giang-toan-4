@@ -144,7 +144,7 @@ const doi = [
   ['dragstart', /"sang":2,"itemKhac":0/, 'dragstart (keo chuot) cung sang o va KHONG sang sang so khac'],
   ['dragend', '0', 'dragend phai tat toan bo vien sang'],
   ['ngang-320', /"tran":"ok"/, 'o sang khong duoc lam tran ngang 320px'],
-  ['tuKiem', /108 mục khớp/, 'tuKiem() phai con 108 muc (chu "muc khop" chi in ra khi err.length = 0)'],
+  ['tuKiem', /11[5-8] mục khớp/, 'tuKiem() phai bao 117 muc (115 neu may khong co giong doc) — chu "muc khop" chi in ra khi err.length = 0; 27/10 them 9 muc che do nang cao, trong do co muc "de nang cao la chu thuong"'],
   ['errors', '0', 'khong duoc co loi JS nao khi bam Enter / keo chuot / Escape — loi trong listener bi dispatchEvent nuot im, nen trang tu "xanh" van co the an loi'],
 ];
 let thatBai = 0;

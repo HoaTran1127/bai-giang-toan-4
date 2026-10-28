@@ -11,16 +11,30 @@
      L6  Đổi bạn thì máy nộp reset — bạn khác làm Cấp 4 vẫn gửi được đúng một dòng.
      L7  Màn tổng kết khi đủ bốn cấp chỉ vẽ, không POST lần năm.
 
+   Luật "CÔNG TẮC NÂNG CAO" (người dùng chốt 27/10/2026) — các phase nc-*:
+     L8  Gạt công tắc: ĐỀ ĐỔI SỐ thành bài mới nhưng chữ của đề y nguyên, gợi ý ẩn hết
+         (Dấu hiệu · giải nghĩa phép tính · cô trợ giảng) còn KHUNG KÉO–THẢ vẫn nguyên.
+     L9  Mỗi cấp nâng cao kín câu cũng tự gửi ĐÚNG MỘT dòng, mang chữ "(nâng cao)" ngay
+         trong cột có sẵn, cột "Cấp" vẫn là SỐ.
+     L10 Hai chế độ là hai bài làm RIÊNG: cấp 4 đã gửi ở đề nâng cao thì tắt công tắc vẫn
+         gửi được tiếp cấp 4 đề thường (phím khóa theo mucK = th-4 · nc-4).
+     L11 Mở lại trang vẫn ở chế độ nâng cao, nhớ đã gửi, không gửi trùng; đổi bạn xoá sạch
+         dấu cả hai chế độ và trả công tắc về tắt.
+     L12 Ngay trên màn hình, lời đề nâng cao phải là CHỮ THƯỜNG: không thẻ nào trong .qvan còn
+         viền khoanh hay nền màu (viền 0px + nền trong suốt), nhưng mỗi chữ dữ liệu vẫn
+         draggable="true" để bé tự tìm trong đề rồi kéo xuống sơ đồ.
+
    Vì sao N process Chrome riêng cho mỗi phase: `localStorage` chỉ sống giữa các lần nạp khi
    dùng chung một `--user-data-dir`, và "mở lại trang" chỉ là mở lại THẬT khi trình duyệt
-   đóng hẳn giữa hai phase.
+   đóng hẳn giữa hai phase. Chuỗi nc-* dùng `--user-data-dir` RIÊNG: nó phải nối tiếp nhau
+   (bật công tắc → nộp → mở lại → tắt) mà không bị nháp của chuỗi thường chen vào.
    Vì sao chặn submit: để yên thì cửa này nộp THẬT về Google Form ⇒ Sheet của thầy thêm dòng
    trông y hệt học sinh. Ghi đè `HTMLFormElement.prototype.submit` SAU khi bài nạp (same-origin
    navigation dựng lại global mới) ⇒ chụp đủ field rồi DỪNG, không request nào ra ngoài.
 
    Đột biến: lỗi cấy phải làm cháy ít nhất một hàng TRƯỚC ĐÓ XANH; hàng âm tinh (chỉ đổi màu
    nền banner) phải im lặng — chứng minh cửa không hỏng ăn lung tung.
-   Exit 0 khi bản gốc đạt hết hàng VÀ 6/6 đột biến bị bắt VÀ âm tinh im lặng.
+   Exit 0 khi bản gốc đạt hết hàng VÀ mọi đột biến bị bắt VÀ âm tinh im lặng.
    ============================================================================= */
 const { spawnSync } = require('child_process');
 const fs = require('fs');
@@ -96,23 +110,24 @@ function chay() {
     }
   }
   /* Điền + bấm Kiểm tra cho tới hết (hoặc tới câu thứ chiDenSo) của một cấp.
-     boSai[] = số thứ tự câu CỐ Ý SAI. Câu đã ghi nhận từ phase trước vẫn được tính lại. */
+     boSai[] = số thứ tự câu CỐ Ý SAI. Câu đã ghi nhận từ phase trước vẫn được tính lại.
+     Đọc theo CHẾ ĐỘ đang bật (cauCua/cauK) ⇒ cùng một bộ driver dùng được cho cả đề thường lẫn nâng cao. */
   function lamCap(i, boSai, denSo) {
     moCong('Ban Mai');
     var tab = idoc.querySelector('.lv[data-cap="' + i + '"]');
     if (!tab) throw new Error('thieu tab cap ' + i);
     tab.click();
-    var n = iw.CAP[i].ds.length, so = 0, dung = 0;
+    var ngan = iw.capCua(i), n = ngan.ds.length, so = 0, dung = 0;
     for (var j = 0; j < n; j++) {
       if (denSo != null && j >= denSo) break;
-      var key = 'cap-' + i + '-' + j;
+      var key = iw.cauK(i, j);
       var inp = $('#nhap-' + key), btn = $('#btn-' + key);
       if (!inp || !btn) {
         var da = iw.runState.attempts[key];
         so++; if (da && da.ok) dung++;
         continue;
       }
-      var ans = iw.CAP[i].ds[j].ans, sai = boSai.indexOf(j) >= 0;
+      var ans = ngan.ds[j].ans, sai = boSai.indexOf(j) >= 0;
       inp.value = String(sai ? ans + 1 : ans);
       btn.click();
       so++; if (!sai) dung++;
@@ -166,7 +181,7 @@ function chay() {
   }
   if (P === 'mo-lai') {
     step('tenKho', $('#runner-name') ? $('#runner-name').textContent : '-');
-    step('cap4DaGui', iw.capDaNop[4] ? 'co' : 'khong');
+    step('cap4DaGui', iw.capDaNop['th-4'] ? 'co' : 'khong');
     /* mở đúng cấp đã gửi mới thấy banner — thanh trạng thái luôn nói về cấp đang xem */
     idoc.querySelector('.lv[data-cap="4"]').click();
     step('banner', String($('#submit-bar').textContent).indexOf('Cấp 4 đã gửi') >= 0 ? 'co-banner' : 'khong-banner');
@@ -221,6 +236,141 @@ function chay() {
     step('gl-so', C7.so); step('gl-dung', C7.dung);
     ketLuan(); return done();
   }
+
+  /* ================= CÔNG TẮC NÂNG CAO (chuỗi nc-*, profile riêng) =================
+     nc-sach : đo L8 ngay trên màn hình — gợi ý/cô ẩn, khung kéo–thả còn, đề đổi SỐ mà không đổi chữ
+     nc-cap4 : L9 — cấp 4 nâng cao kín câu gửi ĐÚNG MỘT dòng có chữ "(nâng cao)"
+     nc-mo-lai : L11 — mở lại trang vẫn là đề nâng cao, vẫn nhớ đã gửi, không gửi trùng
+     nc-tat-thuong : L10 — tắt công tắc, cấp 4 đề thường vẫn được gửi thêm MỘT dòng riêng
+     nc-doi-ban : L11 — đổi bạn xoá sạch dấu cả hai chế độ, trả công tắc về tắt              */
+  function gat() {
+    var b = $('#nc-switch');
+    if (!b) throw new Error('khong co cong tac nang cao');
+    b.click();
+    if (!an(idoc.getElementById('name-gate'))) throw new Error('gat cong tắc luc chua vao bai');
+  }
+  function vanDe() { return String($('#quiz-container').textContent); }
+  function demKeo(hop) { return idoc.querySelectorAll('#quiz-container ' + hop).length; }
+  function deCua(i, j) { return iw.lamVan(iw.capCua(i).ds[j]).text; }
+  function deThuong(i, j) { return iw.lamVan(iw.CAP[i].ds[j]).text; }
+  /* Gọi thẳng cô trợ giảng: 'bad' là loại nói NGAY (không xếp hàng) ⇒ chữ hiện lên trong lần gọi. */
+  function coTieng() {
+    iw.coNoi('', 'Cô đợi em nhé', 'bad');
+    return String($('#co-loi').textContent).length ? 'co-tieng' : 'im';
+  }
+  function vaoTen(ten) {
+    var inp = $('#name-input');
+    inp.value = ten;
+    inp.dispatchEvent(new iw.Event('input', { bubbles: true }));
+    $('#name-go').click();
+  }
+  var C4N, C4T, C4D;
+
+  if (P === 'nc-sach') {
+    step('ncLucMo', iw.NC ? 'bat' : 'tat');
+    moCong('Ban Mai');
+    idoc.querySelector('.lv[data-cap="4"]').click();
+    step('goiYThuong', vanDe().indexOf('Dấu hiệu') >= 0 ? 'con' : 'AN-SOM');
+    step('headLeLoiThuong', vanDe().indexOf(iw.CAP[4].hu) >= 0 ? 'con' : 'MAT');
+    step('coTiengThuong', coTieng());
+    $('#co-loi').textContent = '';
+    gat();
+    step('ncSauGat', iw.NC ? 'bat' : 'tat');
+    step('switchChu', String($('#nc-switch').textContent));
+    step('loiCoAn', $('#co-dock').style.display === 'none' ? 'an' : 'hien');
+    step('coTiengNC', coTieng());
+    step('dauHieuNC', vanDe().indexOf('Dấu hiệu') >= 0 ? 'CON-GOI-Y' : 'an');
+    step('headAnLoiNC', vanDe().indexOf(iw.CAP[4].hu) >= 0 ? 'CON-GOI-Y' : 'an');
+    step('nhanNC', vanDe().indexOf(iw.LOI_NC) >= 0 ? 'co-loi-chung' : 'mat-nhan');
+    step('frameKeo', demKeo('.drop') >= 3 ? 'co-frame' : 'mat-frame');
+    step('theKeo', demKeo('[draggable="true"]') >= 3 ? 'co-the' : 'mat-the');
+    /* L12 — đề phải in như sách: không vòng khoanh, không nền màu, nhưng vẫn cầm kéo được.
+       Đo computed style của từng thẻ nằm TRONG lời đề, không đo chuỗi nguồn. */
+    /* L12 — đề phải in như sách: không vòng khoanh, không nền màu, không tô chữ (màu/nhẹ cỡ
+       chữ) chỉ hộ dữ liệu; nhưng vẫn cầm kéo được. Thẻ CHỜ LƯỢT (lớp cho) là chữ thường theo
+       thiết kế nên không được tính là mất kéo — nó chưa tới lượt kéo. */
+    step('deChuThuong', (function () {
+      var ds = idoc.querySelectorAll('#quiz-container .qvan .keo'), lac = 0, khongKeo = 0, dem = 0;
+      for (var t = 0; t < ds.length; t++) {
+        if (!ds[t].offsetParent) continue;   /* thẻ chờ trong .cumkeo ẩn hẳn — chưa tới lượt, không tính */
+        dem++;
+        var cs = iw.getComputedStyle(ds[t]);
+        var cha = iw.getComputedStyle(ds[t].parentElement);
+        var cho = String(ds[t].className).indexOf('cho') >= 0;
+        if (cs.borderTopWidth !== '0px' || cs.backgroundColor !== 'rgba(0, 0, 0, 0)' ||
+            cs.borderRadius !== '0px' || cs.boxShadow !== 'none' || cs.display !== 'inline' ||
+            cs.color !== cha.color || cs.fontWeight !== cha.fontWeight || cs.fontSize !== cha.fontSize) lac++;
+        if (!cho && ds[t].getAttribute('draggable') !== 'true') khongKeo++;
+      }
+      if (dem < 3) return 'KHONG-CO-THE-TRONG-DE';
+      return !lac && !khongKeo ? 'chu-thuong' : 'CON-KHOANH-' + lac + (khongKeo ? '-MAT-KEO-' + khongKeo : '');
+    }()));
+    step('oNhapSo', demKeo('input[type="number"]') >= 1 ? 'co' : 'mat-o');
+    step('deKhac', deCua(4, 0) !== deThuong(4, 0) ? 'khac' : 'GIONG-NGHET');
+    step('chiSoDoi', deCua(4, 0).replace(/[0-9]/g, '') === deThuong(4, 0).replace(/[0-9]/g, '')
+      ? 'chu-giong-nguyen' : 'DA-SAI-CHU');
+    step('ncLoi', String($('#nc-loi').textContent).indexOf('Đề nâng cao') === 0 ? 'co' : 'khong');
+    step('posts', iw.__posts.length);
+    return done();
+  }
+  if (P === 'nc-cap4') {
+    step('ncTuLoadSau', iw.NC ? 'bat' : 'tat');           /* công tắc phải sống trong kho giữ bài */
+    C4N = lamCap(4, W[4]);
+    step('nc4-so', C4N.so); step('nc4-dung', C4N.dung); step('nc4-tong', C4N.tong);
+    step('banner', String($('#submit-bar').textContent).indexOf('Cấp 4 đã gửi') >= 0 ? 'co-banner' : 'khong-banner');
+    step('tabDauGhi', String(idoc.querySelector('.lv[data-cap="4"]').textContent).indexOf('đã gửi') >= 0 ? 'co' : 'khong');
+    step('dauHieuVanAn', vanDe().indexOf('Dấu hiệu') >= 0 ? 'CON-GOI-Y' : 'an');
+    ketLuan(); return done();
+  }
+  if (P === 'nc-mo-lai') {
+    step('ncTuKho', iw.NC ? 'bat' : 'tat');
+    step('tenKho', $('#runner-name') ? $('#runner-name').textContent : '-');
+    step('cap4DaGuiNC', iw.capDaNop['nc-4'] ? 'co' : 'khong');
+    step('cap4DaGuiThuong', iw.capDaNop['th-4'] ? 'co' : 'khong');
+    step('deVanNangCao', iw.capCua(4) !== iw.CAP[4] ? 'de-nang-cao' : 'VE-DE-THUONG');
+    idoc.querySelector('.lv[data-cap="4"]').click();
+    step('banner', String($('#submit-bar').textContent).indexOf('Cấp 4 đã gửi') >= 0 ? 'co-banner' : 'khong-banner');
+    step('nutNop', $('#btn-nop') ? 'co-nut' : 'khong');
+    if ($('#btn-nop')) $('#btn-nop').click();
+    ketLuan(); return done();
+  }
+  if (P === 'nc-tat-thuong') {
+    step('ncTruocTat', iw.NC ? 'bat' : 'tat');
+    gat();
+    step('ncSauTat', iw.NC ? 'bat' : 'tat');
+    step('goiYTroVe', vanDe().indexOf('Dấu hiệu') >= 0 ? 'con' : 'MAT-GOI-Y');
+    step('loiCoTroVe', $('#co-dock').style.display === 'none' ? 'VAN-AN' : 'hien');
+    C4T = lamCap(4, []);
+    step('th4-so', C4T.so); step('th4-dung', C4T.dung); step('th4-tong', C4T.tong);
+    step('cap4ThuongDaGui', iw.capDaNop['th-4'] ? 'co' : 'khong');
+    step('cap4NangCaoVanGui', iw.capDaNop['nc-4'] ? 'co' : 'khong');
+    ketLuan(); return done();
+  }
+  if (P === 'nc-doi-ban') {
+    /* Phase trước tắt công tắc để đo L10 ⇒ ở đây bật lại, vì màn tổng kết nâng cao chỉ hiện khi
+       đủ bốn cấp của CHẾ ĐỘ NÂNG CAO (nc-4 đã gửi từ nc-cap4, nc-5·6·7 làm xong ngay dưới đây). */
+    if (!iw.NC) gat();
+    step('ncDaBatLai', iw.NC ? 'bat' : 'tat');
+    [5, 6, 7].forEach(function (i) {
+      var r = lamCap(i, []);
+      step('nc' + i + '-so', r.so); step('nc' + i + '-dung', r.dung); step('nc' + i + '-tong', r.tong);
+    });
+    step('baoCaoNC', an(idoc.getElementById('report-wrap')) ? 'an' : 'hien');
+    var mN = String($('#report-wrap').textContent).match(/([0-9]+) sao trên tối đa ([0-9]+)/);
+    step('reportSao', mN ? mN[1] + '/' + mN[2] : 'khong-co');
+    step('reportCheDo', String($('#report-wrap').textContent).indexOf('(nâng cao)') >= 0 ? 'co-dau' : 'khong-dau');
+    var nut2 = $('#btn-sangay');
+    if (!nut2) throw new Error('khong co nut "Ghi tên bạn khác" tren tong ket nang cao');
+    nut2.click();
+    step('sauDoi.NC', iw.NC ? 'bat' : 'tat');
+    step('sauDoi.kho', iw.localStorage.getItem('${KHO}') ? 'con-kho' : 'xoa-sach');
+    step('sauDoi.capDaNop', JSON.stringify(iw.capDaNop));
+    vaoTen('Tra Giang');
+    gat();
+    C4D = lamCap(4, []);
+    step('tg-dung', C4D.dung); step('tg-tong', C4D.tong);
+    ketLuan(); return done();
+  }
   throw new Error('phase la: ' + P);
 }
 <\/script></body></html>`;
@@ -228,21 +378,49 @@ function chay() {
 
 /* ---------------- BẢN GỐC + ĐỘT BIẾN ---------------- */
 const P_ALL = ['sach', 'cap4', 'nua-cap5', 'mo-lai', 'on', 'chan-on', 'du', 'sau-nop', 'doi-ban'];
+const P_NC = ['nc-sach', 'nc-cap4', 'nc-mo-lai', 'nc-tat-thuong', 'nc-doi-ban'];
 const DOT_BIEN = [
-  { ten: 'GOC', phase: P_ALL, sua: [] },
+  { ten: 'GOC', phase: P_ALL.concat(P_NC), sua: [] },
   { ten: 'M1-cap-kin-khong-tu-gui', mo: 'cấp vừa kín câu không tự gửi (bắt em bấm nút)', phase: ['sach', 'cap4'],
     sua: [['if (daXongCap(i)) nopCap(i); else updateSubmitBar();', 'if (false) nopCap(i); else updateSubmitBar();']] },
   { ten: 'M2-dong-van-tinh-ca-bai', mo: 'dòng Sheet vẫn tính cả 24 câu của bốn cấp', phase: ['sach', 'cap4'],
     sua: [['var keys = keysCapi(i);', 'var keys = keyCham();']] },
   { ten: 'M3-mo-lai-gui-trung', mo: 'mở lại trang là gửi trùng cấp', phase: ['sach', 'cap4', 'nua-cap5', 'mo-lai'],
-    sua: [['  capDaNop[i] = true;\n  var sent = sendResult(rec);', '  var sent = sendResult(rec);']] },
+    sua: [['\n  capDaNop[mucK(i)] = true;\n  var sent = sendResult(rec);', '\n  var sent = sendResult(rec);']] },
   { ten: 'M4-dong-que-cot-Cap', mo: 'cột "Cấp" trên Sheet bị bỏ trống', phase: ['sach', 'cap4'],
     sua: [['    cap: String(i),', "    cap: '',"]] },
   { ten: 'M5-cap-on-bi-gui', mo: 'cấp ôn 1·2·3 cũng bị gửi thành dòng', phase: ['sach', 'chan-on'],
-    sua: [['if (!runState || !laCapCham(i) || capDaNop[i] || !daXongCap(i)) return;', 'if (!runState || capDaNop[i] || !daXongCap(i)) return;']] },
+    sua: [['if (!runState || !laCapCham(i) || capDaNop[mucK(i)] || !daXongCap(i)) return;', 'if (!runState || capDaNop[mucK(i)] || !daXongCap(i)) return;']] },
   { ten: 'M6-tong-ket-post-them', mo: 'màn tổng kết POST thêm dòng thứ năm', phase: ['sach', 'cap4', 'nua-cap5', 'mo-lai', 'on', 'du'],
-    sua: [['  showReport(findRoster(runState.label), baoCaoDaNop);', '  sendResult({ ten: runState.label, ngay: ngayLamBai(new Date()), cap: \'TONG KET\', dung: dung, tong: keys.length, sao: tongSao, phanTram: \'\', loiSai: \'\', dapAnCuaEm: \'\' });\n  showReport(findRoster(runState.label), baoCaoDaNop);']] },
-  { ten: 'AM-TINH-doi-mau-banner', mo: 'chỉ đổi màu nền banner — phải KHÔNG cháy hàng nào', phase: P_ALL,
+    sua: [['\n  showReport(findRoster(runState.label), baoCaoCua());', "\n  sendResult({ ten: runState.label, ngay: ngayLamBai(new Date()), cap: 'TONG KET', dung: dung, tong: keys.length, sao: tongSao, phanTram: '', loiSai: '', dapAnCuaEm: '' });\n  showReport(findRoster(runState.label), baoCaoCua());"]] },
+  /* --- đột biến RIÊNG chế độ nâng cao: mỗi con phải làm cháy một hàng nc- đang xanh --- */
+  { ten: 'N1-de-nang-cao-giong-nguyen', mo: 'máy sinh âm thầm trả lại đề thường (công tắc không đổi số)', phase: ['nc-sach'],
+    sua: [['ra[i].ds.push(nq || q);', 'ra[i].ds.push(q);']] },
+  { ten: 'N2-hien-loi-chi-dan-cach-lam', mo: 'dòng đầu cấp vẫn ghi lời chỉ dẫn cách làm của đề thường', phase: ['nc-sach'],
+    sua: [["(NC ? 'Đề đã đổi số, gợi ý ẩn hết — em đọc kỹ như trong sách rồi tự tìm dữ liệu mà kéo.' : capCua(activeCap).hu)", 'capCua(activeCap).hu']] },
+  { ten: 'N3-con-nhan-cach-lam', mo: 'nhanThe vẫn gợi ý từng bước kéo', phase: ['nc-sach'],
+    sua: [['\n  if (NC) return LOI_NC;', '']] },
+  { ten: 'N4-mat-khung-keo-tha', mo: 'nâng cao ẩn LUÔN sơ đồ kéo (phải giữ khung, chỉ ẩn gợi ý)', phase: ['nc-sach'],
+    sua: [["html += veSoDoKeo(i, j) + '<div class=\"cap\" id=\"' + idKq(i, j) + '\"></div>';",
+      "html += (NC ? '' : veSoDoKeo(i, j) + '<div class=\"cap\" id=\"' + idKq(i, j) + '\"></div>');"]] },
+  { ten: 'N5-con-tu-goi-y', mo: 'chữ "Dấu hiệu" vẫn hiện trên đề nâng cao', phase: ['nc-sach', 'nc-cap4'],
+    sua: [["(NC ? '' : '<span class=\"qdh\">Dấu hiệu: ' + q.dh + '</span>')",
+      "'<span class=\"qdh\">Dấu hiệu: ' + q.dh + '</span>'"]] },
+  { ten: 'N6-co-van-noi', mo: 'cô trợ giảng vẫn đọc gợi ý khi đang nâng cao', phase: ['nc-sach'],
+    sua: [["  if (NC) return;   // đề nâng cao mô phỏng bài trong sách: không có cô đọc gợi ý\n", '']] },
+  { ten: 'N7-dong-khong-dau-che-do', mo: 'dòng Sheet mất chữ "(nâng cao)" — thầy không phân biệt được hai đề', phase: ['nc-sach', 'nc-cap4'],
+    sua: [["function chenCheDo(s) { return NC ? '(nâng cao) ' + s : String(s); }", 'function chenCheDo(s) { return String(s); }']] },
+  { ten: 'N8-hai-che-do-de-trung-nhau', mo: 'phím cấp không khóa theo chế độ ⇒ đề thường mất dòng thứ hai', phase: ['nc-sach', 'nc-cap4', 'nc-tat-thuong'],
+    sua: [["function mucK(i) { return cheDoK() + '-' + i; }", 'function mucK(i) { return String(i); }']] },
+  { ten: 'N9-mat-cong-tac', mo: 'mất công tắc nâng cao trên màn luyện tập', phase: ['nc-sach'],
+    sua: [['<button type="button" class="nc-switch" id="nc-switch"', '<button type="button" class="nc-switch" id="nc-switch-xoa']] },
+  { ten: 'N10-nut-khong-duoc-noi', mo: 'nút hiện ra nhưng không được nối ⇒ click vô ích (lỗi thật 27/10)', phase: ['nc-sach'],
+    sua: [['if (!b.onclick) b.onclick = batNC;', '']] },
+  { ten: 'N11-de-van-khoanh-goi-y', mo: 'thẻ trong lời đề nâng cao vẫn viền khoanh (quên gắn lớp thuong) — em không phải tự tìm dữ liệu', phase: ['nc-sach'],
+    sua: [["(p.giai === 2 ? ' cho' : '') + (NC ? ' thuong' : '')", "(p.giai === 2 ? ' cho' : '')"]] },
+  { ten: 'N12-css-thuong-bi-ten', mo: 'lớp thuong có gắn nhưng CSS bị đổi tên ⇒ vòng khoanh còn nguyên trên màn hình', phase: ['nc-sach'],
+    sua: [['.keo.thuong { display: inline;', '.keo.thuongX { display: inline;']] },
+  { ten: 'AM-TINH-doi-mau-banner', mo: 'chỉ đổi màu nền banner — phải KHÔNG cháy hàng nào', phase: P_ALL.concat(P_NC),
     sua: [['background:#DCFCE7', 'background:#F0FDF4']] }
 ];
 
@@ -250,8 +428,12 @@ const cache = {};
 function dungBien(d) {
   const thu = path.join(os.tmpdir(), 'bai3-nop-cap-' + d.ten);
   const profile = path.join(os.tmpdir(), 'bai3-nop-cap-profile-' + d.ten);
+  /* hai profile: chuỗi thường và chuỗi nâng cao mỗi chuỗi phải nối tiếp nhau mà không bị nháp của
+     chuỗi kia chen vào (moLaiBai phục hồi NC + cấp đã gửi từ đúng một kho localStorage). */
+  const profileNc = path.join(os.tmpdir(), 'bai3-nop-cap-ncprofile-' + d.ten);
   fs.rmSync(thu, { recursive: true, force: true });
   fs.rmSync(profile, { recursive: true, force: true });  /* profile cũ mang nháp lần trước sang là đo sai */
+  fs.rmSync(profileNc, { recursive: true, force: true });
   fs.mkdirSync(thu, { recursive: true });
   let noi = goc.replace(/\r\n/g, '\n');
   d.sua.forEach(function (s) {
@@ -265,13 +447,13 @@ function dungBien(d) {
     const p = path.join(__dirname, '..', t);
     if (fs.existsSync(p)) fs.cpSync(p, path.join(thu, t), { recursive: true });
   });
-  cache[d.ten] = { thu: thu, profile: profile };
+  cache[d.ten] = { thu: thu, profile: profile, profileNc: profileNc };
 }
 
 function docPhase(d, p) {
   const u = urlOf(path.join(cache[d.ten].thu, 'driver.html')) + '?p=' + p;
   const r = spawnSync(CHROME, ['--headless=new', '--disable-gpu', '--no-sandbox',
-    '--allow-file-access-from-files', '--user-data-dir=' + cache[d.ten].profile,
+    '--allow-file-access-from-files', '--user-data-dir=' + (p.indexOf('nc-') === 0 ? cache[d.ten].profileNc : cache[d.ten].profile),
     '--virtual-time-budget=26000', '--dump-dom', u], { encoding: 'utf8', maxBuffer: 1 << 26 });
   const dom = (r.stdout || '').replace(/\r/g, '');
   const m = /@KQ@ ([\s\S]*?) @END@/.exec(dom);
@@ -298,7 +480,7 @@ function bang(kq) {
 
   if (kq.sach) {
     hang(L, 'sach', 'selfTest-loi', s['selfTest-loi'], '0');
-    hang(L, 'sach', 'soMucTkiem', s['soMucTkiem'], '111');
+    hang(L, 'sach', 'soMucTkiem', s['soMucTkiem'], '118');
     hang(L, 'sach', 'congTen', s['congTen'], 'hien');
     hang(L, 'sach', 'kho', s['kho'], 'khong');
     hang(L, 'sach', 'postsTruocKhiCham', s['postsTruocKhiCham'], '0');
@@ -387,6 +569,106 @@ function bang(kq) {
     postHang(L, db, 'doi-ban', 0, 'dung', String(db['gl-dung']));
     postHang(L, db, 'doi-ban', 0, 'sao', '3');
   }
+
+  /* ================= L8–L11: CÔNG TẮC NÂNG CAO ================= */
+  const ns = kq['nc-sach'] || {}, nc4 = kq['nc-cap4'] || {}, nml = kq['nc-mo-lai'] || {},
+    nt = kq['nc-tat-thuong'] || {}, nd = kq['nc-doi-ban'] || {};
+  /* L8: bật công tắc là ẩn HẾT gợi ý (Dấu hiệu · giải nghĩa phép tính · cô đọc) nhưng
+     khung kéo–thả vẫn còn nguyên và đề chỉ đổi SỐ. */
+  if (kq['nc-sach']) {
+    hang(L, 'nc-sach', 'selfTest-loi', ns['selfTest-loi'], '0');
+    hang(L, 'nc-sach', 'ncLucMo', ns['ncLucMo'], 'tat');
+    hang(L, 'nc-sach', 'goiYThuong', ns['goiYThuong'], 'con');
+    hang(L, 'nc-sach', 'headLeLoiThuong', ns['headLeLoiThuong'], 'con');
+    hang(L, 'nc-sach', 'coTiengThuong', ns['coTiengThuong'], 'co-tieng');
+    hang(L, 'nc-sach', 'ncSauGat', ns['ncSauGat'], 'bat');
+    hang(L, 'nc-sach', 'switchChu', ns['switchChu'], 'NÂNG CAO: đang bật');
+    hang(L, 'nc-sach', 'loiCoAn', ns['loiCoAn'], 'an');
+    hang(L, 'nc-sach', 'coTiengNC', ns['coTiengNC'], 'im');
+    hang(L, 'nc-sach', 'dauHieuNC', ns['dauHieuNC'], 'an');
+    hang(L, 'nc-sach', 'headAnLoiNC', ns['headAnLoiNC'], 'an');
+    hang(L, 'nc-sach', 'nhanNC', ns['nhanNC'], 'co-loi-chung');
+    hang(L, 'nc-sach', 'frameKeo', ns['frameKeo'], 'co-frame');
+    hang(L, 'nc-sach', 'theKeo', ns['theKeo'], 'co-the');
+  hang(L, 'nc-sach', 'deChuThuong', ns['deChuThuong'], 'chu-thuong');
+    hang(L, 'nc-sach', 'oNhapSo', ns['oNhapSo'], 'co');
+    hang(L, 'nc-sach', 'deKhac', ns['deKhac'], 'khac');
+    hang(L, 'nc-sach', 'chiSoDoi', ns['chiSoDoi'], 'chu-giong-nguyen');
+    hang(L, 'nc-sach', 'ncLoi', ns['ncLoi'], 'co');
+    hang(L, 'nc-sach', 'posts', ns['posts'], '0');
+  }
+  /* L9: cấp 4 nâng cao kín câu → MỘT dòng, cột Cấp vẫn là số, dấu chế độ nằm trong cột có sẵn */
+  if (kq['nc-cap4']) {
+    const t4 = +nc4['nc4-tong'], d4 = +nc4['nc4-dung'];
+    hang(L, 'nc-cap4', 'selfTest-loi', nc4['selfTest-loi'], '0');
+    hang(L, 'nc-cap4', 'ncTuLoadSau', nc4['ncTuLoadSau'], 'bat');
+    hang(L, 'nc-cap4', 'posts', nc4['posts'], '1');
+    hang(L, 'nc-cap4', 'banner', nc4['banner'], 'co-banner');
+    hang(L, 'nc-cap4', 'tabDauGhi', nc4['tabDauGhi'], 'co');
+    hang(L, 'nc-cap4', 'dauHieuVanAn', nc4['dauHieuVanAn'], 'an');
+    postHang(L, nc4, 'nc-cap4', 0, 'form', 'dung-form');
+    postHang(L, nc4, 'nc-cap4', 0, 'soEntry', '9');
+    postHang(L, nc4, 'nc-cap4', 0, 'ten', 'Ban Mai');
+    postHang(L, nc4, 'nc-cap4', 0, 'cap', '4');
+    postHang(L, nc4, 'nc-cap4', 0, 'dung', String(d4));
+    postHang(L, nc4, 'nc-cap4', 0, 'tong', String(t4));
+    postHang(L, nc4, 'nc-cap4', 0, 'sao', String(saoTu(d4, t4)));
+    postHang(L, nc4, 'nc-cap4', 0, 'loiSaiDau', '(nâng cao) …', function (v) { return String(v).indexOf('(nâng cao)') === 0; });
+    postHang(L, nc4, 'nc-cap4', 0, 'dapAnDau', 'Cấp 4 (nâng cao):', function (v) { return String(v).indexOf('Cấp 4 (nâng cao):') === 0; });
+    postHang(L, nc4, 'nc-cap4', 0, 'dapAnDong', '1');
+  }
+  /* L11: mở lại trang — vẫn là đề nâng cao, vẫn nhớ đã gửi, không gửi trùng */
+  if (kq['nc-mo-lai']) {
+    hang(L, 'nc-mo-lai', 'selfTest-loi', nml['selfTest-loi'], '0');
+    hang(L, 'nc-mo-lai', 'ncTuKho', nml['ncTuKho'], 'bat');
+    hang(L, 'nc-mo-lai', 'tenKho', nml['tenKho'], 'Ban Mai');
+    hang(L, 'nc-mo-lai', 'cap4DaGuiNC', nml['cap4DaGuiNC'], 'co');
+    hang(L, 'nc-mo-lai', 'cap4DaGuiThuong', nml['cap4DaGuiThuong'], 'khong');
+    hang(L, 'nc-mo-lai', 'deVanNangCao', nml['deVanNangCao'], 'de-nang-cao');
+    hang(L, 'nc-mo-lai', 'banner', nml['banner'], 'co-banner');
+    hang(L, 'nc-mo-lai', 'nutNop', nml['nutNop'], 'khong');
+    hang(L, 'nc-mo-lai', 'posts', nml['posts'], '0');
+  }
+  /* L10: tắt công tắc → gợi ý về, cô về, và cấp 4 đề thường vẫn được gửi THÊM một dòng riêng */
+  if (kq['nc-tat-thuong']) {
+    const t4 = +nt['th4-tong'], d4 = +nt['th4-dung'];
+    hang(L, 'nc-tat-thuong', 'ncTruocTat', nt['ncTruocTat'], 'bat');
+    hang(L, 'nc-tat-thuong', 'ncSauTat', nt['ncSauTat'], 'tat');
+    hang(L, 'nc-tat-thuong', 'goiYTroVe', nt['goiYTroVe'], 'con');
+    hang(L, 'nc-tat-thuong', 'loiCoTroVe', nt['loiCoTroVe'], 'hien');
+    hang(L, 'nc-tat-thuong', 'posts', nt['posts'], '1');
+    hang(L, 'nc-tat-thuong', 'cap4ThuongDaGui', nt['cap4ThuongDaGui'], 'co');
+    hang(L, 'nc-tat-thuong', 'cap4NangCaoVanGui', nt['cap4NangCaoVanGui'], 'co');
+    postHang(L, nt, 'nc-tat-thuong', 0, 'cap', '4');
+    postHang(L, nt, 'nc-tat-thuong', 0, 'dung', String(d4));
+    postHang(L, nt, 'nc-tat-thuong', 0, 'tong', String(t4));
+    postHang(L, nt, 'nc-tat-thuong', 0, 'sao', String(saoTu(d4, t4)));
+    postHang(L, nt, 'nc-tat-thuong', 0, 'loiSaiDau', 'Không sai câu nào', function (v) { return String(v).indexOf('Không sai câu nào') === 0; });
+    postHang(L, nt, 'nc-tat-thuong', 0, 'dapAnDau', 'Cấp 4:', function (v) { return String(v).indexOf('Cấp 4:') === 0; });
+  }
+  /* L11: đổi bạn là xoá sạch dấu của CẢ HAI chế độ, công tắc trả về tắt; bạn khác vẫn gửi được.
+     Trước lúc đổi, màn tổng kết nâng cao phải tự vẽ đủ 12★ mà không POST thêm dòng nào. */
+  if (kq['nc-doi-ban']) {
+    hang(L, 'nc-doi-ban', 'selfTest-loi', nd['selfTest-loi'], '0');
+    hang(L, 'nc-doi-ban', 'ncDaBatLai', nd['ncDaBatLai'], 'bat');
+    [5, 6, 7].forEach(function (i) {
+      hang(L, 'nc-doi-ban', 'nc' + i + '-day-du', nd['nc' + i + '-dung'] === nd['nc' + i + '-tong'] ? 'du' : 'THIEU-CAU', 'du');
+    });
+    hang(L, 'nc-doi-ban', 'baoCaoNC', nd['baoCaoNC'], 'hien');
+    hang(L, 'nc-doi-ban', 'reportSao', nd['reportSao'], '12/12');
+    hang(L, 'nc-doi-ban', 'reportCheDo', nd['reportCheDo'], 'co-dau');
+    hang(L, 'nc-doi-ban', 'posts', nd['posts'], '4');
+    hang(L, 'nc-doi-ban', 'sauDoi.NC', nd['sauDoi.NC'], 'tat');
+    hang(L, 'nc-doi-ban', 'sauDoi.kho', nd['sauDoi.kho'], 'xoa-sach');
+    hang(L, 'nc-doi-ban', 'sauDoi.capDaNop', nd['sauDoi.capDaNop'], '{}');
+    postHang(L, nd, 'nc-doi-ban', 3, 'ten', 'Trà Giang');
+    postHang(L, nd, 'nc-doi-ban', 3, 'cap', '4');
+    postHang(L, nd, 'nc-doi-ban', 3, 'dung', String(nd['tg-dung']));
+    postHang(L, nd, 'nc-doi-ban', 3, 'tong', String(nd['tg-tong']));
+    postHang(L, nd, 'nc-doi-ban', 3, 'sao', '3');
+    postHang(L, nd, 'nc-doi-ban', 3, 'loiSaiDau', '(nâng cao) …', function (v) { return String(v).indexOf('(nâng cao)') === 0; });
+    postHang(L, nd, 'nc-doi-ban', 3, 'dapAnDau', 'Cấp 4 (nâng cao):', function (v) { return String(v).indexOf('Cấp 4 (nâng cao):') === 0; });
+  }
   return L;
 }
 
@@ -417,9 +699,11 @@ DOT_BIEN.forEach(function (d) {
   const ok = am ? chet.length === 0 : chet.length > 0;
   if (!ok) loi++;
   console.log('\n' + (ok ? '✓' : '✕') + ' ' + d.ten + ' — ' + d.mo);
-  if (chet.length) chet.slice(0, 4).forEach(function (c) { console.log('    cháy: ' + c); });
+  if (chet.length) chet.slice(0, 8).forEach(function (c) { console.log('    cháy: ' + c); });
   else if (!am) console.log('    ✕ IM LẶNG — luật này không có răng');
 });
 
-console.log('\nKẾT LUẬN: ' + (loi ? 'CÒN ' + loi + ' mục chưa đạt' : 'toàn bộ hàng đạt · 6/6 đột biến bị bắt · âm tinh im lặng'));
+const soDotBien = DOT_BIEN.filter(function (d) { return d.ten !== 'GOC' && d.ten.indexOf('AM-TINH') !== 0; }).length;
+console.log('\nKẾT LUẬN: ' + (loi ? 'CÒN ' + loi + ' mục chưa đạt'
+  : 'toàn bộ hàng đạt · ' + soDotBien + '/' + soDotBien + ' đột biến bị bắt · âm tinh im lặng'));
 process.exit(loi ? 1 : 0);
