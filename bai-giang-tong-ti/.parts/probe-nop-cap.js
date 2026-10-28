@@ -36,6 +36,24 @@
              hai chế độ không đè nhau. Nút + dừng ở MAX_SP (> mọi tỉ số trong bài) chứ không dừng
              ngay ở đích, kẻo bé dò nút ra đáp số.
 
+   L15 (thầy chốt 28/10, phase may-4) MỤC 4 — MÁY CẮT PHẦN cũng phải theo đúng luật đó:
+     "cộng trừ của số bé thì để ngay ở chỗ số bé, cộng trừ số lớn thì để ngay ở chỗ số lớn…
+      cộng một thì nó nhảy lên một ô… còn sai là cho là sai luôn, lớp năm rồi, lớn rồi".
+     ⇒ bốn nút − / + đổi SỐ PHẦN nằm TRONG sơ đồ, trái xuông đúng mép thanh của nó (đo bằng
+     getBoundingClientRect, không đọc CSS); một cái bấm thêm đúng MỘT ô; chữ "K phần" chạy theo
+     ô; máy KHÔNG rút gọn hình (3/6 vẫn vẽ 3 ô : 6 ô, in thêm "3/6 = 1/2" chứ không giấu);
+     thế sai không bị sửa hộ mà bị GỌI TÊN bằng ✕ rồi im khi về đúng; chỉ hai điều vật lý bị
+     chặn (MAY_TO ô mỗi hàng, MAY_TONG_O ô hai hàng) và nút tắt phải kèm lý do in ra được;
+     hai nút giá trị MỖI Ô nằm ở dải "Số của máy" và kẹp lấy đúng chữ nó đổi.
+
+   L16 (thầy chốt 28/10, CẢ HAI chế độ) "đừng có tách cái dữ liệu ra khỏi đề bài… cứ khoanh luôn
+     ở trên đề bài á, chứ đừng có tách riêng ra rồi đồng bộ cho tất cả các phần như vậy luôn á":
+     ⇒ mỗi chữ cầm được nằm NGUYỆN văn TRONG lời đề (tỉ số "2/5" bọc THÀNH HAI thẻ riêng — số 2
+     cho hàng trên, số 5 cho hàng dưới — chứ không bọc cả cụm); khay chỉ còn đúng những số đề
+     không in ra (TỔNG giấu sau chu vi · trung bình cộng, số 1 của "gấp N lần"), nhãn khay đổi
+     theo thật và hết treo dấu ":" khi khay trống; MỤC 1 cùng luật; thả thẻ không được viết lại
+     câu. Cửa đo đối xứng từng hàng thường ↔ hàng nâng cao, thêm N36–N39.
+
    Vì sao N process Chrome riêng cho mỗi phase: `localStorage` chỉ sống giữa các lần nạp khi
    dùng chung một `--user-data-dir`, và "mở lại trang" chỉ là mở lại THẬT khi trình duyệt
    đóng hẳn giữa hai phase.
@@ -302,8 +320,58 @@ function chay() {
     idoc.querySelector('.lv[data-cap="1"]').click();   /* cấp ôn: nơi DUY NHẤT có khung kéo–thả */
     step('dauHieuThuong', vanCau(1, 0).indexOf('Dấu hiệu') >= 0 ? 'con' : 'MAT-GOI-Y');
     step('headLeLoiThuong', headCua().indexOf(iw.CAP[1].hu) >= 0 ? 'con' : 'MAT');
-    step('nhanThuong', vanCau(1, 0).indexOf('Kéo 4 thẻ vào sơ đồ:') >= 0 ? 'con' : 'mat-nhan');
+    step('nhanThuong', vanCau(1, 0).indexOf(iw.LOI_KHOANH.replace(/:$/, '')) >= 0 ? 'con' : 'mat-nhan');
     step('thePhanThuong', thePhan());
+    /* ===== L16 (thầy chốt 28/10): "đừng tách dữ liệu ra khỏi đề bài — số nào muốn kéo thì để
+       luôn trên đề bài, khoanh số năm · khoanh số một". Đề THƯỜNG đi cùng đường với đề nâng cao,
+       chỉ khác cái chữ trong câu được BỌC VÒNG để em nhìn ra chỗ cầm được. ===== */
+    step('deDuLieuThuong', demTrong('.qvan .keo[draggable="true"]') >= 3 ? 'nam-trong-de' : 'DAY-VAO-KHAY');
+    step('phanTrongDeThuong', idoc.querySelector('#card-' + iw.cauK(1, 0) + ' .qvan .keo[data-loai="phan"]')
+      ? 'nam-trong-de' : 'DAY-VAO-KHAY');
+    step('khayKhongPhanThuong', demTrong('.qkeo .keo[data-loai="phan"]') === 0
+      ? 'sach-khay' : 'CON-' + demTrong('.qkeo .keo[data-loai="phan"]') + '-THE-PHAN');
+    step('nhanKhongTreOThuong', (function () {
+      var cs = idoc.querySelectorAll('#quiz-container .qkeo'), loi = 0;
+      for (var t = 0; t < cs.length; t++) {
+        var n = cs[t].querySelector('.nhan');
+        if (n && !cs[t].querySelectorAll('.keo').length && String(n.textContent).trim().slice(-1) === ':') loi++;
+      }
+      return loi ? 'CON-' + loi : 'tron-van';
+    }()));
+    /* Vòng khoanh ĐỀ THƯỜNG phải NHÌN THẤY được (viền hoặc nền), ngược hẳn chữ thường của nâng cao;
+       nếu hai chế độ in giống hệt thì bé không còn dấu hiệu nào chỉ chỗ cầm. */
+    step('khoanhCoVienThuong', (function () {
+      var ds = idoc.querySelectorAll('#quiz-container .qvan .keo'), co = 0, khong = 0;
+      for (var t = 0; t < ds.length; t++) {
+        if (!ds[t].offsetParent) continue;
+        var cs = iw.getComputedStyle(ds[t]);
+        var coVien = cs.borderTopWidth !== '0px' || cs.backgroundColor !== 'rgba(0, 0, 0, 0)' ||
+          cs.boxShadow !== 'none' || cs.fontWeight !== iw.getComputedStyle(ds[t].parentElement).fontWeight;
+        if (coVien) co++; else khong++;
+      }
+      return !co ? 'KHONG-VIEN-' + khong : (khong ? 'LECH-' + khong : 'khoanh-tron');
+    }()));
+    /* MỤC 1: phân số in trong câu ⇒ HAI con số hai thẻ riêng; "gấp N lần" chỉ in số N ⇒ cái 1
+       đề không viết mới xuống khay. Đo DOM thật của từng hàng lý thuyết. */
+    step('muc1KhoanhCau', (function () {
+      var lech = 0;
+      for (var t = 0; t < iw.TU.length; t++) {
+        var w = idoc.querySelector('#tu-' + t + ' .w');
+        if (!w) { lech++; continue; }
+        var dung = String(iw.TU[t].van).indexOf('{lan}') >= 0 ? 1 : 2;
+        if (w.querySelectorAll('.keo[data-loai="phan"]').length !== dung) lech++;
+      }
+      return lech ? 'LECH-' + lech + '-CAU' : 'du-cau';
+    }()));
+    step('muc1KhongTach', (function () {
+      var trongKhay = 0, dung = 0;
+      for (var t = 0; t < iw.TU.length; t++) {
+        if (String(iw.TU[t].van).indexOf('{lan}') >= 0) dung++;
+        var k = idoc.querySelector('#tu-' + t + ' .qkeo');
+        trongKhay += k ? k.querySelectorAll('.keo[data-loai="phan"]').length : 0;
+      }
+      return trongKhay === dung ? 'chi-so-de-khong-in' : 'TACH-' + trongKhay + '-DUNG-' + dung;
+    }()));
     step('oNhamThuong', iw.oNham('phan', idoc.getElementById('card-' + iw.cauK(1, 0))) > 0 ? 'con-nhay' : 'MAT-NHAY');
     step('coTiengThuong', coTieng());
     /* L14 — ĐỀ THƯỜNG vẫn vẽ sẵn ô: đủ s.a + s.b ô và KHÔNG có nút − / + (nút chỉ dành cho nâng cao) */
@@ -484,6 +552,35 @@ function chay() {
     step('goiYTroVe', vanCau(4, 0).indexOf('Dấu hiệu') >= 0 ? 'con' : 'MAT-GOI-Y');
     step('headTroVe', headCua().indexOf(iw.CAP[4].hu) >= 0 ? 'con' : 'MAT-LOI-DAU');
     step('coTiengTroVe', coTieng());
+    /* ===== L16 (thầy chốt 28/10): THẢ THẺ XONG thì lời đề vẫn phải nguyên là trang sách. Chữ rơi
+       vào ô là con số máy giải; còn chữ trong câu KHÔNG được ai viết lại — "2/5" bị thay bằng
+       "7 phần" là máy đếm hộ và xoá mất dữ liệu của đề. Đo bằng click thật ở đề THƯỜNG. */
+    step('thaXongConNguyenVan', (function () {
+      var lv = idoc.querySelector('.lv[data-cap="1"]');
+      if (lv) lv.click();
+      var c16 = idoc.getElementById('card-' + iw.cauK(1, 0));
+      if (!c16) return 'khong-co-card';
+      var q16 = iw.cauCua(1, 0), s16 = iw.doiSo(q16.dk);
+      var ty = iw.tySoTrongDe(q16, s16);
+      var vong = 0;
+      while (vong++ < 8) {
+        var tro = c16.querySelector('.drop:not(.ok)');
+        if (!tro) break;
+        var ds = c16.querySelectorAll('.qvan .keo[draggable="true"]'), xong = false;
+        for (var t = 0; t < ds.length; t++) {
+          if (ds[t].getAttribute('data-loai') !== tro.getAttribute('data-loai')) continue;
+          ds[t].click(); tro.click(); xong = true; break;
+        }
+        if (!xong) break;
+      }
+      var doRo = c16.querySelectorAll('.drop.ok').length;
+      if (doRo !== 4) return 'THA-CH-' + doRo + '-TRONG-4-O';
+      var noi = String(c16.querySelector('.qvan').textContent);
+      if (noi.indexOf(ty) < 0) return 'BI-VIET-LAI[' + ty + ']';
+      if (noi.indexOf(String(s16.tong)) < 0) return 'BI-VIET-LAI[' + s16.tong + ']';
+      if (!c16.querySelector('.qvan b')) return 'KHONG-CON-KHOANH';
+      return 'con-nguyen-chu';
+    }()));
     C4T = lamCap(4, []);
     step('th4-so', C4T.so); step('th4-dung', C4T.dung); step('th4-tong', C4T.tong);
     step('cap4ThuongDaGui', iw.capDaNop['th-4'] ? 'co' : 'khong');
@@ -526,13 +623,140 @@ function chay() {
     }()));
     ketLuan(); return done();
   }
+  /* ================= L15 (thầy chốt 28/10) — MỤC 4: − / + NGAY DƯỚI MỖI THANH =================
+     "Cộng trừ của số bé thì để ngay ở chỗ số bé… cộng một thì nhảy lên một ô… còn sai là cho
+     là sai luôn, lớp năm rồi." ⇒ mọi hàng dưới đây đo bằng CLICK THẬT vào đúng cái nút em nhìn
+     thấy rồi ĐẾM Ô TRÊN HÌNH, không đọc chuỗi nguồn và không gọi hàm tay:
+       (a) 4 nút đổi số phần nằm TRONG sơ đồ, 2 nút giá trị mỗi ô nằm ở dải "Số của máy";
+       (b) một cái bấm = đúng MỘT ô, hai cái bấm = đúng HAI ô (nút vẽ lại phải được nối lại);
+       (c) chữ "K phần" dưới thanh chạy theo ô;
+       (d) máy KHÔNG rút gọn hình: 3/6 vẫn vẽ 3 ô : 6 ô và in "3/6 = 1/2";
+       (e) thế sai bị GỌI TÊN bằng ✕ rồi im khi về đúng, không bị sửa hộ;
+       (f) tới trần thì nút + tắt và có lý do in ra được;
+       (g) bấm máy cắt phần không được gửi gì lên Sheet.                                */
+  if (P === 'may-4') {
+    var b4 = idoc.querySelector('#muc-4 .may-steps [data-b="4"]');
+    if (!b4) throw new Error('khong co nut B4 trong muc 4');
+    b4.click();
+    function oMay(t) { var h = idoc.querySelectorAll('#may-board .cells'); return t < h.length ? h[t].querySelectorAll('.bar.phan').length : -1; }
+    function nutMay(k) { return idoc.querySelector('#may-board [data-doi="' + k + '"]'); }
+    function bamMay(k) { var b = nutMay(k); if (!b || b.disabled) return false; b.click(); return true; }
+    function bamDen(k, giaTriToiDa) {
+      for (var t = 0; t < 24; t++) { if (!giaTriToiDa(k)) return t; if (!bamMay(k)) return t; }
+      return t;
+    }
+    function chuNhanMay(t) { var d = idoc.querySelectorAll('#may-board .nutsp .dem'); return t < d.length ? String(d[t].textContent) : '(khong-co-nhan)'; }
+    function chuMay(el) { var e = idoc.getElementById(el); return e ? String(e.innerText) : '(khong-co-nhan)'; }
+    var loiCap = function () { return String(idoc.getElementById('may-cap').innerText).indexOf('✕') >= 0; };
+
+    step('nutTrongSoDo', (function () {
+      var trong = idoc.querySelectorAll('#may-board [data-doi]').length;
+      var dai = idoc.querySelectorAll('.may-doi [data-doi]').length;
+      return trong === 4 && dai === 2 ? '4-trong-so-do' : 'LECH-board' + trong + '-dai' + dai;
+    }()));
+    /* đúng CHỖ: cụm nút phải TRÁI xuông mép thanh của mình và nằm DƯỚI thanh — "cộng trừ của
+       số bé để ngay ở chỗ số bé". Đo hình (getBoundingClientRect), không đọc CSS.
+       SO ĐÍCH THÂN NÚT − chứ không so cái span chứa nó: span stretched thì rộng cả hàng,
+       mép trái của nó luôn trùng mép hàng dù nút bên trong bị dồn sang phải (đó đúng là cái
+       hình cũ thầy vừa chê). Mỗi hàng là MỘT .track[data-nut], không phải một .khol. */
+    step('nutDungThanh', (function () {
+      var tracks = idoc.querySelectorAll('#may-board .track[data-nut]'), lac = [];
+      for (var t = 0; t < tracks.length; t++) {
+        var o = tracks[t].querySelector('.cells'), b = tracks[t].querySelector('.nutsp .btn');
+        if (!o || !b) { lac.push('thieu-' + t); continue; }
+        var a = o.getBoundingClientRect(), r = b.getBoundingClientRect();
+        if (Math.abs(r.left - a.left) > 6) lac.push('ngang-' + Math.round(r.left - a.left));
+        if (r.top < a.bottom - 2) lac.push('tren-' + Math.round(r.top - a.bottom));
+      }
+      return tracks.length !== 2 ? 'SO-HANG-' + tracks.length : (lac.length ? 'LECH-' + lac.join(',') : 'duoi-dung-thanh');
+    }()));
+    /* (b) một cái bấm = đúng một ô — lấy số ô TRÊN HÌNH làm chuẩn, không lấy bộ nhớ của máy */
+    var oTruoc = oMay(0), oBanDuoi = oMay(1);
+    step('bamMotLanMotO', (function () {
+      bamMay('a+');
+      return oMay(0) === oTruoc + 1 && oMay(1) === oBanDuoi ? 'them-dung-1-o' : 'LECH-' + oTruoc + '-' + oMay(0) + '-hangDuoi-' + oBanDuoi + '-' + oMay(1);
+    }()));
+    step('bamHaiLanHaiO', (function () {
+      bamMay('a+');
+      return oMay(0) === oTruoc + 2 ? 'hai-lan-hai-o' : 'LECH-' + oTruoc + '-' + oMay(0);
+    }()));
+    step('truMotLanMotO', (function () {
+      bamMay('a-'); bamMay('a-');
+      return oMay(0) === oTruoc && oMay(1) === oBanDuoi ? 'tr-dung-1-o' : 'LECH-' + oMay(0);
+    }()));
+    step('nhanDemInTheo', (function () {
+      return chuNhanMay(0) === oMay(0) + ' phần' && chuNhanMay(1) === oMay(1) + ' phần'
+        ? 'in-khop-o' : 'SAI-' + chuNhanMay(0) + '|' + chuNhanMay(1) + '-hinh-' + oMay(0) + ':' + oMay(1);
+    }()));
+    /* (d) chữ TỈ SỐ mở đầu bằng ĐÚNG thế bé dựng; rút gọn chỉ là chữ bổ sung, hình không đổi */
+    step('tySoNguyenVan', chuMay('may-ti') === oMay(0) + '/' + oMay(1) ? 'nguyen-van' : 'SAI-' + chuMay('may-ti'));
+    var oGoc0 = oMay(0), oGoc1 = oMay(1);
+    bamMay('bb+');
+    step('soVanNguyenO', (function () {
+      return oMay(0) === oGoc0 && oMay(1) === oGoc1 + 1 ? 'khong-rut-hinh' : 'BI-RUT-' + oMay(0) + ':' + oMay(1);
+    }()));
+    step('tySoChiRutGon', (function () {
+      var u = 1, x = oGoc0, y = oGoc1 + 1;
+      for (var t = 2; t <= Math.min(x, y); t++) if (x % t === 0 && y % t === 0) { u = t; }
+      var mong = x + '/' + y + (u > 1 ? ' = ' + (x / u) + '/' + (y / u) : '');
+      return chuMay('may-ti') === mong ? 'co-dang-gon' : 'SAI-' + chuMay('may-ti') + '-mong-' + mong;
+    }()));
+    /* (e) sai thì gọi tên, đúng thì im — máy không tự ý sửa hàng của em.
+       MUỐN CÓ THẾ SAI a>b thì PHẢI BỚT HÀNG DƯỚI TRƯỚC: hai hàng bị trần "tối đa 12 ô"
+       chặn nên từ 3:6, hàng trên tới 6 là hết chỗ — 6:6 đúng là thế sai (máy đã gọi tên)
+       nhưng không phải "hàng trên NHIỀU hơn", và hàng chữ ✕ có hai câu khác nhau cho hai
+       thế. Ép hàng dưới xuống 2 ô rồi mới so: bé nhìn thấy ngay cái sai ngược. */
+    step('saiDuocGoiTen', (function () {
+      bamDen('bb-', function () { return oMay(1) > 2; });
+      for (var t = 0; t < 12 && oMay(0) <= oMay(1); t++) if (!bamMay('a+')) break;
+      return oMay(0) > oMay(1) && loiCap() ? 'goi-ten-sai' : 'KHONG-GOI-TEN-o-' + oMay(0) + ':' + oMay(1);
+    }()));
+    /* Từ thế NGƯỢC (a>b): phải lùi về a<b thì ✕ mới mất. Dừng ở a>=b thì hàng ✕ "hai hàng
+       bằng nhau" vẫn sáng — đó là thế sai thật, không phải lỗi máy. */
+    step('saiDaHet', (function () {
+      for (var t = 0; t < 12 && oMay(0) >= oMay(1); t++) if (!bamMay('a-')) break;
+      return oMay(0) < oMay(1) && !loiCap() ? 'im' : 'CON-✕-o-' + oMay(0) + ':' + oMay(1);
+    }()));
+    /* (f) trần vật lý: mỗi hàng MAY_TO ô ⇒ nút + tắt và hàng chữ giải thích không được trống */
+    step('tatDenTran', (function () {
+      bamDen('bb-', function (k) { return oMay(1) > 1; });
+      bamDen('a+', function (k) { return oMay(0) < iw.MAY_TO; });
+      var b = nutMay('a+');
+      return oMay(0) === iw.MAY_TO && b && b.disabled ? 'tat-o-' + iw.MAY_TO : 'LECH-o-' + oMay(0) + '-tat-' + (b ? b.disabled : 'khong-co-nut');
+    }()));
+    step('tranCoLyDo', String(idoc.getElementById('may-bo').innerText).indexOf('hết chỗ') >= 0 ? 'co-ly-do' : 'TRONG-TRUY');
+    /* (g) hai nút MỖI Ô đổi giá trị một phần ⇒ cả nhãn MỖI Ô lẫn TỔNG phải chạy theo phép tính */
+    step('nhanMayKhopMay', (function () {
+      bamMay('mot+');
+      var s = iw.maySo();
+      return chuMay('may-mot') === String(s.mot) && chuMay('may-tong') === String(s.tong)
+        && s.tong === (oMay(0) + oMay(1)) * s.mot ? 'khop' : 'SAI-moi-' + chuMay('may-mot') + '-tong-' + chuMay('may-tong');
+    }()));
+    step('nhanCongThucTheoO', (function () {
+      var s = iw.maySo();
+      var l1 = chuMay('ct-be-lab').toLowerCase(), l2 = chuMay('ct-lon-lab').toLowerCase();
+      return l1 === 'số bé (' + s.nho + ' phần)' && l2 === 'số lớn (' + s.to + ' phần)'
+        ? 'nhan-theo-o' : 'SAI-' + l1 + '|' + l2;
+    }()));
+    /* maySo() TRẢ RA a / b (b = số ô hàng dưới); "bb" là tên biến trong máy chứ không có
+       trong kết quả ⇒ đọc s.bb ra undefined và hàng này chết oan. */
+    step('mayVeDungTheBe', (function () {
+      var s = iw.maySo();
+      return s.a === oMay(0) && s.b === oMay(1) && s.mot === Number(chuMay('may-mot'))
+        ? 'dung-the' : 'LECH-' + s.a + ':' + s.b + '-hinh-' + oMay(0) + ':' + oMay(1);
+    }()));
+    step('posts', iw.__posts.length);
+    return done();
+  }
   throw new Error('phase la: ' + P);
 }
 <\/script></body></html>`;
 }
 
 /* ---------------- BẢN GỐC + ĐỘT BIẾN ---------------- */
-const P_ALL = ['sach', 'cap4', 'nua-cap5', 'mo-lai', 'on', 'chan-on', 'du', 'sau-nop', 'doi-ban'];
+/* 'may-4' chạy ĐẦU: MỤC 4 là bài giảng, không được dính nháp của chuỗi nộp. Bấm nút máy cắt
+   phần không gọi luuBai() ⇒ profile vẫn sạch khi tới phase 'sach' (hàng kho=khong). */
+const P_ALL = ['may-4', 'sach', 'cap4', 'nua-cap5', 'mo-lai', 'on', 'chan-on', 'du', 'sau-nop', 'doi-ban'];
 const P_NC = ['nc-sach', 'nc-cap4', 'nc-mo-lai', 'nc-tat-thuong', 'nc-doi-ban'];
 const DOT_BIEN = [
   { ten: 'GOC', phase: P_ALL.concat(P_NC), sua: [] },
@@ -553,14 +777,14 @@ const DOT_BIEN = [
     sua: [['cap.ds.push(nq || q);', 'cap.ds.push(q);']] },
   { ten: 'N2-hien-loi-chi-dan-cach-lam', mo: 'dòng đầu cấp vẫn ghi lời chỉ dẫn cách làm của đề thường', phase: ['nc-sach'],
     sua: [['(NC ? (cham ? LOI_DAU_NC.cham : LOI_DAU_NC.on) : capCua(activeCap).hu)', 'capCua(activeCap).hu']] },
-  { ten: 'N3-con-nhan-cach-lam', mo: 'nhãn khay thẻ vẫn bảo "Kéo 4 thẻ vào sơ đồ:" (đề thường)', phase: ['nc-sach'],
-    sua: [["var nhan = NC ? LOI_NC : 'Kéo 4 thẻ vào sơ đồ:';", "var nhan = 'Kéo 4 thẻ vào sơ đồ:';"]] },
+  { ten: 'N3-con-nhan-cach-lam', mo: 'nhãn nhắc vẫn là lối cũ "kéo 4 thẻ" — lời đề bị coi như không có dữ liệu', phase: ['nc-sach'],
+    sua: [["var nhan = NC ? LOI_NC : (c.length ? LOI_KHOANH_CON : LOI_KHOANH);", "var nhan = LOI_NC;"]] },
   { ten: 'N4-mat-khung-keo-tha', mo: 'nâng cao ẩn LUÔN sơ đồ kéo (phải giữ khung, chỉ ẩn gợi ý)', phase: ['nc-sach'],
-    sua: [["if (!cham) html += veBuKeo(i, j, nc) + veSoDoKeo(i, j)", "if (!cham && !NC) html += veBuKeo(i, j, nc) + veSoDoKeo(i, j)"]] },
+    sua: [["if (!cham) html += veBuKeo(i, j, deKeo) + veSoDoKeo(i, j)", "if (!cham && !NC) html += veBuKeo(i, j, deKeo) + veSoDoKeo(i, j)"]] },
   { ten: 'N5-con-tu-goi-y', mo: 'chữ "Dấu hiệu" vẫn hiện trên đề nâng cao', phase: ['nc-sach', 'nc-cap4'],
     sua: [["(NC ? '' : '<span class=\"qdh\">Dấu hiệu: ' + q.dh + '</span>')", "'<span class=\"qdh\">Dấu hiệu: ' + q.dh + '</span>'"]] },
-  { ten: 'N6-the-so-phan-van-cong-ho', mo: 'thẻ số phần nâng cao vẫn ghi phép cộng "2 + 3" — đếm hộ em', phase: ['nc-sach'],
-    sua: [["if (loai === 'phan') return NC ? tySoTrongDe(q, s) : s.nho + ' + ' + s.to;", "if (loai === 'phan') return s.nho + ' + ' + s.to;"]] },
+  { ten: 'N6-the-so-phan-van-cong-ho', mo: 'thẻ số phần vẫn ghi phép cộng "2 + 5" — đếm hộ em, mất luôn chữ của đề', phase: ['nc-sach'],
+    sua: [["if (loai === 'phan') return tySoTrongDe(q, s);", "if (loai === 'phan') return s.nho + ' + ' + s.to;"]] },
   { ten: 'N7-o-van-nhay-sanh', mo: 'ô đích vẫn nháy viền sẵn khi cầm thẻ lúc đang nâng cao', phase: ['nc-sach'],
     sua: [['function oNham(loai, root) {\n  boNham();\n  if (NC) return 0;', 'function oNham(loai, root) {\n  boNham();']] },
   { ten: 'N8-co-van-doc', mo: 'cô trợ giảng vẫn đọc khi đang nâng cao (ẩn cô là điều kiện bắt buộc)', phase: ['nc-sach'],
@@ -574,17 +798,17 @@ const DOT_BIEN = [
   { ten: 'N12-nut-khong-duoc-noi', mo: 'nút hiện ra nhưng không được nối ⇒ click vô ích (lỗi thật 27/10 của bài 3)', phase: ['nc-sach'],
     sua: [['if (!b.onclick) b.onclick = batNC;', '']] },
   { ten: 'N13-de-van-khoanh-goi-y', mo: 'thẻ trong lời đề nâng cao vẫn viền khoanh (quên gắn lớp thuong)', phase: ['nc-sach'],
-    sua: [["'<span class=\"keo thuong\" id=\"keo-q-'", "'<span class=\"keo\" id=\"keo-q-'"]] },
+    sua: [["'<span class=\"keo' + (NC ? ' thuong' : '') + '\" id=\"keo-q-'", "'<span class=\"keo\" id=\"keo-q-'"]] },
   { ten: 'N14-css-thuong-bi-ten', mo: 'lớp thuong có gắn nhưng CSS bị đổi tên ⇒ vòng khoanh còn nguyên trên màn hình', phase: ['nc-sach'],
     sua: [['.keo.thuong { display: inline;', '.keo.thuongX { display: inline;']] },
-  { ten: 'N15-du-lieu-bi-rut-khoi-de', mo: 'đề nâng cao vẫn bày hết dữ liệu ra khay — bé không phải tự tìm trong câu', phase: ['nc-sach'],
-    sua: [["var nc = NC && !cham ? vanKeoNC(q, doiSo(q.dk), i + '-' + j, r.text) : null;", 'var nc = null;']] },
+  { ten: 'N15-du-lieu-bi-rut-khoi-de', mo: 'đề vẫn bày hết dữ liệu ra khay — bé không phải tự tìm trong câu', phase: ['nc-sach'],
+    sua: [["var deKeo = !cham ? vanKeoDe(q, doiSo(q.dk), i + '-' + j, r.text) : null;", 'var deKeo = null;']] },
   { ten: 'N16-the-phan-tra-san-cong-so', mo: 'nâng cao đưa sẵn con số phần đã cộng (7) — em mất bước cộng tỉ số', phase: ['nc-sach'],
-    sua: [['return NC ? tySoTrongDe(q, s) : s.nho', 'return NC ? String(s.n) : s.nho']] },
+    sua: [["if (loai === 'phan') return tySoTrongDe(q, s);", "if (loai === 'phan') return NC ? String(s.n) : tySoTrongDe(q, s);"]] },
   { ten: 'N17-thi-phan-tim-bang-con-so', mo: 'thẻ tỉ số bị đi tìm bằng con số đáp thay bằng chữ in trong đề ⇒ rơi lại khay', phase: ['nc-sach'],
     sua: [["var chu = p.loai === 'phan' ? String(p.txt) : String(p.gia);", 'var chu = String(p.gia);']] },
   { ten: 'N18-nhan-tre-dau-hai-cham', mo: 'khay đã sạch thẻ mà nhãn vẫn kết thúc bằng ":" — câu treo giữa trang', phase: ['nc-sach'],
-    sua: [["if (nc && !c.length) nhan = nhan.replace(/:$/, '.');", '']] },
+    sua: [["if (!c.length) nhan = nhan.replace(/:$/, '.');", '']] },
   { ten: 'N19-the-ty-so-in-chu-la', mo: 'thẻ số phần lấy kiểu "k lần" cho MỌI câu ⇒ câu tỉ số in ra "null lần" ngay trên đề', phase: ['nc-sach'],
     sua: [["if (/\\{lan\\}/.test(mau)) return s.lan + ' lần';", "if (true) return s.lan + ' lần';"]] },
   /* --- đột biến L14 (28/10): sơ đồ nâng cao dựng bằng nút − / + --- */
@@ -602,6 +826,36 @@ const DOT_BIEN = [
     sua: [['  if (NC && !soDuKhop(i, j)) {', '  if (false) {']] },
   { ten: 'N26-doi-ban-giu-o-ban-cu', mo: 'đổi bạn mà giữ số ô bạn cũ bấm ⇒ bạn mới được làm hộ sơ đồ', phase: P_NC,
     sua: [['  runState = null; nhap = {}; activeCap = 1;\n  SOPHAN = {};', '  runState = null; nhap = {}; activeCap = 1;']] },
+  /* --- đột biến L15 (28/10): MỤC 4 — − / + dưới đúng mỗi thanh, một bấm một ô, sai là gọi tên --- */
+  { ten: 'N27-nut-hang-tren-bi-xoa', mo: 'hàng trên mất cụm − / + ⇒ chỉ còn 2 nút trong sơ đồ', phase: ['may-4'],
+    sua: [['nut: nutMayHTML(0)', 'nut: null']] },
+  { ten: 'N28-nut-bam-khong-do-so-do', mo: 'nút đổi số ô trong bộ nhớ nhưng quên vẽ lại sơ đồ ⇒ bấm mà hình đứng yên', phase: ['may-4'],
+    sua: [['  else may.mot = x;\n  veMay();', '  else may.mot = x;']] },
+  { ten: 'N29-ty-so-an-the-cua-be', mo: 'máy chỉ in dạng rút gọn (1/2) ⇒ giấu mất đúng cái tỉ số bé vừa dựng', phase: ['may-4'],
+    sua: [["  document.getElementById('may-ti').innerText =\n    (r[0] === s.a && r[1] === s.b) ? (s.a + '/' + s.b) : (s.a + '/' + s.b + ' = ' + r[0] + '/' + r[1]);",
+          "  document.getElementById('may-ti').innerText = r[0] + '/' + r[1];"]] },
+  { ten: 'N30-hinh-rut-gon-theo-chu', mo: 'vẽ theo tỉ số đã rút gọn (3/6 thành 1 ô : 2 ô) — chữ hô một nẽ, hình vẽ một nẽ', phase: ['may-4'],
+    sua: [['  var a = may.a, b = may.bb, mot = may.mot;', '  var g = rutTi(may.a, may.bb), a = g[0], b = g[1], mot = may.mot;']] },
+  { ten: 'N31-sai-khong-bi-goi-ten', mo: 'hàng trên dài hơn hàng dưới mà máy vẫn im (bỏ lời ✕)', phase: ['may-4'],
+    sua: [["function loiMay(s) {", "function loiMay(s) { return '';"]] },
+  { ten: 'N32-nut-tat-khong-ly-do', mo: 'tới trần thì nút + tắt mà không in ra lý do ⇒ bé tưởng máy liệt', phase: ['may-4'],
+    sua: [["  return lo.join(' · ');", "  return '';"]] },
+  { ten: 'N33-nhan-moi-o-khong-chay', mo: 'quên cập nhật nhãn MỖI Ô ⇒ bé bấm thấy TỔNG nhảy mà không hiểu cái gì vừa đổi', phase: ['may-4'],
+    sua: [["  document.getElementById('may-mot').innerText = String(s.mot);\n", '']] },
+  { ten: 'N34-nut-moi-ve-khong-noi', mo: 'sơ đồ vẽ lại mà quên nối nút ⇒ cái bấm THỨ HAI chết (bài học 27/10)', phase: ['may-4'],
+    sua: [['  ganNutMay();\n  nhanMay();', '  nhanMay();']] },
+  { ten: 'N35-cum-nut-troi-sang-mep-phai', mo: 'cụm − / + trôi sang mép phải của cả hàng (flex-end) — nhìn như của thanh kia', phase: ['may-4'],
+    sua: [['.sodo .track.lech-cot[data-nut] { display: flex; flex-direction: column; align-items: flex-start;',
+          '.sodo .track.lech-cot[data-nut] { display: flex; flex-direction: column; align-items: flex-end;']] },
+  /* --- đột biến L16 (28/10): dữ liệu nằm NGAY TRÊN ĐỀ, khoanh từng con số --- */
+  { ten: 'N36-de-thuong-bi-tach-khay', mo: 'đề thường bị rút hết dữ liệu về khay riêng — đúng cái thầy cấm', phase: ['nc-sach'],
+    sua: [["var deKeo = !cham ? vanKeoDe(q, doiSo(q.dk), i + '-' + j, r.text) : null;", "var deKeo = !cham && NC ? vanKeoDe(q, doiSo(q.dk), i + '-' + j, r.text) : null;"]] },
+  { ten: 'N37-muc1-khoanh-ca-phan-so', mo: 'MỤC 1 khoanh trọn "2/5" thành MỘT thẻ — thầy đòi khoanh số hai · khoanh số năm riêng', phase: ['nc-sach'],
+    sua: [["    trong.push(lay(0, s.a, d));\n    trong.push(lay(1, s.b, d + String(s.a).length + 1));", "    trong.push(lay(0, s.a, d));"]] },
+  { ten: 'N38-muc1-nhot-so-xuong-khay', mo: 'MỤC 1 không tìm phân số trong câu ⇒ số bị đẩy xuống khay, lời đề mất chữ', phase: ['nc-sach'],
+    sua: [["var ty = s.a + '/' + s.b, d = timTrongVan(van, ty, []);", 'var ty = s.a + \'/\' + s.b, d = -1;']] },
+  { ten: 'N39-tha-the-de-viet-lai-de', mo: 'thả thẻ xong máy ghi CON SỐ của nó đè lên chữ đề in ("2/5" hóa "7") — mất trang sách', phase: ['nc-tat-thuong'],
+    sua: [["var chuDe = chipEl ? chipEl.textContent : String(keo.gia);", "var chuDe = String(keo.gia);"]] },
   { ten: 'AM-TINH-doi-mau-banner', mo: 'chỉ đổi màu nền banner — phải KHÔNG cháy hàng nào', phase: P_ALL.concat(P_NC),
     sua: [['background:#DCFCE7', 'background:#F0FDF4']] }
 ];
@@ -664,8 +918,12 @@ function bang(kq) {
   /* Mỗi phase đều báo máy có giọng đọc hay không: đột biến chỉ chạy chuỗi nc- thì không có
      hàng "sach" để đọc ⇒ phải lấy từ chính phase nc-sach, nếu không hàng cô đọc cháy GIẢ và
      một đột biến đui thật vẫn bị tưởng là có răng. */
-  const mayCoTieng = (s.coTiengMay || ns.coTiengMay || nt.coTiengMay) === 'co';
-  Object.keys(kq).forEach(function (p) { if (kq[p]['LOI-DRIVER']) hang(L, p, 'driver', kq[p]['LOI-DRIVER'], 'chay duoc'); });
+  const mayCoTieng = (s.coTiengMay || ns.coTiengMay || nt.coTiengMay || (kq['may-4'] || {}).coTiengMay) === 'co';
+  /* MỌI phase đều có hàng "driver": im lặng khi chạy trọn vẹn, chứa lỗi khi driver chết giữa
+     chừng. Nếu chỉ ghi hàng lúc có lỗi thì hàng đó không tồn tại ở BẢN GỐC, bộ lọc "hàng xanh
+     → đỏ" bỏ qua ⇒ đột biến làm driver crash hiện ra như mớ hàng "(KHONG-CO-HANG)" mà không
+     biết crash ở câu nào (đo N27 ngày 28/10). */
+  Object.keys(kq).forEach(function (p) { hang(L, p, 'driver', kq[p]['LOI-DRIVER'] || 'chay duoc', 'chay duoc'); });
 
   if (kq.sach) {
     hang(L, 'sach', 'selfTest-loi', s['selfTest-loi'], '0');
@@ -760,6 +1018,30 @@ function bang(kq) {
     postHang(L, db, 'doi-ban', 0, 'sao', '3');
   }
 
+  /* ================= HÀNG CỦA MỤC 4 — MÁY CẮT PHẦN (L15) ================= */
+  if (kq['may-4']) {
+    const m4 = kq['may-4'];
+    hang(L, 'may-4', 'selfTest-loi', m4['selfTest-loi'], '0');
+    hang(L, 'may-4', 'soMucTkiem', m4['soMucTkiem'], mayCoTieng ? '117' : '115');
+    hang(L, 'may-4', 'nutTrongSoDo', m4['nutTrongSoDo'], '4-trong-so-do');
+    hang(L, 'may-4', 'nutDungThanh', m4['nutDungThanh'], 'duoi-dung-thanh');
+    hang(L, 'may-4', 'bamMotLanMotO', m4['bamMotLanMotO'], 'them-dung-1-o');
+    hang(L, 'may-4', 'bamHaiLanHaiO', m4['bamHaiLanHaiO'], 'hai-lan-hai-o');
+    hang(L, 'may-4', 'truMotLanMotO', m4['truMotLanMotO'], 'tr-dung-1-o');
+    hang(L, 'may-4', 'nhanDemInTheo', m4['nhanDemInTheo'], 'in-khop-o');
+    hang(L, 'may-4', 'tySoNguyenVan', m4['tySoNguyenVan'], 'nguyen-van');
+    hang(L, 'may-4', 'soVanNguyenO', m4['soVanNguyenO'], 'khong-rut-hinh');
+    hang(L, 'may-4', 'tySoChiRutGon', m4['tySoChiRutGon'], 'co-dang-gon');
+    hang(L, 'may-4', 'saiDuocGoiTen', m4['saiDuocGoiTen'], 'goi-ten-sai');
+    hang(L, 'may-4', 'saiDaHet', m4['saiDaHet'], 'im');
+    hang(L, 'may-4', 'tatDenTran', m4['tatDenTran'], 'tat-o-8');
+    hang(L, 'may-4', 'tranCoLyDo', m4['tranCoLyDo'], 'co-ly-do');
+    hang(L, 'may-4', 'nhanMayKhopMay', m4['nhanMayKhopMay'], 'khop');
+    hang(L, 'may-4', 'nhanCongThucTheoO', m4['nhanCongThucTheoO'], 'nhan-theo-o');
+    hang(L, 'may-4', 'mayVeDungTheBe', m4['mayVeDungTheBe'], 'dung-the');
+    hang(L, 'may-4', 'posts', m4['posts'], '0');
+  }
+
   /* ================= HÀNG CỦA CHẾ ĐỘ NÂNG CAO (L8–L11) ================= */
   if (kq['nc-sach']) {
     hang(L, 'nc-sach', 'selfTest-loi', ns['selfTest-loi'], '0');
@@ -767,7 +1049,7 @@ function bang(kq) {
     hang(L, 'nc-sach', 'dauHieuThuong', ns['dauHieuThuong'], 'con');
     hang(L, 'nc-sach', 'headLeLoiThuong', ns['headLeLoiThuong'], 'con');
     hang(L, 'nc-sach', 'nhanThuong', ns['nhanThuong'], 'con');
-    hang(L, 'nc-sach', 'thePhanThuong', ns['thePhanThuong'], 'con-cong-thuc');
+    hang(L, 'nc-sach', 'thePhanThuong', ns['thePhanThuong'], 'ty-so-trong-de');
     hang(L, 'nc-sach', 'oNhamThuong', ns['oNhamThuong'], 'con-nhay');
     hang(L, 'nc-sach', 'coTiengThuong', ns['coTiengThuong'], mayCoTieng ? 'co-tieng' : 'khong-co-may');
     hang(L, 'nc-sach', 'ncSauGat', ns['ncSauGat'], 'bat');
@@ -786,6 +1068,15 @@ function bang(kq) {
   hang(L, 'nc-sach', 'phanTrongDe', ns['phanTrongDe'], 'nam-trong-de');
   hang(L, 'nc-sach', 'khayKhongPhan', ns['khayKhongPhan'], 'sach-khay');
   hang(L, 'nc-sach', 'nhanKhongTreO', ns['nhanKhongTreO'], 'tron-van');
+  /* L16 — phía ĐỀ THƯỜNG: dữ liệu nằm trong câu, vòng khoanh nhìn thấy được, khay sạch thẻ tỉ số,
+     MỤC 1 khoanh từng con số của phân số ngay trên đề. */
+  hang(L, 'nc-sach', 'deDuLieuThuong', ns['deDuLieuThuong'], 'nam-trong-de');
+  hang(L, 'nc-sach', 'phanTrongDeThuong', ns['phanTrongDeThuong'], 'nam-trong-de');
+  hang(L, 'nc-sach', 'khayKhongPhanThuong', ns['khayKhongPhanThuong'], 'sach-khay');
+  hang(L, 'nc-sach', 'nhanKhongTreOThuong', ns['nhanKhongTreOThuong'], 'tron-van');
+  hang(L, 'nc-sach', 'khoanhCoVienThuong', ns['khoanhCoVienThuong'], 'khoanh-tron');
+  hang(L, 'nc-sach', 'muc1KhoanhCau', ns['muc1KhoanhCau'], 'du-cau');
+  hang(L, 'nc-sach', 'muc1KhongTach', ns['muc1KhongTach'], 'chi-so-de-khong-in');
     /* L14 — sơ đồ nâng cao dựng bằng nút − / +, đo bằng click thật */
     hang(L, 'nc-sach', 'soDoThuVeSan', ns['soDoThuVeSan'], 'du-o-khong-nut');
     hang(L, 'nc-sach', 'soDoKhongVeSan', ns['soDoKhongVeSan'], 'moi-hang-1-o');
@@ -857,6 +1148,7 @@ function bang(kq) {
     hang(L, 'nc-tat-thuong', 'goiYTroVe', nt['goiYTroVe'], 'con');
     hang(L, 'nc-tat-thuong', 'headTroVe', nt['headTroVe'], 'con');
     hang(L, 'nc-tat-thuong', 'coTiengTroVe', nt['coTiengTroVe'], mayCoTieng ? 'co-tieng' : 'khong-co-may');
+    hang(L, 'nc-tat-thuong', 'thaXongConNguyenVan', nt['thaXongConNguyenVan'], 'con-nguyen-chu');
     hang(L, 'nc-tat-thuong', 'posts', nt['posts'], '1');
     hang(L, 'nc-tat-thuong', 'cap4ThuongDaGui', nt['cap4ThuongDaGui'], 'co');
     hang(L, 'nc-tat-thuong', 'cap4NangCaoVanGui', nt['cap4NangCaoVanGui'], 'co');
@@ -920,7 +1212,7 @@ DOT_BIEN.forEach(function (d) {
   if (!am) { dotBien++; if (ok) dotBienBiBat++; }
   if (!ok) loi++;
   console.log('\n' + (ok ? '✓' : '✕') + ' ' + d.ten + ' — ' + d.mo);
-  if (chet.length) chet.slice(0, 4).forEach(function (c) { console.log('    cháy: ' + c); });
+  if (chet.length) chet.slice(0, 8).forEach(function (c) { console.log('    cháy: ' + c); });
   else if (!am) console.log('    ✕ IM LẶNG — luật này không có răng');
 });
 

@@ -232,6 +232,7 @@
   .may-steps { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 12px 0; }
   .step-cap { background: #FFF7ED; border: 2px dashed var(--orange); border-radius: 12px; padding: 10px 12px;
     text-align: center; font-size: 16px; font-weight: 900; color: #B45309; min-height: 44px; }
+  .step-cap.bad { background: #FEF2F2; border-color: var(--red); color: var(--red); }
   .congthuc { display: grid; grid-template-columns: minmax(0,1fr); gap: 10px; margin-top: 12px; }
   @media (min-width: 720px) { .congthuc { grid-template-columns: 1fr 1fr; } }
   .ct { background: var(--bg-cream); border: 3px solid var(--blue); border-radius: 14px; padding: 12px; text-align: center; }
@@ -246,7 +247,8 @@
   .may-doi .sm { min-width: 52px; padding: 8px 10px; font-size: 20px; line-height: 1;
     color: var(--blue); border-color: #B9D5F0; background: #F4F9FF; }
   .may-doi b { font-size: 18px; color: var(--ink); }
-  .may-doi .bo { font-size: 12px; font-weight: 700; color: #8A8073; line-height: 1.3; }
+  .may-doi .nhom { display: inline-flex; align-items: center; gap: 6px; }
+  .may-doi .bo { font-size: 12px; font-weight: 700; color: #8A8073; line-height: 1.3; flex-basis: 100%; text-align: center; }
 
   /* ---------- MỤC 5: THẺ DẠNG ---------- */
   .card-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; }
@@ -398,9 +400,12 @@
   .sodo .chu.phan b { color: #0C5F63; white-space: normal; }
   /* NÂNG CAO (thầy chốt 28/10): sơ đồ KHÔNG vẽ sẵn ô ⇒ em tự bấm − / + ngay DƯỚI thanh của
      mình. Nút nằm trong cùng hàng nên KHÔNG ăn bề ngang cột ô — ở khổ 320 mỗi ô vẫn đủ rộng
-     để đếm bằng ngón tay, chỉ hàng cao thêm một chút. */
-  .sodo .track.lech-cot[data-nut] { display: flex; flex-direction: column; align-items: stretch; gap: 3px; }
-  .sodo .nutsp { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+     để đếm bằng ngón tay, chỉ hàng cao thêm một chút.
+     L15 (thầy chốt 28/10): hàng nút phải TRÁI xuông đúng mép thanh của nó — "cộng trừ số bé
+     để ngay ở chỗ số bé". Để flex-end thì cụm nút trôi sang mép phải của cả hàng (sát ngoặc
+     TỔNG), nhìn như của hàng kia. Cột co theo nội dung nên cụm nút không tràn ngang. */
+  .sodo .track.lech-cot[data-nut] { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+  .sodo .nutsp { display: flex; align-items: center; justify-content: flex-start; gap: 6px; max-width: 100%; }
   .sodo .nutsp .dem { font-size: 13px; font-weight: 900; color: var(--blue); white-space: nowrap; }
   .sodo .nutsp .btn { min-width: 44px; padding: 0 6px; font-size: 22px; line-height: 1;
     color: var(--blue); border-color: #B9D5F0; background: #F4F9FF; }
@@ -496,7 +501,7 @@
       <div class="num">1</div>
       <div>
         <h2 class="h2">ĐỌC TỈ SỐ — THẢ SỐ PHẦN VÀO ĐÚNG THANH</h2>
-        <p class="hint">Mỗi đề cho hai bạn (hai vật) với một tỉ số. Hãy đọc xem <b>ai nhiều phần hơn</b>, rồi kéo (hoặc bấm) thẻ <b>"… phần"</b> thả vào thanh của người đó. Thả đúng rồi thì thanh <b>tách thành các ô</b> — đếm ô mà xem.</p>
+        <p class="hint">Mỗi đề cho hai bạn (hai vật) với một tỉ số. Hãy đọc xem <b>ai nhiều phần hơn</b>, rồi kéo (hoặc bấm) <b>chữ số đã khoanh trong đề</b> thả vào thanh của người đó; số nào đề không viết ra thì cầm thẻ ngay dưới đề. Thả đúng rồi thì thanh <b>tách thành các ô</b> — đếm ô mà xem.</p>
       </div>
     </div>
     <p class="tu-score" id="tu-score">Đã đúng 0 / 8</p>
@@ -537,7 +542,7 @@
       <div class="num red">4</div>
       <div>
         <h2 class="h2 red">TỪ SƠ ĐỒ RA CÔNG THỨC — VÌ SAO CHIA CHO SỐ Ô CHỨ KHÔNG CHIA 2</h2>
-        <p class="hint">Máy cắt thanh tự chạy B1 → B4 khi em cuộn tới — mỗi bước một hình. Muốn xem lại thì bấm từng nút. Muốn đổi số thì bấm dấu − / +.</p>
+        <p class="hint">Máy cắt thanh tự chạy B1 → B4 khi em cuộn tới — mỗi bước một hình. Muốn xem lại thì bấm từng nút. Muốn đổi số thì bấm dấu − / + <b>ngay dưới mỗi thanh</b>: mỗi lần bấm thêm đúng một ô.</p>
       </div>
     </div>
     <div class="step-cap" id="may-cap">Bấm <b>B1</b> để bắt đầu.</div>
@@ -547,15 +552,20 @@
       <button class="btn" data-b="3">B3 · Chia TỔNG ra <span data-n="n">8</span> ô</button>
       <button class="btn" data-b="4">B4 · Tính hai số</button>
     </div>
+    <!-- L15 (thầy chốt 28/10): mỗi cặp − / + nằm NGAY CẠNH cái nó đổi. Hai nút này đổi GIÁ TRỊ
+         MỖI Ô (chứ không đổi tỉ số), nên chúng kẹp lấy chữ "MỖI Ô"; TỔNG và TỈ SỐ là hai nhãn
+         KẾT QUẢ đứng sau, không có nút nào kề bên để đọc nhầm. .nhom giữ cặp nút không bị
+         xuống hàng tách rời nhau ở khổ 360. -->
     <div class="may-doi">
-      <span>Đổi số của máy:</span>
-      <button class="btn sm" data-doi="bb-" aria-label="Bớt số phần hàng dưới">−</button>
+      <span>Số của máy:</span>
+      <span class="nhom">
+        <button class="btn sm" data-doi="mot-" aria-label="Bớt giá trị của mỗi ô">−</button>
+        <span>MỖI Ô <b id="may-mot">6</b></span>
+        <button class="btn sm" data-doi="mot+" aria-label="Thêm giá trị của mỗi ô">+</button>
+      </span>
+      <span>⇒ TỔNG <b id="may-tong">48</b></span>
       <span>Tỉ số <b id="may-ti">3/5</b></span>
-      <button class="btn sm" data-doi="bb+" aria-label="Thêm số phần hàng dưới">+</button>
       <span class="bo" id="may-bo"></span>
-      <button class="btn sm" data-doi="mot-" aria-label="Giảm giá trị một phần">−</button>
-      <span>TỔNG <b id="may-tong">48</b></span>
-      <button class="btn sm" data-doi="mot+" aria-label="Tăng giá trị một phần">+</button>
     </div>
     <div id="may-board"></div>
     <div id="may-ket" class="hidden">
@@ -608,7 +618,7 @@
       <div class="num green">7</div>
       <div>
         <h2 class="h2 green">LUYỆN TẬP 7 CẤP — <span class="math" id="graded-total">16</span> CÂU CHẤM ĐIỂM</h2>
-        <p class="hint">Cấp 1·2·3 ôn: có sơ đồ vẽ sẵn để kéo thả 4 thẻ (2 tên · TỔNG · số phần), bấm Kiểm tra thoải mái. Cấp 4·5·6·7 chấm: đề thường, không vẽ sơ đồ, mỗi câu chỉ ghi nhận lần đầu. Làm kín một cấp thì kết quả cấp đó <b>tự gửi</b> về bảng điểm của thầy — em được nghỉ, hôm khác làm tiếp cấp khác vẫn được.</p>
+        <p class="hint">Cấp 1·2·3 ôn: có sơ đồ vẽ sẵn, <b>bốn chữ khoanh ngay trong đề</b> để em kéo xuống (2 tên · TỔNG · số phần), bấm Kiểm tra thoải mái. Cấp 4·5·6·7 chấm: đề thường, không vẽ sơ đồ, mỗi câu chỉ ghi nhận lần đầu. Làm kín một cấp thì kết quả cấp đó <b>tự gửi</b> về bảng điểm của thầy — em được nghỉ, hôm khác làm tiếp cấp khác vẫn được.</p>
       </div>
     </div>
 
@@ -881,6 +891,12 @@ var SEED_NC = 20261027;
 var THU_NC_HONG = [];
 var LOI_NC = 'Em đọc kỹ đề như trong sách rồi tự tìm dữ liệu: kéo tên và số trong đề vào các ô ? trên sơ đồ nhé:';
 var LOI_SAI_NC = '✕ Chỗ này chưa đúng. Em đọc lại đề, xem ô đó cần số nào rồi kéo lại nhé.';
+/* Thầy chốt 28/10: "đừng có tách dữ liệu ra khỏi đề bài — số nào muốn kéo thì khoanh luôn ở trên
+   đề bài". Hai chế độ đi cùng một đường, chữ trong câu vẫn nguyên văn như trang sách; cái gì đề
+   KHÔNG in ra (TỔNG giấu sau chu vi, số 1 trong "gấp 3 lần") mới rơi xuống khay. Lời nhắc vì thế
+   không còn là "Kéo 4 thẻ vào sơ đồ" mà là kéo đúng chỗ đã khoanh. */
+var LOI_KHOANH = 'Kéo chữ đã khoanh trong đề vào các ô ? trên sơ đồ:';
+var LOI_KHOANH_CON = 'Đề không in sẵn số này — kéo nốt thẻ vào ô ? trên sơ đồ:';
 var LOI_DAU_NC = {
   cham: 'Đề đã đổi số, gợi ý ẩn hết — em đọc kỹ như trong sách rồi tự tìm dữ liệu mà giải.',
   on: 'Đề đã đổi số, gợi ý ẩn hết — em đọc kỹ như trong sách rồi tự tìm dữ liệu mà kéo.'
@@ -1324,10 +1340,12 @@ function thaDung(el, keo, cap) {
   el.innerHTML = keo.gia;
   el.classList.add('ok');
   var chipEl = document.getElementById(keo.id);
-  /* trong đề nâng cao thì giữ ĐÚNG CHỮ của câu (không in nhãn "TỔNG …" đè lên đề) và không
-     biến nó thành chữ đậm — câu phải còn y như trang sách sau khi bé kéo. */
-  var tenThe = chipEl ? (NC ? chipEl.textContent : (chipEl.getAttribute('data-txt') || keo.gia)) : keo.gia;
-  if (chipEl) chipEl.outerHTML = NC ? tenThe : '<b>' + tenThe + '</b>';
+  /* Thay thẻ bằng ĐÚNG CHỮ nó bọc trong câu. Từ 28/10 dữ liệu nằm luôn trên lời đề ở CẢ HAI chế
+     độ ⇒ in nhãn "TỔNG 64" hay viết hoa tên riêng đè lên câu là sửa mất trang sách. Nhãn dài
+     ("2 phần") chỉ dùng cho cô đọc, không dùng để in lại vào câu. */
+  var chuDe = chipEl ? chipEl.textContent : String(keo.gia);
+  var tenThe = chipEl ? (chipEl.getAttribute('data-txt') || chuDe) : String(keo.gia);
+  if (chipEl) chipEl.outerHTML = NC ? chuDe : '<b>' + chuDe + '</b>';
   KEO = null;
   var c = document.querySelector('.keo.chon'); if (c) c.classList.remove('chon');
   boNham();
@@ -1423,14 +1441,53 @@ function veTuSoDo(i) {
   });
 }
 function noiTU(i) {
-  var it = TU[i], s = doiSo(it);
-  var chips = [{ so: s.a, chip: 'phan', txt: s.a + ' phần' }, { so: s.b, chip: 'phan', txt: s.b + ' phần' }];
+  var bc = keoTrongTu(i);
   return '<div class="tu-item" id="tu-' + i + '">' +
-    '<div class="w">' + dienVan(it.van, it) + '</div>' +
-    '<div class="qkeo">' + doanCau(chips, 'tuc-' + i) + '</div>' +
+    '<div class="w">' + bc.de + '</div>' +
+    khayTu(i, bc) +
     '<div class="tu-sodo" id="tu-sodo-' + i + '">' + veTuSoDo(i) + '</div>' +
     '<div class="cap" id="tu-cap-' + i + '"></div>' +
     '</div>';
+}
+/* MỤC 1 — thầy chốt 28/10: "số năm thì mình khoanh số năm lại, số một thì khoanh số một lại,
+   khoanh luôn ở trên đề bài". Tỉ số in "2/5" ⇒ BỌC TỪNG con số trong phân số thành một thẻ, em
+   cầm số 2 thả vào hàng bạn thứ nhất, số 5 vào hàng bạn thứ hai. "gấp 5 lần" chỉ in số 5 — cái
+   1 đề không viết ra thì mới xuống khay, vì giữa câu không có chữ nào để cầm.
+   data-txt vẫn ghi "5 phần" để cô đọc được thành câu, nhưng CHỮ IN RA là đúng chữ của đề. */
+function theTu(i, p) {
+  return '<span class="keo" id="tuc-' + i + '-' + p.p + '" draggable="true" data-gia="' + p.so +
+    '" data-loai="phan" data-txt="' + p.so + ' phần">' + p.hien + '</span>';
+}
+function keoTrongTu(i) {
+  var it = TU[i], s = doiSo(it), van = dienVan(it.van, it), trong = [], ngoai = [];
+  function lay(p, so, dau) {
+    return { p: p, so: so, dau: dau, dai: String(so).length, hien: van.substr(dau, String(so).length) };
+  }
+  var ty = s.a + '/' + s.b, d = timTrongVan(van, ty, []);
+  if (d >= 0) {
+    trong.push(lay(0, s.a, d));
+    trong.push(lay(1, s.b, d + String(s.a).length + 1));
+  } else {
+    var lan = timTrongVan(van, s.a + ' lần', []);
+    var e = lan >= 0 ? lan : timTrongVan(van, String(s.a), []);
+    if (e >= 0) trong.push(lay(0, s.a, e)); else ngoai.push({ p: 0, so: s.a });
+    ngoai.push({ p: 1, so: s.b });
+  }
+  trong.sort(function (x, y) { return x.dau - y.dau; });
+  var html = '', cuoi = 0;
+  trong.forEach(function (p) {
+    html += van.slice(cuoi, p.dau) + theTu(i, p);
+    cuoi = p.dau + p.dai;
+  });
+  return { de: html + van.slice(cuoi), trong: trong, ngoai: ngoai };
+}
+function khayTu(i, bc) {
+  if (!bc.ngoai.length) return '';
+  var parts = [];
+  /* mảng LỖ đúng theo số hàng ⇒ doanCau sinh id "tuc-i-1" cho hàng dưới, không phải "-0" */
+  bc.ngoai.forEach(function (p) { parts[p.p] = { so: p.so, chip: 'phan', txt: p.so + ' phần' }; });
+  return '<div class="qkeo"><span class="nhan">Đề không viết sẵn số này — kéo thẻ vào hàng của nó:</span>' +
+    doanCau(parts, 'tuc-' + i) + '</div>';
 }
 function veMuc1() {
   var g = document.getElementById('tu-grid'), html = '';
@@ -1590,77 +1647,121 @@ function kiemDe(i) {
 }
 
 /* =====================================================================
-   MỤC 4 — MÁY CẮT PHẦN (stepper B1→B4 + hai nút ± đổi số)
+   MỤC 4 — MÁY CẮT PHẦN (stepper B1→B4 + mỗi hàng MỘT cặp − / + ngay dưới thanh)
    TỔNG KHÔNG gõ tay: TỔNG = (số ô hàng trên + số ô hàng dưới) × giá trị một phần
    ⇒ mọi thế số nút ± đưa tới đều chia hết, bé không bao giờ gặp đề vô nghiệm.
-   MAY_BB là DANH SÁCH chứ không phải khoảng: 6 bị loại vì 3/6 rút thành 1/2,
-   sơ đồ sẽ vẽ 1 ô : 2 ô trong khi nhãn ghi "tỉ số 3/6" — hình và chữ cãi nhau.
+   Thầy chốt 28/10: "số bé bấm riêng, số lớn bấm riêng, cộng một thì nhảy lên một ô.
+   Còn sai là cho là sai luôn — lớp năm rồi, lớn rồi" ⇒ máy KHÔNG rút gọn tỉ số và
+   KHÔNG tắt nút vì thế số chưa tối giản: 3/6 vẫn vẽ 3 ô : 6 ô rồi in "3/6 = 1/2";
+   hàng trên dài hơn hàng dưới thì máy nói toạc ra là sai chỗ nào (✕ dưới sơ đồ).
+   Chỉ hai điều VẬT LÝ được chặn: mỗi hàng tối đa MAY_TO ô, hai hàng tối đa
+   MAY_TONG_O ô — quá là sơ đồ vỡ trên màn 320px, và đó là lúc nút + tắt.
    ===================================================================== */
 var may = { b: 0, a: 3, bb: 5, mot: 6 };
-var MAY_BB = [4, 5, 7, 8], MAY_MOT = [2, 12];
-function mayTong() { return (may.a + may.bb) * may.mot; }
-function maySo() { return doiSo({ tong: mayTong(), a: may.a, b: may.bb }); }
+var MAY_MOT = [2, 12], MAY_TO = 8, MAY_TONG_O = 12;
+/* Số của máy = ĐÚNG số ô bé đã bấm. Ở đây KHÔNG có rutTi: rút gọn là hình vẽ một
+   nhẽ (1 ô : 2 ô) còn chữ hô một nẽ (tỉ số 3/6) — hai thứ cãi nhau ngay trước mặt bé. */
+function maySo() {
+  var a = may.a, b = may.bb, mot = may.mot;
+  var nho = Math.min(a, b), to = Math.max(a, b);
+  return { a: a, b: b, n: a + b, tong: (a + b) * mot, mot: mot,
+    be: nho * mot, lon: to * mot, nho: nho, to: to, hieu: (to - nho) * mot, them: 0, lan: null };
+}
+function mayHop(x, kia) {
+  return (x < 1 || x > MAY_TO || x + kia > MAY_TONG_O) ? null : x;
+}
 function tiepTheo(k) {
   var dc = k.charAt(k.length - 1) === '+' ? 1 : -1;
-  if (k.indexOf('bb') === 0) {
-    var i = MAY_BB.indexOf(may.bb), x = MAY_BB[i + dc];
-    return (x == null) ? null : x;
-  }
+  if (k === 'a-' || k === 'a+') return mayHop(may.a + dc, may.bb);
+  if (k === 'bb-' || k === 'bb+') return mayHop(may.bb + dc, may.a);
   var m = may.mot + dc;
   return (m < MAY_MOT[0] || m > MAY_MOT[1]) ? null : m;
 }
 function doiMay(k) {
   var x = tiepTheo(k);
   if (x == null) return;
-  if (k.indexOf('bb') === 0) may.bb = x; else may.mot = x;
+  if (k === 'a-' || k === 'a+') may.a = x;
+  else if (k === 'bb-' || k === 'bb+') may.bb = x;
+  else may.mot = x;
   veMay();
 }
-// Chỗ HỔNG bên trong danh sách hàng dưới (3/5 rồi nhảy 3/7) phải TỰ giải thích,
-// không thì bé bấm + thấy nhảy số tưởng máy hỏng. Duyệt KHOẢNG TRONG: hết cỡ đã có nút TẮT lo.
-function boNgo() {
+/* Nút + TẮT phải có lý do in ra được, không thì bé tưởng máy liệt. */
+function chanMan() {
   var lo = [];
-  for (var x = may.a + 1; x < MAY_BB[MAY_BB.length - 1]; x++) {
-    if (MAY_BB.indexOf(x) >= 0) continue;
-    var r = rutTi(may.a, x);
-    lo.push('bỏ ' + x + ' ô vì ' + may.a + '/' + x + ' vẽ thành ' + r[0] + '/' + r[1]);
-  }
+  if (tiepTheo('a+') == null) lo.push('hàng trên hết chỗ ở ' + may.a + ' ô');
+  if (tiepTheo('bb+') == null) lo.push('hàng dưới hết chỗ ở ' + may.bb + ' ô');
+  if (lo.length) lo.push('hai hàng tối đa ' + MAY_TONG_O + ' ô cho vừa màn');
   return lo.join(' · ');
 }
+/* "Cho là sai luôn": máy không sửa hộ, máy gọi tên chỗ sai. */
+function loiMay(s) {
+  if (s.a > s.b) return ' ✕ Hàng trên đang NHIỀU ô hơn hàng dưới ⇒ số bé là hàng DƯỚI (' + s.b +
+    ' phần), số lớn là hàng trên (' + s.a + ' phần). Muốn đúng như hai nhãn, hàng trên phải ÍT ô hơn.';
+  if (s.a === s.b) return ' ✕ Hai hàng bằng nhau ⇒ hai số bằng nhau, chưa có "số bé — số lớn". Hàng trên phải ÍT ô hơn.';
+  return '';
+}
+function nutMayHTML(row) {
+  var d = row ? 'bb' : 'a', k = row ? may.bb : may.a, ten = row ? 'số lớn' : 'số bé';
+  function tat(dc) { return tiepTheo(d + dc) == null ? ' disabled' : ''; }
+  return '<span class="nutsp" data-hang="' + row + '">' +
+    '<button class="btn" data-doi="' + d + '-"' + tat('-') +
+      ' aria-label="Bớt số phần ' + ten + ' — đang có ' + k + ' phần">−</button>' +
+    '<b class="dem">' + k + ' phần</b>' +
+    '<button class="btn" data-doi="' + d + '+' + '"' + tat('+') +
+      ' aria-label="Thêm số phần ' + ten + ' — đang có ' + k + ' phần">+</button>' +
+    '</span>';
+}
 function nhanMay() {
-  var s = maySo();
-  document.getElementById('may-ti').innerText = s.a + '/' + s.b;
+  var s = maySo(), r = rutTi(may.a, may.bb);
+  document.getElementById('may-ti').innerText =
+    (r[0] === s.a && r[1] === s.b) ? (s.a + '/' + s.b) : (s.a + '/' + s.b + ' = ' + r[0] + '/' + r[1]);
   document.getElementById('may-tong').innerText = String(s.tong);
+  document.getElementById('may-mot').innerText = String(s.mot);
   // NHỮNG THỨ NHÌN THẤY PHẢI ĐỔI THEO MÁY Ở MỌI LẦN VẼ, kể cả khi khối B4 đang ẩn.
   // Viết trong `if (het)` thì vòng tự kiểm (nó ép b = 4 để xem được B4) để lại chữ của
   // thế số cuối: trả về 3/5 mà máy vẫn ghi "Số lớn (8 phần)" — đúng cái bệnh hình và chữ cãi nhau.
-  document.getElementById('ct-be-lab').innerText = 'Số bé (' + s.a + ' phần)';
-  document.getElementById('ct-lon-lab').innerText = 'Số lớn (' + s.b + ' phần)';
-  document.getElementById('ct-be-f').innerText = s.mot + ' × ' + s.a + ' = ' + s.be;
-  document.getElementById('ct-lon-f').innerText = s.mot + ' × ' + s.b + ' = ' + s.lon;
-  document.getElementById('may-bo').innerText = boNgo();
+  // Nhãn hai thẻ công thức theo SỐ PHẦN NHỎ/LỚN chứ không theo thứ tự hàng: bé bấm cho
+  // hàng trên 7 ô, hàng dưới 4 ô thì "số bé" chính là hàng dưới.
+  document.getElementById('ct-be-lab').innerText = 'Số bé (' + s.nho + ' phần)';
+  document.getElementById('ct-lon-lab').innerText = 'Số lớn (' + s.to + ' phần)';
+  document.getElementById('ct-be-f').innerText = s.mot + ' × ' + s.nho + ' = ' + s.be;
+  document.getElementById('ct-lon-f').innerText = s.mot + ' × ' + s.to + ' = ' + s.lon;
+  document.getElementById('may-bo').innerText = chanMan();
   var sp = document.querySelectorAll('[data-n]');
   for (var i = 0; i < sp.length; i++) sp[i].innerText = String(s[sp[i].getAttribute('data-n')]);
   var nut = document.querySelectorAll('[data-doi]');
   for (var j = 0; j < nut.length; j++) nut[j].disabled = tiepTheo(nut[j].getAttribute('data-doi')) == null;
 }
+/* Nút − / + dưới mỗi thanh do veMay() VẼ LẠI mỗi lần bấm ⇒ phải nối tay bên TRONG veMay.
+   Nối một lần lúc dựng trang thì lần bấm thứ hai đã thành nút chết (bài học 27/10 với
+   công tắc nâng cao, và đó chính là luật "nút chết" trong probe-nop-cap.js). */
+function ganNutMay() {
+  var board = document.getElementById('may-board');
+  if (!board || !board.querySelectorAll) return;
+  var ds = board.querySelectorAll('[data-doi]');
+  for (var q = 0; q < ds.length; q++) ds[q].onclick = function () { doiMay(this.getAttribute('data-doi')); };
+}
 function veMay() {
-  nhanMay();
   var s = maySo(), board = document.getElementById('may-board'), cap = document.getElementById('may-cap');
   var coSo = may.b >= 3;
   board.innerHTML = soDoPhan({
-    rows: [{ ten: 'số bé', k: s.a }, { ten: 'số lớn', k: s.b }],
+    rows: [{ ten: 'số bé', k: s.a, nut: nutMayHTML(0) }, { ten: 'số lớn', k: s.b, nut: nutMayHTML(1) }],
     tongO: 'TỔNG ' + s.tong,
     phanO: may.b >= 2 ? (coSo ? ('MỖI Ô = ' + s.tong + ' ÷ ' + s.n + ' = ' + s.mot) : ('Đếm ô: ' + s.a + ' + ' + s.b + ' = ?')) : null
   });
+  ganNutMay();
+  nhanMay();
   var lens = [
     'Bấm <b>B1</b> để bắt đầu. Số của máy: TỔNG ' + s.tong + ' · tỉ số ' + s.a + '/' + s.b + '.',
     '<b>B1</b> · Tỉ số ' + s.a + '/' + s.b + ' nghĩa là hàng trên ' + s.a + ' ô, hàng dưới ' + s.b + ' ô — các Ô TO BẰNG NHAU, không phải hai thanh dài bằng nhau.',
     '<b>B2</b> · Đếm hết ô hai hàng: ' + s.a + ' + ' + s.b + ' = ' + s.n + ' phần bằng nhau.',
     '<b>B3</b> · TỔNG ' + s.tong + ' chia ĐỀU cho ' + s.n + ' ô ⇒ mỗi ô = ' + s.tong + ' ÷ ' + s.n + ' = <b>' + s.mot + '</b>. Đây là bước QUYẾT ĐỊNH — chia cho SỐ Ô, không chia cho 2.',
-    '<b>B4</b> · Số bé = ' + s.mot + ' × ' + s.a + ' = <b>' + s.be + '</b> · Số lớn = ' + s.mot + ' × ' + s.b + ' = <b>' + s.lon + '</b>. Thử lại: ' + s.be + ' + ' + s.lon + ' = ' + s.tong + ' ✓'
+    '<b>B4</b> · Số bé = ' + s.mot + ' × ' + s.nho + ' = <b>' + s.be + '</b> · Số lớn = ' + s.mot + ' × ' + s.to + ' = <b>' + s.lon + '</b>. Thử lại: ' + s.be + ' + ' + s.lon + ' = ' + s.tong + ' ✓'
   ];
-  cap.innerHTML = lens[Math.max(1, may.b)] ;
-  if (may.b === 0) cap.innerHTML = lens[0];
+  var sai = loiMay(s);
+  cap.innerHTML = lens[Math.max(1, may.b)] + sai;
+  if (may.b === 0) cap.innerHTML = lens[0] + sai;
+  cap.classList.toggle('bad', !!sai);
   var het = may.b >= 4;
   document.getElementById('may-ket').classList.toggle('hidden', !het);
   document.getElementById('ct-be').classList.toggle('on', het);
@@ -1978,16 +2079,26 @@ function timTrongVan(van, tu, danh) {
 /* CẤP 1·2·3: sơ đồ VẼ SẴN với 4 ô trống — 2 nhãn tên, TỔNG trong ngoặc tím,
    SỐ PHẦN trong hàng chú thích. CẤP 4·5·6·7 (chấm): KHÔNG vẽ sơ đồ. */
 /* Tỉ số NGUYÊN VĂN trong lời đề: "2/5", hoặc "3 lần" khi đề viết "gấp 3 lần".
-   Đề nâng cao đưa đúng chữ ấy cho em cầm — số PHẦN (2+5=7) là em tự cộng, máy không cộng hộ. */
+   Thẻ số phần CẦM ĐÚNG CHỮ ẤY ở cả hai chế độ (thầy chốt 28/10: dữ liệu nằm trên đề bài) —
+   số PHẦN (2+5=7) là em tự cộng, máy không cộng hộ và cũng không viết hộ. */
 function tySoTrongDe(q, s) {
   var mau = String(q.mau || '');
   if (/\{lan\}/.test(mau)) return s.lan + ' lần';
   return s.a + '/' + s.b;
 }
+/* Chữ trên thẻ = chữ TÌM ĐƯỢC TRONG CÂU ⇒ thẻ mới nằm đúng chỗ nó sinh ra. */
 function chipSo(q, s, loai) {
   if (loai === 'tong') return q.tg ? dienVan(q.tg, q.dk) : String(s.tong);
-  if (loai === 'phan') return NC ? tySoTrongDe(q, s) : s.nho + ' + ' + s.to;   // nâng cao: thẻ là tỉ số in trong đề
+  if (loai === 'phan') return tySoTrongDe(q, s);
   return '';
+}
+/* Chữ tỉ số trong câu → [tử số, mẫu số]: "2/5" → [2,5] · "3 lần" → [3,1] · không ra cặp → null. */
+function tySoChu(x) {
+  var t = String(x).trim(), m = /^(\d+)\/(\d+)$/.exec(t);
+  if (m) return [Number(m[1]), Number(m[2])];
+  var l = /^(\d+)\s*lần$/.exec(t);
+  if (l) return [Number(l[1]), 1];
+  return null;
 }
 function boTheKeo(q, s, id) {
   return [
@@ -1997,15 +2108,17 @@ function boTheKeo(q, s, id) {
     { loai: 'phan', gia: s.n, txt: chipSo(q, s, 'phan'), id: id + '-3' }
   ];
 }
-function buKeoNC(p, hien) {
-  return '<span class="keo thuong" id="keo-q-' + p.id + '" draggable="true" data-gia="' + p.gia +
-    '" data-loai="' + p.loai + '" data-txt="' + p.txt + '">' + hien + '</span>';
+/* Trong lời đề thì đề NÂNG CAO để chữ thường (không viền, không khoanh — L12), còn đề THƯỜNG
+   bọc vòng vàng như cái khay cũ để em nhận ra chỗ nào cầm được. */
+function buKeoDe(p, hien) {
+  return '<span class="keo' + (NC ? ' thuong' : '') + '" id="keo-q-' + p.id + '" draggable="true" data-gia="' +
+    p.gia + '" data-loai="' + p.loai + '" data-txt="' + p.txt + '">' + hien + '</span>';
 }
-/* ĐỀ NÂNG CAO = TRANG SÁCH: tên hai số và con số TỔNG mà đề nói thẳng được bọc thành thẻ kéo
-   ngay tại chỗ chúng xuất hiện, KHÔNG sửa một chữ nào của câu. Cái gì đề KHÔNG in sẵn — TỔNG giấu
-   sau chu vi · trung bình cộng (thẻ là một phép tính) và số phần phải đếm — vẫn nằm ở khay, vì kéo
-   một chữ không có trong câu thì bé không biết cầm gì. */
-function vanKeoNC(q, s, id, van) {
+/* ĐỀ = TRANG SÁCH (hai chế độ, thầy chốt 28/10): tên hai số, con số TỔNG và chữ TỈ SỐ mà đề in
+   sẵn được bọc thành thẻ kéo NGAY TẠI CHỖ chúng xuất hiện, KHÔNG sửa một chữ nào của câu. Cái gì
+   đề KHÔNG in ra — TỔNG giấu sau chu vi · trung bình cộng (thẻ là một phép tính), nhãn "Số bé"
+   không có trong câu — mới nằm ở khay, vì kéo một chữ không có trong câu thì bé không biết cầm gì. */
+function vanKeoDe(q, s, id, van) {
   var trong = [], ngoai = [], danh = [];
   boTheKeo(q, s, id).forEach(function (p) {
     /* thẻ SỐ PHẦN cầm chữ TỈ SỐ của đề, các thẻ khác cầm đúng con số in trong câu */
@@ -2020,22 +2133,23 @@ function vanKeoNC(q, s, id, van) {
   trong.sort(function (a, b) { return a.dau - b.dau; });
   var html = '', cuoi = 0;
   trong.forEach(function (p) {
-    html += van.slice(cuoi, p.dau) + buKeoNC(p, p.hien);
+    html += van.slice(cuoi, p.dau) + buKeoDe(p, p.hien);
     cuoi = p.dau + p.dai;
   });
   return { de: html + van.slice(cuoi), trong: trong, ngoai: ngoai };
 }
-function veBuKeo(i, j, nc) {
+function veBuKeo(i, j, deKeo) {
   var q = cauCua(i, j), s = doiSo(q.dk), id = i + '-' + j, html = '';
-  var c = nc ? nc.ngoai : boTheKeo(q, s, id);
+  var c = deKeo ? deKeo.ngoai : boTheKeo(q, s, id);
   c.forEach(function (p) {
     html += '<span class="keo" id="keo-q-' + p.id + '" draggable="true" data-gia="' + p.gia +
       '" data-loai="' + p.loai + '" data-txt="' + p.txt + '">' + p.txt + '</span>';
   });
-  /* dữ liệu nằm CẢ trong câu thì khay chẳng còn thẻ nào — dấu ":" treo cuối câu là lỗi in,
-     trả về câu trọn vẹn để em đọc một mạch như trang sách. */
-  var nhan = NC ? LOI_NC : 'Kéo 4 thẻ vào sơ đồ:';
-  if (nc && !c.length) nhan = nhan.replace(/:$/, '.');
+  /* Đề thường từ 28/10 KHÔNG bày dữ liệu ra đây nữa — hàng này chỉ còn lời nhắc (hoặc đúng
+     những thẻ mà câu không in ra). Dữ liệu nằm CẢ trong câu thì dấu ":" treo cuối lời nhắc là
+     lỗi in, phải khép lại bằng dấu chấm để em đọc một mạch như trang sách. */
+  var nhan = NC ? LOI_NC : (c.length ? LOI_KHOANH_CON : LOI_KHOANH);
+  if (!c.length) nhan = nhan.replace(/:$/, '.');
   return '<div class="qkeo"><span class="nhan">' + nhan + '</span>' + html + '</div>';
 }
 /* =====================================================================
@@ -2182,7 +2296,7 @@ function quizTha(i, j, el) {
     rungVaBao(el, cap, keo.loai === 'ten'
       ? '✕ Tên chưa đúng — hàng NHIỀU Ô hơn là bạn có số lớn hơn.'
       : (loai === 'phan'
-        ? '✕ Số phần chưa đúng — em đếm lại Ô của cả hai hàng rồi cộng lại, hoặc nhìn thẻ "… + …".'
+        ? '✕ Số phần chưa đúng — em đếm Ô của cả hai hàng rồi cộng hai số trong tỉ số ở đề nhé.'
         : '✕ TỔNG chưa đúng — có chỗ đề giấu TỔNG sau chu vi hoặc trung bình cộng, em tính lại phép ở bước đầu tiên.'));
     return;
   }
@@ -2193,14 +2307,15 @@ function quizTha(i, j, el) {
 function veCau(i, j) {
   var q = cauCua(i, j), key = cauK(i, j), cham = laCapCham(i);
   var r = lamVan(q);
-  /* chỉ cấp ôn (1·2·3) mới có kéo thả ⇒ chỉ ở đó đề nâng cao mới ghép thẻ vào câu */
-  var nc = NC && !cham ? vanKeoNC(q, doiSo(q.dk), i + '-' + j, r.text) : null;
+  /* chỉ cấp ôn (1·2·3) mới có kéo thả ⇒ dữ liệu được bọc thành thẻ ngay trong lời đề ở CẢ HAI
+     chế độ (thầy chốt 28/10): đề thường thì vòng khoanh, đề nâng cao thì chữ thường như trang sách. */
+  var deKeo = !cham ? vanKeoDe(q, doiSo(q.dk), i + '-' + j, r.text) : null;
   var rec = (cham && runState) ? runState.attempts[key] : null;
   var html = '<div class="qcard' + (rec ? (rec.ok ? ' ok' : ' bad') : '') + '" id="card-' + key + '">' +
     '<div class="qhead"><span class="qtag">Bài ' + i + '.' + (j + 1) + '</span>' +
     (NC ? '' : '<span class="qdh">Dấu hiệu: ' + q.dh + '</span>') + '</div>' +
-    '<div class="qvan">' + (nc ? nc.de : r.text) + '</div>';
-  if (!cham) html += veBuKeo(i, j, nc) + veSoDoKeo(i, j) + '<div class="cap" id="' + idKq(i, j) + '"></div>';
+    '<div class="qvan">' + (deKeo ? deKeo.de : r.text) + '</div>';
+  if (!cham) html += veBuKeo(i, j, deKeo) + veSoDoKeo(i, j) + '<div class="cap" id="' + idKq(i, j) + '"></div>';
   if (rec) {
     html += '<div class="qrow"><input type="number" value="' + rec.val + '" disabled>' +
       '<span style="font-weight:900;color:' + (rec.ok ? 'var(--green)' : 'var(--red)') + '">' +
@@ -2796,7 +2911,17 @@ function tuKiemThuong() {
           var gt = tinhChip(dienVan(q.tg, q.dk));
           if (gt == null || gt !== s.tong) err.push(nh + ': thẻ "' + q.tg + '" không tính ra TỔNG ' + s.tong);
         }
-        if (tinhChip(chipSo(q, s, 'phan')) !== s.n) err.push(nh + ': thẻ đếm phần "' + chipSo(q, s, 'phan') + '" không ra ' + s.n);
+        /* Thẻ số phần là CHỮ TỈ SỐ IN TRONG CÂU ("2/5" · "3 lần"), không phải phép cộng máy viết
+           hộ: hai số của nó phải có thật trong câu thì em mới khoanh mà cầm được, còn "7 phần"
+           là em tự cộng lấy. */
+        var chuPhan = chipSo(q, s, 'phan'), tyPhan = tySoChu(chuPhan);
+        var lanDe = /\{lan\}/.test(String(q.mau || ''));
+        var chieu = lanDe ? [s.lan, 1] : [s.a, s.b];
+        if (!tyPhan || tyPhan[0] !== chieu[0] || tyPhan[1] !== chieu[1])
+          err.push(nh + ': thẻ đếm phần "' + chuPhan + '" trái với chữ tỉ số đề in ("' +
+            (lanDe ? s.lan + ' lần' : s.a + '/' + s.b) + '" = ' + chieu[0] + ':' + chieu[1] + ')');
+        else if (text.toLowerCase().indexOf(String(chuPhan).toLowerCase()) < 0)
+          err.push(nh + ': thẻ đếm phần "' + chuPhan + '" không phải chữ in trong đề ⇒ em không tìm ra chỗ để kéo');
       /* "A GẤP N LẦN B" ⇒ B MỚI LÀ HÀNG MỘT Ô — luật đặt tên soGapNhan, dùng chung
          với lý thuyết Mục 1 · Mục 3 ở dưới. */
       soGapNhan(nh, text, q.ten, s, 'sơ đồ kéo thả');
@@ -2943,84 +3068,129 @@ function tuKiemThuong() {
   if (lensMay[2].indexOf(sM.a + ' + ' + sM.b + ' = ' + sM.n) < 0) err.push('Mục 4 B2: không hiện phép đếm ô ' + sM.a + ' + ' + sM.b + ' = ' + sM.n);
   if (lensMay[3].indexOf(sM.tong + ' ÷ ' + sM.n + ' = ' + sM.mot) < 0) err.push('Mục 4 B3: không hiện ' + sM.tong + ' ÷ ' + sM.n + ' = ' + sM.mot);
   if (!coSo(lensMay[4], sM.be) || !coSo(lensMay[4], sM.lon)) err.push('Mục 4 B4: không hiện hai số ' + sM.be + ' và ' + sM.lon);
-  if (theSo[4] !== sM.mot + ' × ' + sM.a + ' = ' + sM.be)
-    err.push('Mục 4 B4: thẻ Số bé phải ghi ' + sM.mot + ' × ' + sM.a + ' = ' + sM.be + ' (đang ghi "' + theSo[4] + '")');
+  if (theSo[4] !== sM.mot + ' × ' + sM.nho + ' = ' + sM.be)
+    err.push('Mục 4 B4: thẻ Số bé phải ghi ' + sM.mot + ' × ' + sM.nho + ' = ' + sM.be + ' (đang ghi "' + theSo[4] + '")');
 
-  /* 4b · HAI NÚT ± — đi qua MỌI thế số mà bé bấm tới được, không được để lọt thế hỏng */
+  /* 4b · NÚT ± DƯỚI MỖI THANH — quét MỌI thế số bé bấm tới được (mỗi hàng 1→MAY_TO ô,
+     hai hàng tối đa MAY_TONG_O ô). Nhà rút gọn và "hàng trên dài hơn hàng dưới" giờ là
+     thế số HỢP LỆ mà máy phải vẽ đúng và gọi tên chỗ sai — thầy chốt: "sai thì cho là sai luôn". */
   n++;
   var luuMay = { a: may.a, bb: may.bb, mot: may.mot, b: may.b };
-  var dsBB = MAY_BB.join(', ');
-  if (MAY_BB.indexOf(may.bb) < 0) err.push('Mục 4: máy khởi động ở hàng dưới ' + may.bb + ' ô, không thuộc danh sách nút ± (' + dsBB + ')');
-  for (var iB = 0; iB < MAY_BB.length; iB++) {
-    var bbw2 = MAY_BB[iB], nhBB = 'Mục 4 nút ± đưa tới tỉ số ' + may.a + '/' + bbw2;
-    if (bbw2 <= may.a) err.push(nhBB + ': hàng "số lớn" phải DÀI HƠN hàng trên ' + may.a + ' ô');
-    if (uoc(may.a, bbw2) !== 1)
-      err.push(nhBB + ': tỉ số chưa tối giản ⇒ máy rút về ' + rutTi(may.a, bbw2).join('/') + ' để vẽ sơ đồ, còn nhãn thì ghi "tỉ số ' +
-        may.a + '/' + bbw2 + '" — hình và chữ cãi nhau');
-    if (may.a + bbw2 > 12) err.push(nhBB + ': ' + (may.a + bbw2) + ' ô — quá khổ sơ đồ màn 320px');
+  var dsCap = [];
+  for (var qa = 1; qa <= MAY_TO; qa++) {
+    for (var qb = 1; qb <= MAY_TO; qb++) if (qa + qb <= MAY_TONG_O) dsCap.push([qa, qb]);
   }
-  var soThe = 0, mongThe = MAY_BB.length * (MAY_MOT[1] - MAY_MOT[0] + 1);
-  for (var iB2 = 0; iB2 < MAY_BB.length; iB2++) {
+  if (may.a < 1 || may.a > MAY_TO || may.bb < 1 || may.bb > MAY_TO || may.a + may.bb > MAY_TONG_O)
+    err.push('Mục 4: máy khởi động ở ' + may.a + '/' + may.bb + ' ô — ngoài vùng mà hai nút − / + đưa tới được');
+  var soThe = 0, mongThe = dsCap.length * (MAY_MOT[1] - MAY_MOT[0] + 1);
+  for (var iC = 0; iC < dsCap.length; iC++) {
     for (var motw = MAY_MOT[0]; motw <= MAY_MOT[1]; motw++) {
-      may.bb = MAY_BB[iB2]; may.mot = motw; may.b = 4; veMay();
+      may.a = dsCap[iC][0]; may.bb = dsCap[iC][1]; may.mot = motw; may.b = 4; veMay();
       soThe++;
       var sD = maySo(), nhD = 'Mục 4 thế số ' + may.a + '/' + may.bb + ' · một phần ' + motw;
+      /* ① HÌNH = CHỮ ở MỌI thế, kể cả thế chưa tối giản: vẽ đúng số ô bé bấm, không rút gọn hộ. */
+      if (sD.a !== may.a || sD.b !== may.bb)
+        err.push(nhD + ': máy tính ra ' + sD.a + '/' + sD.b + ' ô trong khi bé bấm ' + may.a + '/' + may.bb + ' — rút gọn là hình vẽ một nẽ, chữ hô một nẽ');
+      if (sD.n !== may.a + may.bb) err.push(nhD + ': đếm ô ra ' + sD.n + ', phải là ' + (may.a + may.bb));
       if (sD.tong !== (may.a + may.bb) * motw) err.push(nhD + ': TỔNG hiện ' + sD.tong + ' ≠ (' + may.a + ' + ' + may.bb + ') × ' + motw);
       if (sD.tong % sD.n !== 0) err.push(nhD + ': TỔNG ' + sD.tong + ' không chia hết cho ' + sD.n + ' ô');
       if (sD.mot !== motw) err.push(nhD + ': chia ra ' + sD.mot + ' chứ không phải ' + motw + ' — máy tự đặt TỔNG thì bắt buộc phải khớp');
       if (sD.be % sD.mot !== 0 || sD.lon % sD.mot !== 0) err.push(nhD + ': hai số không là nguyên lần giá trị một phần');
       if (sD.be + sD.lon !== sD.tong) err.push(nhD + ': hai số cộng lại không ra TỔNG ' + sD.tong);
-      if (sD.be <= 0 || sD.lon <= sD.be) err.push(nhD + ': số bé phải dương và nhỏ hơn số lớn');
-      if (Math.max(sD.a, sD.b) > 8 || sD.n > 12) err.push(nhD + ': sơ đồ ' + sD.a + '/' + sD.b + ' ô — quá khổ màn 320px');
+      if (sD.be <= 0 || sD.lon < sD.be) err.push(nhD + ': số bé phải dương và không lớn hơn số lớn');
+      if (Math.max(sD.a, sD.b) > MAY_TO || sD.n > MAY_TONG_O) err.push(nhD + ': sơ đồ ' + sD.a + '/' + sD.b + ' ô — quá khổ màn 320px');
       if (String(sD.tong).length > 3) err.push(nhD + ': TỔNG ' + sD.tong + ' trên 3 chữ số — hàng chữ của máy dồn to');
       if (String(sD.tong) !== document.getElementById('may-tong').innerText)
         err.push(nhD + ': nhãn TỔNG trên máy ghi "' + document.getElementById('may-tong').innerText + '" nhưng phép tính ra ' + sD.tong);
-      if (String(sD.a + '/' + sD.b) !== document.getElementById('may-ti').innerText)
-        err.push(nhD + ': nhãn TỈ SỐ trên máy ghi "' + document.getElementById('may-ti').innerText + '" nhưng máy đang ở ' + sD.a + '/' + sD.b);
+      /* Hai nút − / + của dải này đổi MỖI Ô chứ không đổi TỔNG ⇒ chữ "MỖI Ô" phải chạy theo
+         đúng lúc, nếu không bé bấm thấy TỔNG nhảy mà không hiểu cái gì vừa đổi. */
+      if (String(sD.mot) !== document.getElementById('may-mot').innerText)
+        err.push(nhD + ': nhãn MỖI Ô trên máy ghi "' + document.getElementById('may-mot').innerText + '" nhưng mỗi ô là ' + sD.mot);
+      /* ② nhãn TỈ SỐ mở đầu bằng ĐÚNG thế bé dựng; rút gọn được thì phải in thêm dạng gọn. */
+      var nhanTi = chu(document.getElementById('may-ti').innerText);
+      var gocSo = uoc(may.a, may.bb), rut = rutTi(may.a, may.bb);
+      if (nhanTi.indexOf(may.a + '/' + may.bb) !== 0)
+        err.push(nhD + ': nhãn TỈ SỐ ghi "' + nhanTi + '" — phải mở đầu bằng đúng ' + may.a + '/' + may.bb + ' mà bé đã dựng');
+      if (gocSo > 1 && nhanTi.indexOf('= ' + rut[0] + '/' + rut[1]) < 0)
+        err.push(nhD + ': ' + may.a + '/' + may.bb + ' rút được thành ' + rut[0] + '/' + rut[1] + ' mà máy giấu — "cho là sai luôn" là nói toạc ra, không phải vẽ 3/6 rồi bắt bé tự đoán');
+      if (gocSo === 1 && nhanTi.indexOf('=') >= 0)
+        err.push(nhD + ': ' + may.a + '/' + may.bb + ' đã tối giản mà nhãn còn ghi dấu " =" — máy tự bịa chỗ rút gọn không có');
       var oB = document.getElementById('may-board');
       kiemSoDo(nhD, oB ? oB.innerHTML : '', { n: sD.n, phan: true, tong: sD.tong });
+      /* ③ hai thẻ công thức gọi theo SỐ PHẦN NHỎ/LỚN, không theo thứ tự hàng. */
       var lb1 = document.getElementById('ct-be-lab'), lb2 = document.getElementById('ct-lon-lab');
       // innerText trong trình duyệt trả về chữ ĐÃ biến đổi theo CSS (.lab viết HOA hết),
       // còn node thì nguyên văn ⇒ so phải hạ hoa cả hai bên, không so chuỗi chữ hoa.
-      if (chu(lb1.innerText).toLowerCase() !== 'số bé (' + sD.a + ' phần)')
+      if (chu(lb1.innerText).toLowerCase() !== 'số bé (' + sD.nho + ' phần)')
         err.push(nhD + ': thẻ Số bé mang nhãn "' + chu(lb1.innerText) + '" — máy đã đổi số mà nhãn còn giữ số cũ');
-      if (chu(lb2.innerText).toLowerCase() !== 'số lớn (' + sD.b + ' phần)')
+      if (chu(lb2.innerText).toLowerCase() !== 'số lớn (' + sD.to + ' phần)')
         err.push(nhD + ': thẻ Số lớn mang nhãn "' + chu(lb2.innerText) + '" — máy đã đổi số mà nhãn còn giữ số cũ');
+      /* ④ SAI THÌ PHẢI BỊ GỌI TÊN — hàng trên không ít hơn hàng dưới là lúc máy phải nói ✕. */
+      var capD = chu(document.getElementById('may-cap').innerHTML);
+      if (may.a >= may.bb && capD.indexOf('✕') < 0)
+        err.push(nhD + ': hàng trên ' + may.a + ' ô không ít hơn hàng dưới ' + may.bb + ' ô mà máy vẫn giảng đều đều — bé không biết mình vừa dựng cái gì');
+      if (may.a < may.bb && capD.indexOf('✕') >= 0)
+        err.push(nhD + ': sơ đồ đúng (trên ' + may.a + ' < dưới ' + may.bb + ') mà máy vẫn báo ✕ — bé đang làm đúng lại bị mắng');
     }
   }
   if (soThe !== mongThe) err.push('Mục 4: vòng đổi số đi qua ' + soThe + ' thế số, quy định ' + mongThe);
   may.a = luuMay.a; may.bb = luuMay.bb; may.mot = luuMay.mot; may.b = luuMay.b; veMay();
 
-  /* 4c · ĐÚNG CHIỀU — dấu + phải TĂNG, dấu − phải GIẢM, chỉ tắt khi hết cỡ */
+  /* 4c · ĐÚNG CHIỀU — mỗi lần bấm đúng MỘT Ô; + phải TĂNG, − phải GIẢM, chỉ tắt vì hết
+     chỗ VẬT LÝ (trần một hàng · trần hai hàng · sàn giá trị một phần), không bao giờ nhảy cóc. */
   n++;
   var dsMot = [];
   for (var mm = MAY_MOT[0]; mm <= MAY_MOT[1]; mm++) dsMot.push(mm);
-  function kiemChieu(k, ds, nhK) {
-    var hienTai = (k === 'bb') ? may.bb : may.mot, i = ds.indexOf(hienTai);
-    var tt = ds[i + 1], gt = ds[i - 1];
+  function danhSachHang(kia) {
+    var ds = [];
+    for (var x = 1; x <= MAY_TO && x + kia <= MAY_TONG_O; x++) ds.push(x);
+    return ds;
+  }
+  function kiemChieu(k, ds, hienTai, nhK) {
+    var i = ds.indexOf(hienTai), tt = ds[i + 1], gt = ds[i - 1];
     var giaTri = tiepTheo(k + '+');
     if (giaTri !== (tt == null ? null : tt))
-      err.push(nhK + ': nút "' + k + '+\" đưa tới ' + giaTri + ', đúng ra phải tới ' + (tt == null ? '(phải TẮT vì hết cỡ)' : tt));
+      err.push(nhK + ': nút "' + k + '+\" đưa tới ' + giaTri + ', đúng ra phải tới ' + (tt == null ? '(phải TẮT vì hết chỗ)' : tt) + ' — mỗi lần bấm phải là ĐÚNG một ô');
     giaTri = tiepTheo(k + '-');
     if (giaTri !== (gt == null ? null : gt))
       err.push(nhK + ': nút "' + k + '−\" đưa tới ' + giaTri + ', đúng ra phải tới ' + (gt == null ? '(phải TẮT vì tới sàn)' : gt));
   }
-  for (var iB3 = 0; iB3 < MAY_BB.length; iB3++) {
-    for (var motw2 = MAY_MOT[0]; motw2 <= MAY_MOT[1]; motw2++) {
-      may.bb = MAY_BB[iB3]; may.mot = motw2;
-      var nhK = 'Mục 4 ở thế ' + may.a + '/' + may.bb + ' · một phần ' + may.mot;
-      kiemChieu('bb', MAY_BB, nhK); kiemChieu('mot', dsMot, nhK);
-    }
+  for (var iC2 = 0; iC2 < dsCap.length; iC2++) {
+    may.a = dsCap[iC2][0]; may.bb = dsCap[iC2][1];
+    var nhK = 'Mục 4 ở thế ' + may.a + '/' + may.bb;
+    kiemChieu('a', danhSachHang(may.bb), may.a, nhK);
+    kiemChieu('bb', danhSachHang(may.a), may.bb, nhK);
   }
-  may.bb = luuMay.bb; may.mot = luuMay.mot; veMay();
+  for (var motw2 = MAY_MOT[0]; motw2 <= MAY_MOT[1]; motw2++) {
+    may.mot = motw2;
+    kiemChieu('mot', dsMot, motw2, 'Mục 4 ở giá trị một phần ' + motw2);
+  }
+  may.a = luuMay.a; may.bb = luuMay.bb; may.mot = luuMay.mot; veMay();
   n++;
   if (coHinh) {
     var ds = document.querySelectorAll('[data-doi]'), tenNut = [];
     for (var w1 = 0; w1 < ds.length; w1++) tenNut.push(ds[w1].getAttribute('data-doi'));
-    ['bb-', 'bb+', 'mot-', 'mot+'].forEach(function (k) {
-      if (tenNut.indexOf(k) < 0) err.push('Mục 4: thiếu nút "' + k + '" — hàng đổi số không đủ 4 nút');
+    ['a-', 'a+', 'bb-', 'bb+', 'mot-', 'mot+'].forEach(function (k) {
+      if (tenNut.indexOf(k) < 0) err.push('Mục 4: thiếu nút "' + k + '" — máy đổi số phải có đủ 6 nút');
     });
-    if (tenNut.length !== 4) err.push('Mục 4: có ' + tenNut.length + ' nút đổi số, quy định đúng 4');
+    if (tenNut.length !== 6) err.push('Mục 4: có ' + tenNut.length + ' nút đổi số, quy định đúng 6');
+    /* Thầy chốt 28/10: "cộng trừ của số bé thì để ngay ở chỗ số bé, cộng trừ số lớn thì để
+       ngay ở chỗ số lớn" ⇒ bốn nút đổi SỐ PHẦN phải nằm TRONG sơ đồ, dưới đúng thanh của nó.
+       Luật cùng hàng cho hai nút MỖI Ô: cặp nút phải KẸP lấy chữ nó đổi (trong .nhom), chứ
+       không rời ra để TỔNG/TỈ SỐ chen giữa — bé nhìn thấy nút cạnh chữ nào thì tưởng nó đổi chữ đó. */
+    var boardHTML = (document.getElementById('may-board') || {}).innerHTML || '';
+    ['a-', 'a+', 'bb-', 'bb+'].forEach(function (k) {
+      if (boardHTML.indexOf('data-doi="' + k + '"') < 0)
+        err.push('Mục 4: nút "' + k + '" không nằm trong sơ đồ ⇒ lại đem lên hàng "Số của máy", bé không biết nó đổi thanh nào');
+    });
+    if (document.querySelector('.may-doi [data-doi="a-"], .may-doi [data-doi="a+"], .may-doi [data-doi="bb-"], .may-doi [data-doi="bb+"]'))
+      err.push('Mục 4: hàng "Số của máy" còn bày nút đổi số phần của hai thanh');
+    if (!document.querySelector('.may-doi .nhom [data-doi="mot-"]') || !document.querySelector('.may-doi .nhom [data-doi="mot+"]'))
+      err.push('Mục 4: hai nút MỖI Ô không kẹp lấy chữ "MỖI Ô" cùng nhóm ⇒ đứng cạnh TỔNG/TỈ SỐ, bé đọc nhầm nó đổi gì');
+    var demCum = (boardHTML.match(/class="nutsp"/g) || []).length;
+    if (demCum !== 2) err.push('Mục 4: sơ đồ có ' + demCum + ' cụm − / +, phải đúng 2 (một cụm dưới mỗi thanh)');
+    var demNutO = (boardHTML.match(/class="dem">[0-9]+ phần</g) || []).length;
+    if (demNutO !== 2) err.push('Mục 4: ' + demNutO + ' cụm nút in chữ "… phần" — bé phải nhìn thấy ngay hàng nào đang có bao nhiêu ô');
     var sn = document.querySelectorAll('#muc-4 [data-n]');
     if (!sn.length) err.push('Mục 4: 4 nút B1→B4 ghi số CỨNG ⇒ bé đổi số là nhãn nói dối');
     for (var w2 = 0; w2 < sn.length; w2++) {
@@ -3028,10 +3198,16 @@ function tuKiemThuong() {
       if (chu(sn[w2].textContent) !== String(sM[key]))
         err.push('Mục 4: nút vẫn ghi "' + chu(sn[w2].textContent) + '" trong khi máy ở ' + key + ' = ' + sM[key]);
     }
-    may.bb = MAY_BB[MAY_BB.length - 1]; veMay();
+    may.a = MAY_TO; may.bb = 1; veMay();
+    if (!document.querySelector('[data-doi="a+"]').disabled)
+      err.push('Mục 4: hàng trên đã tới trần ' + MAY_TO + ' ô mà nút + chưa tắt — bấm nữa là sơ đồ vượt khổ');
+    may.a = 1; may.bb = MAY_TO; veMay();
     if (!document.querySelector('[data-doi="bb+"]').disabled)
-      err.push('Mục 4: hàng dưới đã tới ' + may.bb + ' ô (cuối danh sách) mà nút + chưa tắt — bấm nữa là sơ đồ vượt khổ');
-    may.bb = luuMay.bb; may.mot = MAY_MOT[0]; veMay();
+      err.push('Mục 4: hàng dưới đã tới trần ' + MAY_TO + ' ô mà nút + chưa tắt');
+    may.a = 5; may.bb = 7; veMay();
+    if (!document.querySelector('[data-doi="a+"]').disabled || !document.querySelector('[data-doi="bb+"]').disabled)
+      err.push('Mục 4: hai hàng đã đủ ' + MAY_TONG_O + ' ô mà nút + còn bấm được — vỡ màn 320px');
+    may.a = luuMay.a; may.bb = luuMay.bb; may.mot = MAY_MOT[0]; veMay();
     if (!document.querySelector('[data-doi="mot-"]').disabled)
       err.push('Mục 4: giá trị một phần đã tới sàn ' + MAY_MOT[0] + ' mà nút − chưa tắt');
     may.mot = luuMay.mot; veMay();
@@ -3045,42 +3221,43 @@ function tuKiemThuong() {
     var sR = maySo();
     if (String(sR.tong) !== chu(document.getElementById('may-tong').innerText))
       err.push('Mục 4: tự kiểm xong máy vẫn hiện TỔNG ' + chu(document.getElementById('may-tong').innerText) + ' trong khi thế của bé là ' + sR.tong);
-    if (String(sR.a + '/' + sR.b) !== chu(document.getElementById('may-ti').innerText))
-      err.push('Mục 4: tự kiểm xong máy vẫn hiện tỉ số ' + chu(document.getElementById('may-ti').innerText) + ' trong khi thế của bé là ' + sR.a + '/' + sR.b);
+    if (String(sR.mot) !== chu(document.getElementById('may-mot').innerText))
+      err.push('Mục 4: tự kiểm xong máy vẫn hiện MỖI Ô ' + chu(document.getElementById('may-mot').innerText) + ' trong khi mỗi ô của bé là ' + sR.mot);
+    if (chu(document.getElementById('may-ti').innerText).indexOf(sR.a + '/' + sR.b) !== 0)
+      err.push('Mục 4: tự kiểm xong máy vẫn hiện tỉ số "' + chu(document.getElementById('may-ti').innerText) + '" trong khi thế của bé là ' + sR.a + '/' + sR.b);
     var lbR1 = document.getElementById('ct-be-lab'), lbR2 = document.getElementById('ct-lon-lab');
-    if (chu(lbR1.innerText).toLowerCase() !== 'số bé (' + sR.a + ' phần)')
+    if (chu(lbR1.innerText).toLowerCase() !== 'số bé (' + sR.nho + ' phần)')
       err.push('Mục 4: vòng tự kiểm để lại nhãn "' + chu(lbR1.innerText) + '" — bé mở trang là thấy một số không có thật');
-    if (chu(lbR2.innerText).toLowerCase() !== 'số lớn (' + sR.b + ' phần)')
+    if (chu(lbR2.innerText).toLowerCase() !== 'số lớn (' + sR.to + ' phần)')
       err.push('Mục 4: vòng tự kiểm để lại nhãn "' + chu(lbR2.innerText) + '" — bé mở trang là thấy một số không có thật');
     var fR1 = document.getElementById('ct-be-f'), fR2 = document.getElementById('ct-lon-f');
-    if (chu(fR1.innerText) !== sR.mot + ' × ' + sR.a + ' = ' + sR.be)
-      err.push('Mục 4: vòng tự kiểm để lại công thức "' + chu(fR1.innerText) + '" trong khi máy ở ' + sR.mot + ' × ' + sR.a + ' = ' + sR.be);
-    if (chu(fR2.innerText) !== sR.mot + ' × ' + sR.b + ' = ' + sR.lon)
-      err.push('Mục 4: vòng tự kiểm để lại công thức "' + chu(fR2.innerText) + '" trong khi máy ở ' + sR.mot + ' × ' + sR.b + ' = ' + sR.lon);
+    if (chu(fR1.innerText) !== sR.mot + ' × ' + sR.nho + ' = ' + sR.be)
+      err.push('Mục 4: vòng tự kiểm để lại công thức "' + chu(fR1.innerText) + '" trong khi máy ở ' + sR.mot + ' × ' + sR.nho + ' = ' + sR.be);
+    if (chu(fR2.innerText) !== sR.mot + ' × ' + sR.to + ' = ' + sR.lon)
+      err.push('Mục 4: vòng tự kiểm để lại công thức "' + chu(fR2.innerText) + '" trong khi máy ở ' + sR.mot + ' × ' + sR.to + ' = ' + sR.lon);
     if (may.a !== sM.a || may.bb !== sM.b || may.mot !== sM.mot || may.b !== mayBu)
       err.push('Mục 4: vòng tự kiểm không trả máy về thế số đang xem (muốn ' + sM.a + '/' + sM.b +
         ' · một phần ' + sM.mot + ', còn ' + may.a + '/' + may.bb + ' · một phần ' + may.mot + ')');
   }
 
-  /* 4e · CHỖ NHẢY TRONG DANH SÁCH HÀNG DƯỚI PHẢI TỰ GIẢI THÍCH
-     Bấm + ở 3/5 mà nhảy thẳng 3/7: nếu trang im lặng thì bé tưởng nút hỏng.
-     Luật đòi với MỌI ô bị bỏ giữa khoảng: hoặc nó phải còn tối giản ⇒ không được bỏ,
-     hoặc hàng chữ "bỏ" phải nêu đúng số ô bị bỏ và dạng đã rút gọn của nó. */
+  /* 4e · NÚT TẮT PHẢI TỰ GIẢI THÍCH — bé bấm + mà thanh không nhúc nhích thì trang phải nói
+     vì sao (hết chỗ vật lý), và khi CÒN bấm được thì hàng chữ ấy phải sạch, không nói leo. */
   n++;
-  var ghiBo = chu(document.getElementById('may-bo').innerText);
-  for (var xB = may.a + 1; xB < MAY_BB[MAY_BB.length - 1]; xB++) {
-    if (MAY_BB.indexOf(xB) >= 0) continue;
-    var rr = rutTi(may.a, xB);
-    if (rr[0] === may.a && rr[1] === xB) {
-      err.push('Mục 4: hàng dưới bỏ ' + xB + ' ô nhưng ' + may.a + '/' + xB + ' đã tối giản sẵn — không có lý do để bỏ, thêm ' + xB + ' vào MAY_BB');
-      continue;
-    }
-    if (ghiBo.indexOf('bỏ ' + xB + ' ô') < 0)
-      err.push('Mục 4: hàng dưới nhảy qua ' + xB + ' ô mà trang không nói vì sao bỏ ' + xB + ' — bé bấm + thấy nhảy số sẽ tưởng máy tính sai');
-    if (ghiBo.indexOf(rr[0] + '/' + rr[1]) < 0)
-      err.push('Mục 4: hàng chữ "bỏ" chưa chỉ ra ' + may.a + '/' + xB + ' vẽ thành ' + rr[0] + '/' + rr[1] + ' — phải lấy hình ra giải thích, không nói suông');
-  }
-  if (ghiBo && ghiBo.indexOf('bỏ') < 0) err.push('Mục 4: hàng chữ "' + ghiBo + '" không giải thích được ô nào bị bỏ');
+  function ghiChu() { return chu(document.getElementById('may-bo').innerText); }
+  if (tiepTheo('a+') == null && ghiChu().indexOf('hàng trên') < 0)
+    err.push('Mục 4: nút "+" hàng trên đang tắt mà hàng chữ không nêu lý do — bé tưởng máy liệt');
+  if (tiepTheo('bb+') == null && ghiChu().indexOf('hàng dưới') < 0)
+    err.push('Mục 4: nút "+" hàng dưới đang tắt mà hàng chữ không nêu lý do');
+  if (tiepTheo('a+') != null && tiepTheo('bb+') != null && ghiChu() !== '')
+    err.push('Mục 4: hai hàng còn bấm + được mà hàng chữ vẫn báo "' + ghiChu() + '" — báo hết chỗ khi chưa hết chỗ');
+  may.a = MAY_TO; may.bb = 1; veMay();
+  if (ghiChu().indexOf(String(MAY_TO)) < 0)
+    err.push('Mục 4: hàng trên chạm trần ' + MAY_TO + ' ô mà hàng chữ không nêu con số trần — phải nói rõ trần nào');
+  may.a = 5; may.bb = 7; veMay();
+  if (ghiChu().indexOf(String(MAY_TONG_O)) < 0)
+    err.push('Mục 4: hai hàng chạm trần chung ' + MAY_TONG_O + ' ô mà hàng chữ không nêu');
+  may.a = luuMay.a; may.bb = luuMay.bb; veMay();
+  if (ghiChu() !== '') err.push('Mục 4: trả máy về thế của bé rồi mà hàng chữ còn "' + ghiChu() + '"');
 
   /* 5 · MỤC 6 — bài giải mẫu + Bạn Gấu */
   n++;
@@ -3153,7 +3330,7 @@ function tuKiemThuong() {
   /* 6 · KHUNG TƯƠNG TÁC + CỔNG TÊN */
   n++;
   ['tu-grid', 'dinh-nghia', 'sd-list', 'de-list', 'dan-grid', 'gau-list', 'may-board', 'may-cap',
-    'may-ti', 'may-tong', 'ct-be-lab', 'ct-lon-lab', 'may-bo',
+    'may-ti', 'may-tong', 'may-mot', 'ct-be-lab', 'ct-lon-lab', 'may-bo',
     'quiz-container', 'name-gate', 'thu-out', 'report-wrap', 'practice-wrap', 'level-tabs', 'submit-bar',
     'footer-stamp', 'self-test-alert', 'roster-chips', 'name-input', 'gate-error', 'gate-send',
     'graded-total', 'resume-note', 'runner-name', 'runner-avatar', 'name-go'].forEach(function (id) {
@@ -3421,10 +3598,13 @@ function tuKiemThuong() {
   var chip3 = 0;
   for (var c3 = 1; c3 <= 3; c3++) CAP[c3].ds.forEach(function (q, j) {
     var s = doiSo(q.dk), nh = 'Bài ' + c3 + '.' + (j + 1);
-    [[chipSo(q, s, 'tong'), s.tong], [chipSo(q, s, 'phan'), s.n]].forEach(function (p) {
-      var g = tinhChip(p[0]);
-      if (g == null || g !== p[1]) err.push(nh + ': thẻ "' + p[0] + '" không tính ra ' + p[1]);
-    });
+    /* TỔNG là thẻ TÍNH RA số ("96 ÷ 2" → 48) vì đề giấu nó; số phần thì KHÔNG — thẻ là chữ tỉ số
+       in trong đề và HAI SỐ CỦA NÓ phải cộng lại ra đúng số ô vẽ trên hình. */
+    var gT8 = tinhChip(chipSo(q, s, 'tong'));
+    if (gT8 == null || gT8 !== s.tong) err.push(nh + ': thẻ "' + chipSo(q, s, 'tong') + '" không tính ra ' + s.tong);
+    var ty8 = tySoChu(chipSo(q, s, 'phan'));
+    if (!ty8 || ty8[0] + ty8[1] !== s.n)
+      err.push(nh + ': thẻ tỉ số "' + chipSo(q, s, 'phan') + '" không cộng ra ' + s.n + ' phần như sơ đồ');
     chip3++;
   });
   /* Số câu kéo thả = đúng tổng ba cấp ôn trong bảng quy định — dẫn xuất từ SO_CAU để
@@ -3799,11 +3979,27 @@ function tuKiem() {
       }
     });
     NC = false;
-    if (veCau(1, 0).indexOf('Dấu hiệu:') < 0) kq.err.push('Đề thường mất chữ Dấu hiệu — tắt công tắc mà gợi ý không về');
-    if (veCau(1, 0).indexOf(LOI_NC) >= 0) kq.err.push('Đề thường mà nhãn khay thẻ vẫn là chữ của nâng cao');
-    if (chipSo(CAP[1].ds[0], doiSo(CAP[1].ds[0].dk), 'phan') === String(doiSo(CAP[1].ds[0].dk).n)) kq.err.push('Đề thường mà thẻ số phần mất phép cộng "… + …"');
-    var deThuong1 = (/\<div class="qvan">([\s\S]*?)<\/div>/.exec(veCau(1, 0)) || [])[1] || '';
-    if (deThuong1.indexOf('class="keo') >= 0) kq.err.push('Đề THƯỜNG mà dữ liệu lại nằm trong câu — chế độ lẫn nhau, em không còn khay thẻ để kéo');
+    var hTh0 = veCau(1, 0), sTh0 = doiSo(CAP[1].ds[0].dk);
+    var deTh0 = (/\<div class="qvan">([\s\S]*?)<\/div>/.exec(hTh0) || [])[1] || '';
+    if (hTh0.indexOf('Dấu hiệu:') < 0) kq.err.push('Đề thường mất chữ Dấu hiệu — tắt công tắc mà gợi ý không về');
+    if (hTh0.indexOf(LOI_NC) >= 0) kq.err.push('Đề thường mà nhãn hàng thẻ vẫn là chữ của nâng cao');
+    /* L16 (thầy chốt 28/10): "đừng có tách dữ liệu ra khỏi đề bài — số nào muốn kéo thì để luôn
+       trên đề bài, khoanh số năm · khoanh số một". Đề thường đi CÙNG đường với đề nâng cao, chỉ
+       khác là chữ trong câu được BỌC VÒNG để em nhận ra chỗ cầm được. */
+    var lopTh0 = (deTh0.match(/class="keo"/g) || []).length;
+    if (lopTh0 < 2) kq.err.push('Đề thường: lời đề chỉ có ' + lopTh0 + ' chỗ khoanh — dữ liệu bị nhốt lại vào khay riêng, thầy đã bảo đừng tách ra');
+    if (deTh0.indexOf('data-loai="phan"') < 0) kq.err.push('Đề thường: thẻ tỉ số không nằm trong câu — em chẳng phải đọc đề mà vẫn có số');
+    if (deTh0.indexOf('class="keo thuong"') >= 0) kq.err.push('Đề thường mà chữ trong câu mang kiểu của nâng cao — hai chế độ lẫn nhau');
+    if (chipSo(CAP[1].ds[0], sTh0, 'phan') !== tySoTrongDe(CAP[1].ds[0], sTh0))
+      kq.err.push('Đề thường: thẻ số phần không phải tỉ số in trong đề ("' + chipSo(CAP[1].ds[0], sTh0, 'phan') + '") — máy viết phép cộng hộ em');
+    if (hTh0.indexOf(LOI_KHOANH.slice(0, -1)) < 0 && hTh0.indexOf(LOI_KHOANH_CON.slice(0, -1)) < 0)
+      kq.err.push('Đề thường mất lời nhắc kéo chữ đã khoanh — thẻ nằm trong câu mà em không biết phải làm gì với nó');
+    /* Bỏ hết lớp khoanh ra thì câu phải còn NGUYÊN VĂN như trang sách: khoanh là lớp bọc, không
+       phải sửa chữ. (Thẻ tỉ số "2/5" mà bị thay bằng "7 phần" là máy đếm hộ em.) */
+    var xoongTh = document.createElement('div');
+    xoongTh.innerHTML = deTh0;
+    if (String(xoongTh.textContent || '').replace(/\s+/g, ' ').trim() !== lamVan(CAP[1].ds[0]).text.replace(/\s+/g, ' ').trim())
+      kq.err.push('Đề thường: bỏ vòng khoanh ra thì câu không còn nguyên văn — thẻ đã viết lại lời đề');
     var canNhat = 0;
     [1, 2, 3].forEach(function (zi2) {
       CAPN[zi2].ds.forEach(function (q2) {
