@@ -396,6 +396,17 @@
   .sodo .chu.phan { width: 100%; }
   .sodo .chu.phan i { border-color: var(--teal); }
   .sodo .chu.phan b { color: #0C5F63; white-space: normal; }
+  /* NÂNG CAO (thầy chốt 28/10): sơ đồ KHÔNG vẽ sẵn ô ⇒ em tự bấm − / + ngay DƯỚI thanh của
+     mình. Nút nằm trong cùng hàng nên KHÔNG ăn bề ngang cột ô — ở khổ 320 mỗi ô vẫn đủ rộng
+     để đếm bằng ngón tay, chỉ hàng cao thêm một chút. */
+  .sodo .track.lech-cot[data-nut] { display: flex; flex-direction: column; align-items: stretch; gap: 3px; }
+  .sodo .nutsp { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+  .sodo .nutsp .dem { font-size: 13px; font-weight: 900; color: var(--blue); white-space: nowrap; }
+  .sodo .nutsp .btn { min-width: 44px; padding: 0 6px; font-size: 22px; line-height: 1;
+    color: var(--blue); border-color: #B9D5F0; background: #F4F9FF; }
+  /* Hàng có nút cao gần gấp đôi hàng thường: nhãn ? phải canh ĐỈNH thanh, để trôi xuống
+     giữa hàng thì em không biết ô ? đó là nhãn của thanh nào. */
+  .sodo .khol.ng.co-nut .ten { align-self: start; }
   /* ĐIỆN THOẠI HẸP — đo thật ở khổ 320: nhãn 44px + ngoặc tím 112px ăn hết bề ngang,
      cột ô chỉ còn 28,6px nên mỗi ô vẽ ra 4px (sơ đồ thành vệt, máy tự kiểm chặn trang).
      Dưới 300px bề ngang sơ đồ, ngoặc TỔNG chuyển XUỐNG DƯỚI thành dấu ngoặc NGANG ôm
@@ -1061,30 +1072,34 @@ function batNC() { datNC(!NC); }
 // o.tongO = nội dung ngoặc tím · o.phanO = nội dung ô "TẤT CẢ … PHẦN" (null = không có hàng chú thích)
 // --cw đặt trên .khol nên MỌI hàng (kể cả hàng chú thích) chia cột 1/2 đúng như nhau:
 // đặt theo từng hàng thì hàng có ô kéo thả bị lệch ô so với hàng bên cạnh.
+// Bề ngang MỘT Ô khi hàng chia thành maxK ô — máy vẽ và máy dựng sơ đồ (nút − / +) dùng
+// chung công thức này, nếu không hai hàng sẽ mỗi hàng một cỡ và so sánh lớn–bé mất nghĩa.
+function chieuO(maxK, gap) { return 'calc((100% - ' + ((maxK - 1) * gap) + 'px) / ' + maxK + ')'; }
+function oPhanHTML(k, b2, pw, gap) {
+  var h = '';
+  for (var j = 0; j < k; j++) {
+    h += '<span class="bar phan' + (b2 ? ' b2' : '') + '" style="width:' + pw +
+      (j < k - 1 ? ';margin-right:' + gap + 'px' : '') + '"></span>';
+  }
+  return h;
+}
 function soDoPhan(o) {
-  var maxK = 1, coKeo = false, i;
+  var maxK = 1, coKeo = false, coNut = false, i;
   for (i = 0; i < o.rows.length; i++) {
     if (o.rows[i].k > maxK) maxK = o.rows[i].k;
     if (o.rows[i].drop) coKeo = true;
+    if (o.rows[i].nut) coNut = true;
   }
   var cw = coKeo ? '58px' : '0px';
-  var gap = 3, pw = 'calc((100% - ' + ((maxK - 1) * gap) + 'px) / ' + maxK + ')';
-  function cells(k, b2) {
-    var h = '';
-    for (var j = 0; j < k; j++) {
-      h += '<span class="bar phan' + (b2 ? ' b2' : '') + '" style="width:' + pw +
-        (j < k - 1 ? ';margin-right:' + gap + 'px' : '') + '"></span>';
-    }
-    return h;
-  }
+  var gap = 3, pw = chieuO(maxK, gap);
   function hang(r, idx) {
     var noi = r.k == null
       ? '<span class="bar' + (idx ? ' b2' : '') + '" style="width:100%"></span>'
-      : cells(r.k, idx === 1);
+      : oPhanHTML(r.k, idx === 1, pw, gap);
     var du = r.drop ? '<span class="drop ph-drop" id="' + r.drop + '" data-loai="phan">?</span>' : '';
     return '<span class="ten">' + r.ten + '</span>' +
-      '<span class="track lech-cot"' + (r.drop ? ' data-thavung' : '') + '>' +
-      '<span class="cells">' + noi + '</span>' + du + '</span>';
+      '<span class="track lech-cot"' + (r.nut ? ' data-nut="1"' : '') + (r.drop ? ' data-thavung' : '') + '>' +
+      '<span class="cells">' + noi + '</span>' + (r.nut || '') + du + '</span>';
   }
   var rows = '', n = 0, hangCuoiThanh = 0;
   for (i = 0; i < o.rows.length; i++) { rows += hang(o.rows[i], i); n++; hangCuoiThanh = n; }
@@ -1094,7 +1109,7 @@ function soDoPhan(o) {
   }
   // KHÔNG có ngoặc ⇒ lưới chỉ 2 cột. Để 3 cột trống thì máy xếp ô tự động đẩy NHÃN của hàng
   // thứ hai sang cột 3, hai hàng thành hai cỡ ô khác nhau (lỗi "cái dài cái ngắn").
-  var luoi = 'khol ng' + (o.tongO == null ? ' khong-ng' : '');
+  var luoi = 'khol ng' + (o.tongO == null ? ' khong-ng' : '') + (coNut ? ' co-nut' : '');
   return '<div class="sodo' + (o.lop ? ' ' + o.lop : '') + '"><div class="' + luoi + '" style="--cw:' + cw + '">' + rows +
     (o.tongO == null ? '' : '<div class="ngoac"' +
       (/class="drop"/.test(o.tongO) ? ' data-thavung' : '') +
@@ -1859,7 +1874,7 @@ function luuBai() {
     if (!runState) { localStorage.removeItem(KHO); return false; }
     localStorage.setItem(KHO, JSON.stringify({
       ver: BAN_CAU, ten: runState.label, attempts: runState.attempts, cap: activeCap,
-      nhap: nhap, nc: NC, nop: nopChDo, baoCao: baoCaoChDo, nopCap: capDaNop, baoCaoCap: baoCaoCap
+      nhap: nhap, nc: NC, sp: SOPHAN, nop: nopChDo, baoCao: baoCaoChDo, nopCap: capDaNop, baoCaoCap: baoCaoCap
     }));
     return true;
   } catch (e) { return false; }
@@ -1896,6 +1911,7 @@ function moLaiBai() {
   for (var mkD in (s.baoCaoCap || {})) if (String(mkD).indexOf('-') > 0) baoCaoCap[mkD] = s.baoCaoCap[mkD];
   NC = !!s.nc;
   if (NC) napNC(SEED_NC);
+  docSoPhan(s.sp);
   veNC();
   document.getElementById('name-gate').classList.add('hidden');
   document.getElementById('runner-name').innerText = kid.label;
@@ -2022,14 +2038,127 @@ function veBuKeo(i, j, nc) {
   if (nc && !c.length) nhan = nhan.replace(/:$/, '.');
   return '<div class="qkeo"><span class="nhan">' + nhan + '</span>' + html + '</div>';
 }
+/* =====================================================================
+   NÂNG CAO (thầy chốt 28/10): sơ đồ KHÔNG vẽ sẵn ô. Mỗi hàng bắt đầu MỘT Ô và
+   có hai nút − / + nằm ngay dưới thanh; em bấm cho tới khi số ô hàng trên bằng
+   tử số, hàng dưới bằng mẫu số của tỉ số in trong đề. Đề thường vẫn vẽ sẵn ô.
+   Ô em dựng là công của em ⇒ nháp đổi số cũng phải giữ nguyên số ô đang bấm.
+   ===================================================================== */
+var MAX_SP = 9;
+var TEN_HANG = ['hàng trên', 'hàng dưới'];
+var SOPHAN = {};
+function soPhanCua(i, j) { var a = SOPHAN[cauK(i, j)]; return a || (SOPHAN[cauK(i, j)] = [1, 1]); }
+function soPhan(i, j, row) { return soPhanCua(i, j)[row]; }
+function doiSoPhan(i, j, row, delta) {
+  var a = soPhanCua(i, j);
+  a[row] = Math.max(1, Math.min(MAX_SP, a[row] + delta));
+  return a[row];
+}
+function soDuKhop(i, j) {
+  var s = doiSo(cauCua(i, j).dk);
+  return soPhan(i, j, 0) === s.a && soPhan(i, j, 1) === s.b;
+}
+function chanSoPhan(x) {
+  var v = parseInt(x, 10);
+  return (isNaN(v) || v < 1 || v > MAX_SP) ? 0 : v;
+}
+/* Nút − / + dựng sơ đồ phải sống cùng nháp, nhưng phím câu đã mang DẤU CHẾ ĐỘ
+   (cap-… / nc-cap-…) ⇒ hai bài làm không đè nhau. Chỉ nhận phím đúng dạng. */
+function docSoPhan(sp) {
+  SOPHAN = {};
+  if (!sp) return;
+  for (var k in sp) {
+    if (!/^(?:nc-)?cap-[1-7]-[0-9]$/.test(k)) continue;
+    var a = sp[k];
+    if (!a || a.length !== 2) continue;
+    var v = [chanSoPhan(a[0]), chanSoPhan(a[1])];
+    if (v[0] && v[1]) SOPHAN[k] = v;
+  }
+}
+function nutSoPhanHTML(i, j, row) {
+  var k = soPhan(i, j, row), ten = TEN_HANG[row];
+  return '<span class="nutsp" data-hang="' + row + '">' +
+    '<button class="btn" data-sp="' + row + '-"' + (k <= 1 ? ' disabled' : '') +
+      ' aria-label="Bớt số phần ' + ten + ' — đang có ' + k + ' phần">−</button>' +
+    '<b class="dem">' + k + ' phần</b>' +
+    '<button class="btn" data-sp="' + row + '+"' + (k >= MAX_SP ? ' disabled' : '') +
+      ' aria-label="Thêm số phần ' + ten + ' — đang có ' + k + ' phần">+</button>' +
+    '</span>';
+}
+/* Bấm nút thì CHỈ vẽ lại hai hàng Ô. Nhãn tên, ngoặc tím và ô "TẤT CẢ … PHẦN" nằm ngoài
+   .cells nên còn nguyên — vẽ lại cả sơ đồ là xoá sạch những ô em vừa kéo thẻ vào. */
+function veLaiSoPhan(i, j) {
+  var card = document.getElementById(idCard(i, j));
+  if (!card) return;
+  var k = [soPhan(i, j, 0), soPhan(i, j, 1)];
+  var pw = chieuO(Math.max(1, k[0], k[1]), 3), hang = card.querySelectorAll('.sodo .cells');
+  for (var t = 0; t < hang.length && t < 2; t++) hang[t].innerHTML = oPhanHTML(k[t], t === 1, pw, 3);
+  var nut = card.querySelectorAll('.sodo .nutsp');
+  for (var u = 0; u < nut.length; u++) {
+    var row = nut[u].getAttribute('data-hang') === '1' ? 1 : 0;
+    var dem = nut[u].querySelector('.dem');
+    if (dem) dem.textContent = k[row] + ' phần';
+    var bot = nut[u].querySelector('[data-sp="' + row + '-"]');
+    var them = nut[u].querySelector('[data-sp="' + row + '+"]');
+    if (bot) { bot.disabled = k[row] <= 1; bot.setAttribute('aria-label', 'Bớt số phần ' + TEN_HANG[row] + ' — đang có ' + k[row] + ' phần'); }
+    if (them) { them.disabled = k[row] >= MAX_SP; them.setAttribute('aria-label', 'Thêm số phần ' + TEN_HANG[row] + ' — đang có ' + k[row] + ' phần'); }
+  }
+}
+function bamSoPhan(i, j, kieu) {
+  var row = String(kieu).charAt(0) === '1' ? 1 : 0;
+  var card = document.getElementById(idCard(i, j));
+  var nut = card ? card.querySelector('[data-sp="' + kieu + '"]') : null;
+  var daTap = !!nut && document.activeElement === nut;
+  var moi = doiSoPhan(i, j, row, String(kieu).indexOf('+') >= 0 ? 1 : -1);
+  luuBai();
+  veLaiSoPhan(i, j);
+  tin(TEN_HANG[row] + ' đang có ' + moi + ' phần.');
+  /* nút vừa bấm có thể vừa bị tắt (hàng về 1 ô hoặc tới mức tối đa) — đừng bỏ rơi em
+     giữa bàn phím: đưa con trỏ về nút còn bấm được của cùng hàng. */
+  if (daTap && nut.disabled) {
+    var kia = card.querySelector('.nutsp[data-hang="' + row + '"] [data-sp="' + row +
+      (String(kieu).indexOf('+') >= 0 ? '-' : '+') + '"]');
+    if (kia && !kia.disabled) kia.focus();
+  }
+  kiemGhep(i, j);
+}
+function ganNutSoPhan(i, j) {
+  var card = document.getElementById(idCard(i, j));
+  if (!card) return;
+  var ds = card.querySelectorAll('.nutsp .btn');
+  for (var t = 0; t < ds.length; t++) {
+    if (ds[t]._ganSp) continue;
+    ds[t]._ganSp = 1;
+    ds[t].onclick = function () { bamSoPhan(i, j, this.getAttribute('data-sp')); };
+  }
+}
+/* Bốn thẻ đã đổ hết mà hai hàng chưa đúng tỉ số thì chưa được vỗ tay: chính số ô là việc
+   của đề nâng cao vòng này, không phải thứ nhìn hình nào cũng đầy. */
+function kiemGhep(i, j) {
+  var card = document.getElementById(idCard(i, j)), cap = document.getElementById(idKq(i, j));
+  if (!card || !cap) return;
+  if (card.querySelectorAll('.drop.ok').length !== 4) return;
+  if (NC && !soDuKhop(i, j)) {
+    cap.innerHTML = '✕ Hai hàng chưa có số phần ĐÚNG bằng tỉ số trong đề — em đọc tỉ số rồi bấm − / + dưới mỗi thanh cho tới khi đếm đủ ô.';
+    cap.className = 'cap bad';
+    tin(cap.innerHTML);
+    return;
+  }
+  cap.innerHTML = NC ? '✓ Ghép đúng. Em đọc tiếp đề rồi tự làm phần còn lại nhé.'
+    : '✓ Sơ đồ đủ hai hàng ô, TỔNG và số phần — giờ lấy TỔNG chia cho số phần.';
+  cap.className = 'cap ok';
+  tin(cap.innerHTML);
+}
 function veSoDoKeo(i, j) {
   var q = cauCua(i, j), s = doiSo(q.dk), id = i + '-' + j;
   function nhan(row) {
     return '<span class="drop" id="q-' + id + '-ten' + row + '" data-loai="ten" data-dap="' + q.ten[row] + '">?</span>';
   }
+  /* nâng cao: mỗi hàng BẮT ĐẦU MỘT Ô, em tự bấm − / + dựng đủ số phần của tỉ số */
+  function hang(row, k) { return { ten: nhan(row), k: k, nut: NC ? nutSoPhanHTML(i, j, row) : null }; }
   return soDoPhan({
     lop: 'tu-sodo',
-    rows: [{ ten: nhan(0), k: s.a }, { ten: nhan(1), k: s.b }],
+    rows: [hang(0, NC ? soPhan(i, j, 0) : s.a), hang(1, NC ? soPhan(i, j, 1) : s.b)],
     tongO: 'TỔNG <span class="drop" id="q-' + id + '-tong" data-loai="tong" data-dap="' + s.tong + '">?</span>',
     phanO: 'TẤT CẢ <span class="drop" id="q-' + id + '-phan" data-loai="phan" data-dap="' + s.n + '">?</span> PHẦN'
   });
@@ -2058,12 +2187,7 @@ function quizTha(i, j, el) {
     return;
   }
   thaDung(el, keo, cap);
-  if (card.querySelectorAll('.drop.ok').length === 4) {
-    cap.innerHTML = NC ? '✓ Ghép đúng. Em đọc tiếp đề rồi tự làm phần còn lại nhé.'
-      : '✓ Sơ đồ đủ hai hàng ô, TỔNG và số phần — giờ lấy TỔNG chia cho số phần.';
-    cap.className = 'cap ok';
-    tin(cap.innerHTML);
-  }
+  kiemGhep(i, j);
 }
 
 function veCau(i, j) {
@@ -2128,7 +2252,10 @@ function veDanhSach() {
       var fb = document.getElementById('fb-' + key);
       if (fb) fb.innerHTML = phanHoi(q, rec.val, rec.ok);
     }
-    if (!cham) ganKeoTha('card-' + key, function (el) { quizTha(activeCap, j, el); });
+    if (!cham) {
+      ganKeoTha('card-' + key, function (el) { quizTha(activeCap, j, el); });
+      ganNutSoPhan(activeCap, j);
+    }
   });
   veTabs();
   updateSubmitBar();
@@ -2379,6 +2506,7 @@ function showReport(kid, rec) {
 
 function veCong() {
   runState = null; nhap = {}; activeCap = 1;
+  SOPHAN = {};
   nopChDo = {}; baoCaoChDo = {}; capDaNop = {}; baoCaoCap = {};
   NC = false; veNC();
   document.getElementById('quiz-container').innerHTML = '';
@@ -3614,7 +3742,12 @@ function tuKiem() {
     so++;
     /* GỢI Ý ẨN HẾT nhưng KHUNG KÉO THẢ + Ô ĐIỀN VẪN CÒN (cấp ôn 1·2·3 mới có kéo thả) */
     [0, 1, 2, 3].forEach(function (j) {
-      var h = veCau(1, j), nq = cauCua(1, j), s = doiSo(nq.dk);
+      var nq = cauCua(1, j), s = doiSo(nq.dk);
+      /* Các hàng đo sơ đồ dưới đây là đo LÚC MỚI MỞ TRANG (mỗi hàng còn MỘT ô). Em đã bấm nút
+         giữa chừng thì phải dựng lại nguyên sơ rồi mới đo — không là tự kiểm báo oan và chặn trang. */
+      var giuSp = SOPHAN[cauK(1, j)] ? SOPHAN[cauK(1, j)].slice() : null;
+      SOPHAN[cauK(1, j)] = [1, 1];
+      var h = veCau(1, j);
       if (h.indexOf('Dấu hiệu:') >= 0) kq.err.push('NÂNG CAO Bài 1.' + (j + 1) + ': còn chữ Dấu hiệu trên đề');
       if (h.indexOf(LOI_NC.replace(/:$/, '')) < 0) kq.err.push('NÂNG CAO Bài 1.' + (j + 1) + ': nhãn khay thẻ còn chỉ cách làm');
       /* thẻ số phần phải là TỈ SỐ in nguyên văn trong đề — máy đưa "7" là cộng hộ em, mất bước chính của bài */
@@ -3626,6 +3759,26 @@ function tuKiem() {
       if ((h.match(/draggable="true"/g) || []).length < 4) kq.err.push('NÂNG CAO Bài 1.' + (j + 1) + ': mất thẻ kéo được');
       if (!/type="number"/.test(h)) kq.err.push('NÂNG CAO Bài 1.' + (j + 1) + ': mất ô điền đáp số');
       if ((h.match(/id="card-nc-cap-1-/g) || []).length !== 1) kq.err.push('NÂNG CAO Bài 1.' + (j + 1) + ': thẻ bài không mang dấu chế độ');
+      /* L14 (thầy chốt 28/10): không vẽ sẵn ô — mỗi hàng MỘT ô + hai nút − / +, em tự dựng
+         cho tới khi số ô khớp tỉ số in trong đề. Vẽ sẵn là làm hộ em bước chính của bài. */
+      var soO = (h.match(/class="bar phan/g) || []).length;
+      if (soO !== 2) kq.err.push('NÂNG CAO Bài 1.' + (j + 1) + ': sơ đồ đang vẽ ' + soO + ' ô — nâng cao phải để MỖI HÀNG MỘT ô cho em tự bấm nút');
+      var soNut = (h.match(/data-nut="1"/g) || []).length;
+      if (soNut && (h.match(/class="khol ng[^"]*co-nut/g) || []).length !== 1) kq.err.push('NÂNG CAO Bài 1.' + (j + 1) + ': hàng có nút mà lưới không mang dấu co-nut ⇒ nhãn ? trôi xuống giữa hàng, em không biết nó gọi tên thanh nào');
+      if (soNut !== 2) kq.err.push('NÂNG CAO Bài 1.' + (j + 1) + ': chỉ ' + soNut + ' hàng có ô chứa nút — phải đủ hai hàng trên dưới');
+      var soBam = (h.match(/data-sp="[01][-+]"/g) || []).length;
+      if (soBam !== 4) kq.err.push('NÂNG CAO Bài 1.' + (j + 1) + ': có ' + soBam + ' nút − / +, phải có 4 (hai hàng, mỗi hàng hai nút)');
+      if ((h.match(/class="dem">1 phần</g) || []).length !== 2) kq.err.push('NÂNG CAO Bài 1.' + (j + 1) + ': hàng chưa bấm mà không in "1 phần" — em không biết mình dựng từ đâu lên');
+      if ((h.match(/aria-label="(Bớt|Thêm) số phần /g) || []).length !== 4) kq.err.push('NÂNG CAO Bài 1.' + (j + 1) + ': nút − / + thiếu nhãn cho máy đọc màn hình');
+      for (var zb = 0; zb < MAX_SP + 4; zb++) doiSoPhan(1, j, 0, 1);
+      if (soPhan(1, j, 0) !== MAX_SP) kq.err.push('NÂNG CAO Bài 1.' + (j + 1) + ': bấm + ' + (MAX_SP + 4) + ' lần mà hàng trên dừng ở ' + soPhan(1, j, 0) + ' chứ không phải ' + MAX_SP);
+      for (var zp = 0; zp < MAX_SP + 4; zp++) doiSoPhan(1, j, 1, -1);
+      if (soPhan(1, j, 1) !== 1) kq.err.push('NÂNG CAO Bài 1.' + (j + 1) + ': bấm − hết cỡ mà hàng dưới còn ' + soPhan(1, j, 1) + ' ô — hàng không được rỗng');
+      SOPHAN[cauK(1, j)] = [s.a, s.b];
+      if (!soDuKhop(1, j)) kq.err.push('NÂNG CAO Bài 1.' + (j + 1) + ': dựng đúng ' + s.a + ' và ' + s.b + ' ô mà máy vẫn báo chưa khớp tỉ số');
+      SOPHAN[cauK(1, j)] = [s.a + 1, s.b];
+      if (soDuKhop(1, j)) kq.err.push('NÂNG CAO Bài 1.' + (j + 1) + ': hàng trên ' + (s.a + 1) + ' ô khác tỉ số ' + s.a + ' mà máy vẫn báo khớp');
+      if (giuSp) SOPHAN[cauK(1, j)] = giuSp; else delete SOPHAN[cauK(1, j)];
       /* L12 — thầy chốt 27/10: "không khoanh tròn gợi ý nữa, viết như đề bình thường, bé phải tự
          tìm trong đề mà kéo xuống". Đo riêng lời đề (bỏ lớp thẻ đi thì câu còn nguyên văn). */
       var cho = /<div class="qvan">([\s\S]*?)<\/div>/.exec(h);
@@ -3651,6 +3804,22 @@ function tuKiem() {
     if (chipSo(CAP[1].ds[0], doiSo(CAP[1].ds[0].dk), 'phan') === String(doiSo(CAP[1].ds[0].dk).n)) kq.err.push('Đề thường mà thẻ số phần mất phép cộng "… + …"');
     var deThuong1 = (/\<div class="qvan">([\s\S]*?)<\/div>/.exec(veCau(1, 0)) || [])[1] || '';
     if (deThuong1.indexOf('class="keo') >= 0) kq.err.push('Đề THƯỜNG mà dữ liệu lại nằm trong câu — chế độ lẫn nhau, em không còn khay thẻ để kéo');
+    var canNhat = 0;
+    [1, 2, 3].forEach(function (zi2) {
+      CAPN[zi2].ds.forEach(function (q2) {
+        var s2 = doiSo(q2.dk);
+        if (s2.a > canNhat) canNhat = s2.a;
+        if (s2.b > canNhat) canNhat = s2.b;
+      });
+    });
+    if (canNhat > MAX_SP) kq.err.push('NÂNG CAO cấp ôn: có đề cần ' + canNhat + ' phần nhưng nút + chỉ bấm tới ' + MAX_SP + ' — em không dựng nổi sơ đồ đúng');
+    if (canNhat === MAX_SP) kq.err.push('NÂNG CAO cấp ôn: tỉ số cần đúng ' + MAX_SP + ' phần ⇒ nút + dừng ngay ở đích, bé dò nút cũng ra bài. Phải chừa một bậc');
+    /* ĐỀ THƯỜNG vẫn vẽ sẵn ô (đó là cái giàn giáo của nó) và KHÔNG có nút bấm */
+    var hTh = veCau(1, 0), sTh = doiSo(CAP[1].ds[0].dk);
+    var oTh = (hTh.match(/class="bar phan/g) || []).length;
+    if (oTh !== sTh.n) kq.err.push('Đề thường: sơ đồ Bài 1.1 vẽ ' + oTh + ' ô, phải vẽ sẵn đủ ' + sTh.n + ' ô để em đếm');
+    if (/data-nut="1"|data-sp=/.test(hTh)) kq.err.push('Đề thường mà sơ đồ có nút − / + — đề này đã vẽ sẵn ô, em không phải dựng');
+    if (soPhan(1, 0, 0) !== 1 || soPhan(1, 0, 1) !== 1) kq.err.push('Số ô em dựng ở đề nâng cao rò sang đề thường — phím câu hai chế độ phải tách nhau');
     so++;
     /* Ô NHÁY SẴN: nâng cao phải im, thường phải còn sáng */
     var khung = document.createElement('div');

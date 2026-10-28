@@ -26,6 +26,15 @@
          liệu trong câu mà kéo xuống. Cái đề không in sẵn (TỔNG giấu sau chu vi) mới ở khay.
      L13 Thẻ SỐ PHẦN ở đề nâng cao cầm đúng TỈ SỐ in nguyên văn trong đề ("2/5" · "3 lần"), nằm
          TRONG lời đề chứ không nằm ở khay — số phần (2+5=7) là em tự cộng, máy không cộng hộ.
+     L14 (thầy chốt 28/10) Đề nâng cao KHÔNG vẽ sẵn ô: mỗi hàng bắt đầu MỘT Ô và có hai nút
+         − / + dưới thanh; em bấm tới khi số ô hàng trên bằng tử số, hàng dưới bằng mẫu số của
+         tỉ số in trong đề. Đề thường VẪN vẽ sẵn ô (không có nút). Bốn điều phải giữ:
+         (a) bấm một cái + thêm đúng MỘT ô và nhãn "K phần" đổi theo;
+         (b) bấm nút KHÔNG được xoá những ô em đã kéo thẻ vào (bốn ô đích phải là node cũ);
+         (c) đủ bốn thẻ mà số ô chưa đúng tỉ số thì máy từ chối vỗ tay (cap bad), dựng đúng thì ok;
+         (d) số ô em bấm là công của em ⇒ sống trong kho giữ bài qua lần mở lại trang, và nháp
+             hai chế độ không đè nhau. Nút + dừng ở MAX_SP (> mọi tỉ số trong bài) chứ không dừng
+             ngay ở đích, kẻo bé dò nút ra đáp số.
 
    Vì sao N process Chrome riêng cho mỗi phase: `localStorage` chỉ sống giữa các lần nạp khi
    dùng chung một `--user-data-dir`, và "mở lại trang" chỉ là mở lại THẬT khi trình duyệt
@@ -297,6 +306,14 @@ function chay() {
     step('thePhanThuong', thePhan());
     step('oNhamThuong', iw.oNham('phan', idoc.getElementById('card-' + iw.cauK(1, 0))) > 0 ? 'con-nhay' : 'MAT-NHAY');
     step('coTiengThuong', coTieng());
+    /* L14 — ĐỀ THƯỜNG vẫn vẽ sẵn ô: đủ s.a + s.b ô và KHÔNG có nút − / + (nút chỉ dành cho nâng cao) */
+    step('soDoThuVeSan', (function () {
+      var c = idoc.getElementById('card-' + iw.cauK(1, 0));
+      if (!c) return 'khong-co-card';
+      var sTh = iw.doiSo(iw.CAP[1].ds[0].dk);
+      var o = c.querySelectorAll('.sodo .bar.phan').length, n = c.querySelectorAll('.nutsp .btn').length;
+      return o === sTh.a + sTh.b && n === 0 ? 'du-o-khong-nut' : 'o=' + o + '/' + (sTh.a + sTh.b) + '-nut=' + n;
+    }()));
     gat();
     step('ncSauGat', iw.NC ? 'bat' : 'tat');
     step('switchChu', String($('#nc-switch').textContent));
@@ -345,6 +362,82 @@ function chay() {
       }
       return loi ? 'CON-' + loi : 'tron-van';
     }()));
+    /* ================= L14 — ĐỀ NÂNG CAO KHÔNG VẼ SẴN Ô (đo bằng CLICK THẬT) =================
+       Mỗi hàng bắt đầu MỘT Ô + hai nút − / +. Bấm đúng cái nút em nhìn thấy rồi đếm ô trong
+       hàng đó, không đọc chuỗi nguồn: sửa HTML mà quên sửa máy dựng ô thì vẫn phải bị bắt. */
+    var k14 = iw.cauK(1, 0), card14 = idoc.getElementById('card-' + k14);
+    var cap14 = idoc.getElementById('qkq-' + k14);
+    var s14 = iw.doiSo(iw.cauCua(1, 0).dk);
+    var NHAN_L14 = ['soDoKhongVeSan', 'nutDemIn', 'nutCoNhan', 'truCua1Tat', 'themMotO', 'gioLaNodeCu',
+      'demTheoO', 'theDaDo', 'capChuaDu', 'oGiuSauKhiBam', 'chanDinh', 'veMotO', 'duTySo', 'capKhop',
+      'thuaMotO', 'troLaiKhop', 'demInDungTySo', 'nhapRiengCheDo', 'soPhanDaLuu'];
+    if (!card14 || !cap14) {
+      NHAN_L14.forEach(function (n) { step(n, 'khong-co-card'); });
+    } else {
+      function oDong(t) { var h = card14.querySelectorAll('.sodo .cells'); return t < h.length ? h[t].querySelectorAll('.bar.phan').length : -1; }
+      function nut14(row, kieu) { return idoc.querySelector('#card-' + k14 + ' [data-sp="' + row + kieu + '"]'); }
+      function bam14(row, kieu) { var b = nut14(row, kieu); if (!b) return false; b.click(); return true; }
+      function dem14(t) { var d = card14.querySelectorAll('.nutsp .dem'); return t < d.length ? String(d[t].textContent) : '(khong-co-nhan)'; }
+      function denDung(row, muc) { for (var t = 0; t < 40 && oDong(row) !== muc; t++) bam14(row, oDong(row) < muc ? '+' : '-'); }
+      step('soDoKhongVeSan', card14.querySelectorAll('.sodo .bar.phan').length === 2 &&
+        card14.querySelectorAll('.nutsp .btn').length === 4 ? 'moi-hang-1-o' : 'LECH-o=' +
+        card14.querySelectorAll('.sodo .bar.phan').length + '-nut=' + card14.querySelectorAll('.nutsp .btn').length);
+      step('nutDemIn', dem14(0) === '1 phần' && dem14(1) === '1 phần' ? '1-phan' : 'SAI-' + dem14(0) + '|' + dem14(1));
+      step('nutCoNhan', (function () {
+        var B = card14.querySelectorAll('.nutsp .btn'), d = 0;
+        for (var t = 0; t < B.length; t++) if (/ (trên|dưới) — đang có [0-9]+ phần$/.test(String(B[t].getAttribute('aria-label')))) d++;
+        return d === 4 ? 'co-aria' : 'THIEU-ARIA-' + d;
+      }()));
+      step('truCua1Tat', (function () { var b = nut14(0, '-'); return !b ? 'khong-co-nut' : (b.disabled ? 'tat' : 'CON-BAM'); }()));
+      var cayGio14 = [].slice.call(card14.querySelectorAll('.drop'));
+      step('themMotO', (function () { bam14(0, '+'); return oDong(0) === 2 && oDong(1) === 1 ? '2-1' : 'LECH-' + oDong(0) + '-' + oDong(1); }()));
+      step('gioLaNodeCu', (function () {
+        var h = card14.querySelectorAll('.drop'), giong = h.length === 4 && cayGio14.length === 4;
+        for (var t = 0; t < h.length && giong; t++) if (h[t] !== cayGio14[t]) giong = false;
+        return giong ? '4-node-cu' : 'BI-VE-LAI';
+      }()));
+      step('demTheoO', dem14(0) === '2 phần' && dem14(1) === '1 phần' ? 'in-theo-o' : 'SAI-' + dem14(0) + '|' + dem14(1));
+      /* Đổ đủ bốn thẻ bằng click thật (nhấc thẻ trong lời đề rồi bấm ô đích còn trống) */
+      step('theDaDo', (function () {
+        var vong = 0;
+        while (vong++ < 8) {
+          var tro = card14.querySelector('.drop:not(.ok)');
+          if (!tro) break;
+          var loai = tro.getAttribute('data-loai');
+          var ds = card14.querySelectorAll('.keo[draggable="true"]'), xong = false;
+          for (var t = 0; t < ds.length; t++) {
+            if (ds[t].getAttribute('data-loai') !== loai || !ds[t].offsetParent) continue;
+            ds[t].click(); tro.click(); xong = true; break;
+          }
+          if (!xong) break;
+        }
+        return card14.querySelectorAll('.drop.ok').length + '/' + vong;
+      }()));
+      step('capChuaDu', String(cap14.className) === 'cap bad' && String(cap14.textContent).charAt(0) === '✕' ? 'cap-bad' : 'SAI-' + String(cap14.className) + '-' + String(cap14.textContent).slice(0, 10));
+      step('oGiuSauKhiBam', (function () { bam14(1, '+'); return card14.querySelectorAll('.drop.ok').length === 4 ? 'giu-4-o' : 'MAT-O-KEO'; }()));
+      step('chanDinh', (function () {
+        for (var t = 0; t < 20; t++) bam14(0, '+');
+        return oDong(0) === iw.MAX_SP && nut14(0, '+').disabled ? 'tat-dinh' : 'LECH-' + oDong(0) + '/' + iw.MAX_SP;
+      }()));
+      step('veMotO', (function () {
+        for (var t = 0; t < 20; t++) bam14(0, '-');
+        return oDong(0) === 1 && nut14(0, '-').disabled ? 'tat-day' : 'LECH-' + oDong(0);
+      }()));
+      step('duTySo', (function () { denDung(0, s14.a); denDung(1, s14.b); return iw.soDuKhop(1, 0) ? 'khop' : 'CHUA-KHOP-' + oDong(0) + ':' + oDong(1); }()));
+      step('capKhop', String(cap14.className) === 'cap ok' && String(cap14.textContent).charAt(0) === '✓' ? 'cap-ok' : 'SAI-' + String(cap14.className));
+      step('thuaMotO', (function () { bam14(0, '+'); return String(cap14.className) === 'cap bad' ? 'cap-bad' : 'CON-VOP-TAY'; }()));
+      step('troLaiKhop', (function () { bam14(0, '-'); return iw.soDuKhop(1, 0) && String(cap14.className) === 'cap ok' ? 'khop' : 'SAI'; }()));
+      step('demInDungTySo', dem14(0) === s14.a + ' phần' && dem14(1) === s14.b + ' phần' ? 'in-dung' : 'SAI-' + dem14(0) + '|' + dem14(1));
+      step('nhapRiengCheDo', (function () {
+        var a = iw.SOPHAN['cap-1-0'];
+        return !a || (a[0] === 1 && a[1] === 1) ? 'rieng' : 'DE-NHAU';
+      }()));
+      step('soPhanDaLuu', (function () {
+        var s = JSON.parse(iw.localStorage.getItem('${KHO}') || 'null');
+        var luu = s && s.sp && s.sp[k14];
+        return luu && luu[0] === iw.soPhan(1, 0, 0) && luu[1] === iw.soPhan(1, 0, 1) ? 'trung-khop' : 'KHONG-LUU';
+      }()));
+    }
     step('oNhapSo', demTrong('input[type="number"]') >= 1 ? 'co' : 'mat-o');
     step('deKhac', deCua(1, 0) !== deThuong(1, 0) ? 'khac' : 'GIONG-NGHET');
     step('chiSoDoi', deCua(1, 0).replace(/[0-9]/g, '') === deThuong(1, 0).replace(/[0-9]/g, '')
@@ -368,6 +461,16 @@ function chay() {
     step('cap4DaGuiNC', iw.capDaNop['nc-4'] ? 'co' : 'khong');
     step('cap4DaGuiThuong', iw.capDaNop['th-4'] ? 'co' : 'khong');
     step('deVanNangCao', iw.capCua(4) !== iw.CAP[4] ? 'de-nang-cao' : 'VE-DE-THUONG');
+    /* L14(d) — số ô em BẤM ở Bài 1.1 phải sống qua lần mở lại trang: máy dựng lại đúng hàng
+       đó từ kho, không trả về một ô. So cả bộ nhớ đang chạy lẫn bản ghi trong localStorage. */
+    step('soPhanTuKho', (function () {
+      var s = JSON.parse(iw.localStorage.getItem('${KHO}') || 'null');
+      var k = iw.cauK(1, 0), dang = iw.SOPHAN[k], luu = s && s.sp && s.sp[k];
+      var d = iw.doiSo(iw.cauCua(1, 0).dk);
+      var dungTySo = !!dang && dang[0] === d.a && dang[1] === d.b;
+      var trungLuu = !!luu && !!dang && luu[0] === dang[0] && luu[1] === dang[1];
+      return dungTySo && trungLuu ? 'nhu-lan-truoc' : 'MAT-O-' + JSON.stringify(dang) + '/' + JSON.stringify(luu);
+    }()));
     idoc.querySelector('.lv[data-cap="4"]').click();
     step('banner', String($('#submit-bar').textContent).indexOf('Cấp 4 đã gửi') >= 0 ? 'co-banner' : 'khong-banner');
     step('nutNop', $('#btn-nop') ? 'co-nut' : 'khong');
@@ -410,6 +513,17 @@ function chay() {
     gat();
     C4D = lamCap(4, []);
     step('gl2-dung', C4D.dung); step('gl2-tong', C4D.tong);
+    /* L14(d) — đổi bạn là đổi cả sơ đồ: bạn mới mở trang phải thấy MỖI HÀNG MỘT Ô, không được
+       làm hộ bằng số ô bạn cũ bấm. Kéo–thả chỉ có ở cấp ôn ⇒ đo Bài 1.1 của bạn mới. */
+    step('soPhanKhoiDienLai', (function () {
+      var lech = 0;
+      for (var k in iw.SOPHAN) { var a = iw.SOPHAN[k]; if (a[0] !== 1 || a[1] !== 1) lech++; }
+      idoc.querySelector('.lv[data-cap="1"]').click();
+      var c = idoc.getElementById('card-' + iw.cauK(1, 0));
+      var o = c ? c.querySelectorAll('.sodo .bar.phan').length : -1;
+      var n = c ? c.querySelectorAll('.nutsp .btn').length : -1;
+      return !lech && o === 2 && n === 4 ? 'moi-hang-1-o' : 'LECH-' + lech + '-o=' + o + '-nut=' + n;
+    }()));
     ketLuan(); return done();
   }
   throw new Error('phase la: ' + P);
@@ -473,6 +587,21 @@ const DOT_BIEN = [
     sua: [["if (nc && !c.length) nhan = nhan.replace(/:$/, '.');", '']] },
   { ten: 'N19-the-ty-so-in-chu-la', mo: 'thẻ số phần lấy kiểu "k lần" cho MỌI câu ⇒ câu tỉ số in ra "null lần" ngay trên đề', phase: ['nc-sach'],
     sua: [["if (/\\{lan\\}/.test(mau)) return s.lan + ' lần';", "if (true) return s.lan + ' lần';"]] },
+  /* --- đột biến L14 (28/10): sơ đồ nâng cao dựng bằng nút − / + --- */
+  { ten: 'N20-nang-cao-ve-san-o', mo: 'quên không dựng ô theo nút: sơ đồ nâng cao vẫn vẽ sẵn đủ số phần của tỉ số', phase: ['nc-sach'],
+    sua: [['rows: [hang(0, NC ? soPhan(i, j, 0) : s.a), hang(1, NC ? soPhan(i, j, 1) : s.b)],', 'rows: [hang(0, s.a), hang(1, s.b)],']] },
+  { ten: 'N21-nut-bam-khong-do-hinh', mo: 'nút đổi con số trong bộ nhớ nhưng quên vẽ lại hàng ô ⇒ bấm mà hình đứng yên', phase: ['nc-sach'],
+    sua: [['  luuBai();\n  veLaiSoPhan(i, j);', '  luuBai();']] },
+  { ten: 'N22-mat-nut-dung-o', mo: 'hàng ô nâng cao mất hai nút − / + (đưa null thay vì sinh nút)', phase: ['nc-sach'],
+    sua: [['nut: NC ? nutSoPhanHTML(i, j, row) : null', 'nut: null']] },
+  { ten: 'N23-so-o-khong-vao-nhap', mo: 'số ô em bấm bị xoá khỏi kho giữ bài ⇒ mở lại trang mất sơ đồ của em', phase: ['nc-sach', 'nc-cap4', 'nc-mo-lai'],
+    sua: [['nhap: nhap, nc: NC, sp: SOPHAN, nop: nopChDo,', 'nhap: nhap, nc: NC, nop: nopChDo,']] },
+  { ten: 'N24-hai-che-do-de-o-chen-nhau', mo: 'nháp số ô không khóa theo chế độ ⇒ đề thường ăn luôn ô em dựng lúc nâng cao', phase: ['nc-sach'],
+    sua: [["function soPhanCua(i, j) { var a = SOPHAN[cauK(i, j)]; return a || (SOPHAN[cauK(i, j)] = [1, 1]); }", "function soPhanCua(i, j) { var k = 'cap-' + i + '-' + j; var a = SOPHAN[k]; return a || (SOPHAN[k] = [1, 1]); }"]] },
+  { ten: 'N25-khong-cho-so-sai-ty-so', mo: 'máy vỗ tay cả khi bốn thẻ đã đổ mà hai hàng chưa đúng tỉ số (bỏ cổng kiểm)', phase: ['nc-sach'],
+    sua: [['  if (NC && !soDuKhop(i, j)) {', '  if (false) {']] },
+  { ten: 'N26-doi-ban-giu-o-ban-cu', mo: 'đổi bạn mà giữ số ô bạn cũ bấm ⇒ bạn mới được làm hộ sơ đồ', phase: P_NC,
+    sua: [['  runState = null; nhap = {}; activeCap = 1;\n  SOPHAN = {};', '  runState = null; nhap = {}; activeCap = 1;']] },
   { ten: 'AM-TINH-doi-mau-banner', mo: 'chỉ đổi màu nền banner — phải KHÔNG cháy hàng nào', phase: P_ALL.concat(P_NC),
     sua: [['background:#DCFCE7', 'background:#F0FDF4']] }
 ];
@@ -657,6 +786,27 @@ function bang(kq) {
   hang(L, 'nc-sach', 'phanTrongDe', ns['phanTrongDe'], 'nam-trong-de');
   hang(L, 'nc-sach', 'khayKhongPhan', ns['khayKhongPhan'], 'sach-khay');
   hang(L, 'nc-sach', 'nhanKhongTreO', ns['nhanKhongTreO'], 'tron-van');
+    /* L14 — sơ đồ nâng cao dựng bằng nút − / +, đo bằng click thật */
+    hang(L, 'nc-sach', 'soDoThuVeSan', ns['soDoThuVeSan'], 'du-o-khong-nut');
+    hang(L, 'nc-sach', 'soDoKhongVeSan', ns['soDoKhongVeSan'], 'moi-hang-1-o');
+    hang(L, 'nc-sach', 'nutDemIn', ns['nutDemIn'], '1-phan');
+    hang(L, 'nc-sach', 'nutCoNhan', ns['nutCoNhan'], 'co-aria');
+    hang(L, 'nc-sach', 'truCua1Tat', ns['truCua1Tat'], 'tat');
+    hang(L, 'nc-sach', 'themMotO', ns['themMotO'], '2-1');
+    hang(L, 'nc-sach', 'gioLaNodeCu', ns['gioLaNodeCu'], '4-node-cu');
+    hang(L, 'nc-sach', 'demTheoO', ns['demTheoO'], 'in-theo-o');
+    hang(L, 'nc-sach', 'theDaDo', ns['theDaDo'], '4 thẻ đã đổ', function (v) { return String(v).indexOf('4/') === 0; });
+    hang(L, 'nc-sach', 'capChuaDu', ns['capChuaDu'], 'cap-bad');
+    hang(L, 'nc-sach', 'oGiuSauKhiBam', ns['oGiuSauKhiBam'], 'giu-4-o');
+    hang(L, 'nc-sach', 'chanDinh', ns['chanDinh'], 'tat-dinh');
+    hang(L, 'nc-sach', 'veMotO', ns['veMotO'], 'tat-day');
+    hang(L, 'nc-sach', 'duTySo', ns['duTySo'], 'khop');
+    hang(L, 'nc-sach', 'capKhop', ns['capKhop'], 'cap-ok');
+    hang(L, 'nc-sach', 'thuaMotO', ns['thuaMotO'], 'cap-bad');
+    hang(L, 'nc-sach', 'troLaiKhop', ns['troLaiKhop'], 'khop');
+    hang(L, 'nc-sach', 'demInDungTySo', ns['demInDungTySo'], 'in-dung');
+    hang(L, 'nc-sach', 'nhapRiengCheDo', ns['nhapRiengCheDo'], 'rieng');
+    hang(L, 'nc-sach', 'soPhanDaLuu', ns['soPhanDaLuu'], 'trung-khop');
     hang(L, 'nc-sach', 'oNhapSo', ns['oNhapSo'], 'co');
     hang(L, 'nc-sach', 'deKhac', ns['deKhac'], 'khac');
     hang(L, 'nc-sach', 'chiSoDoi', ns['chiSoDoi'], 'chu-giong-nguyen');
@@ -693,6 +843,7 @@ function bang(kq) {
     hang(L, 'nc-mo-lai', 'cap4DaGuiNC', nml['cap4DaGuiNC'], 'co');
     hang(L, 'nc-mo-lai', 'cap4DaGuiThuong', nml['cap4DaGuiThuong'], 'khong');
     hang(L, 'nc-mo-lai', 'deVanNangCao', nml['deVanNangCao'], 'de-nang-cao');
+    hang(L, 'nc-mo-lai', 'soPhanTuKho', nml['soPhanTuKho'], 'nhu-lan-truoc');
     hang(L, 'nc-mo-lai', 'banner', nml['banner'], 'co-banner');
     hang(L, 'nc-mo-lai', 'nutNop', nml['nutNop'], 'khong');
     hang(L, 'nc-mo-lai', 'posts', nml['posts'], '0');
@@ -729,6 +880,7 @@ function bang(kq) {
     hang(L, 'nc-doi-ban', 'sauDoi.NC', nd['sauDoi.NC'], 'tat');
     hang(L, 'nc-doi-ban', 'sauDoi.kho', nd['sauDoi.kho'], 'xoa-sach');
     hang(L, 'nc-doi-ban', 'sauDoi.capDaNop', nd['sauDoi.capDaNop'], '{}');
+    hang(L, 'nc-doi-ban', 'soPhanKhoiDienLai', nd['soPhanKhoiDienLai'], 'moi-hang-1-o');
     postHang(L, nd, 'nc-doi-ban', 3, 'ten', 'Gia Linh');
     postHang(L, nd, 'nc-doi-ban', 3, 'cap', '4');
     postHang(L, nd, 'nc-doi-ban', 3, 'dung', String(nd['gl2-dung']));
